@@ -34,6 +34,6 @@ class TrainingData:
             "political": "unknown",
             "unknown": "unknown"
         }
-        def lookup_labels(data) -> pd.Categorical:
+        def lookup_labels(data) -> str:
             return labels[data["type"]]
-        self.df["labels"] = self.df.apply(lookup_labels, axis=1)
+        self.df["labels"] = self.df.apply(lookup_labels, axis=1).astype("category")
