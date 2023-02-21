@@ -23,15 +23,15 @@ class TrainingData:
     def add_labels(self) -> None:
         """Add custom labels based on 'type' column."""
         labels = {
-            "unreliable": "unknown",
+            "unreliable": "fake",
             "fake": "fake",
-            "clickbait": "unknown",
+            "clickbait": "fake",
             "conspiracy": "fake",
             "reliable": "real",
-            "bias": "unknown",
-            "hate": "unknown",
+            "bias": "fake",
+            "hate": "fake",
             "junksci": "fake",
-            "political": "unknown",
+            "political": "fake",
             "unknown": "unknown"
         }
         def lookup_labels(data) -> str:
