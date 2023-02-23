@@ -16,11 +16,9 @@ def clean_text(df: pd.DataFrame) -> pd.DataFrame:
 
 def tokenize(df: pd.DataFrame) -> list[str]:
     """Generate list of tokens from dataframe."""
-    content_tkns: list[list[str]] = [c.split(" ") for c in df["content"]]
-    content_tkns_combined = []
-    for lst in content_tkns:
-        content_tkns_combined += lst
-    return content_tkns_combined
+    tkns: list[list[str]] = [c.split(" ") for c in df["content"]]
+    tkns_combined = [tkn for section in tkns for tkn in section]
+    return tkns_combined
 
 def count_sort(tkns: list[str]) -> pd.DataFrame:
     """Creat dataframe with tokens as rows and frequency as values."""
