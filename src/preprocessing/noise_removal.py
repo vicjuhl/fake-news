@@ -4,14 +4,17 @@ from cleantext import clean
 
 def clean_text(df: pd.DataFrame) -> pd.DataFrame:
     """Clean text for various anomalies."""
-    df.content = df.content.apply(lambda x: clean(x,
-        lower=True,
-        normalize_whitespace=True,
-        replace_with_url=True,
-        replace_with_email=True,
-        replace_with_number=True,
-        no_punct=True,
-    ))
+    df.content = df.content.apply(
+        lambda x: clean(
+            x,
+            lower=True,
+            normalize_whitespace=True,
+            replace_with_url=True,
+            replace_with_email=True,
+            replace_with_number=True,
+            no_punct=True,
+        ).replace("\n", " ")
+    )
     return df
 
 def tokenize(df: pd.DataFrame) -> list[str]:
