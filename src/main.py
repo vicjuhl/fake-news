@@ -7,6 +7,6 @@ if __name__ == "__main__":
     """Run entire pipeline from import to preprocessing to analysis."""
     file_path = pl.Path(__file__).parent.parent.resolve() / "data_files/news_sample.csv"
     trn = TD(file_path)
-    tkns = preprocess(trn.df)
-    print(tkns)
+    trn.df, tkns = preprocess(trn.df)
+    print(trn.df, tkns)
     

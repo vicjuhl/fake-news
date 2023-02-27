@@ -17,11 +17,13 @@ def clean_text(df: pd.DataFrame) -> pd.DataFrame:
     )
     return df
 
-def tokenize(df: pd.DataFrame) -> list[str]:
-    """Generate list of tokens from dataframe."""
+def tokenize(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
+    """Add tokens column to df and create combined list of tokens from df."""
+    df["tokens"] = df.content.apply(lambda c: c.split(" "))
+    df["n_tokens"] = df.tokens.apply(lambda tkns: len(tkns))
     tkns: list[list[str]] = [c.split(" ") for c in df["content"]]
     tkns_combined = [tkn for section in tkns for tkn in section]
-    return tkns_combined
+    return df, tkns_combined
 
 def count_sort(tkns: list[str]) -> pd.DataFrame:
     """Creat dataframe with tokens as rows and frequency as values."""
@@ -32,10 +34,10 @@ def count_sort(tkns: list[str]) -> pd.DataFrame:
     df.sort_values(by=["freq"], ascending=False, inplace=True)
     return df
 
-def preprocess(df: pd.DataFrame) -> pd.DataFrame:
+def preprocess(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Run the preprocessing pipeline."""
     df = clean_text(df)
-    tkns = tokenize(df)
+    df, tkns = tokenize(df)
     counts = count_sort(tkns)
     no_head = counts[50:]
-    return no_head
+    return df, no_head
