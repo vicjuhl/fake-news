@@ -1,23 +1,39 @@
 import pathlib as pl
 import pandas as pd
 
-class TrainingData:
-    def __init__(self, file_path: pl.Path) -> None:
-        """Instantiate TrainingData class object."""
-        self.df = self.get_training_data(file_path)
-        self.rinse_training_data()
-        self.add_labels()
+dtypes = {
+    "id": int,
+    "domain": str,
+    "type": str,
+    "url": str,
+    "content": str,
+    "scraped_at": str,
+    "inserted_at": str,
+    "updated_at": str,
+    "title": str,
+    "authors": str,
+    "keywords": str,
+    "meta_keywords": str,
+    "meta_description": str,
+    "tags": str,
+    "summary": str 
+}
 
-    def get_training_data(self, file_path: pl.Path) -> pd.DataFrame:
+class TrainingData:
+    def __init__(self, file_path: pl.Path, n_rows: int = 100) -> None:
+        """Instantiate TrainingData class object."""
+        self.df = self.get_training_data(file_path, n_rows)
+        self.rinse_training_data()
+        # self.add_labels()
+
+    def get_training_data(self, file_path: pl.Path, n_rows: int) -> pd.DataFrame:
         """Import and typecast training data from csv file."""
-        df = pd.read_csv(file_path)
-        df = df.drop(df.columns[0], axis=1)
-        df["type"] = pd.Categorical(df.type)
+        df = pd.read_csv(file_path, nrows=n_rows, dtype=dtypes)
         return df
 
     def rinse_training_data(self) -> None:
         """Rinse training data."""
-        df = self.df[self.df['type'].notna()]
+        df = self.df[self.df['type'].notna()] # Remove unclassified rows
         self.df = df
 
     def add_labels(self) -> None:
