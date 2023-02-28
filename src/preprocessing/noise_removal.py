@@ -1,6 +1,24 @@
 import pandas as pd
 from cleantext import clean
 
+
+def cut_tail(df : pd.DataFrame, min_occurence: int) -> pd.DataFrame :
+        
+    total_words = df.sum(["freq"])   
+    ratio = total_words / min_occurence     
+    lower_bound = max(ratio , 50)
+    acc = 0
+    while df["freq"][acc] > lower_bound:
+        acc += 1
+    
+    words_removed = len(df["freq"])-acc
+    print("words removed: ", words_removed, "with minimum occurence level: ", min_occurence)
+    return df.loc[:acc, :]
+
+print(cut_tail(tokens , 100))
+    
+ 
+
 def clean_text(df: pd.DataFrame) -> pd.DataFrame:
     df.content = df.content.apply(lambda x: clean(x,
         lower=True,
