@@ -2,6 +2,22 @@ import numpy as np
 import pandas as pd
 from cleantext import clean
 
+
+def cut_tail(df : pd.DataFrame, min_occurence: int, head_size: int) -> pd.DataFrame :
+    total_words = df["freq"].sum()   
+    ratio = total_words / min_occurence     
+    lower_bound = max(ratio , 50)
+    acc = 0
+    while df["freq"][acc] > lower_bound:
+        acc += 1
+    words_removed = len(df["freq"])-acc
+    print("words removed: ", words_removed + head_size , "with minimum occurence level: ", min_occurence, "and head size: ", head_size )
+    tailcut = df[:acc]
+    headcut =tailcut[head_size:]
+    return headcut
+    
+ 
+
 def clean_text(df: pd.DataFrame) -> pd.DataFrame:
     """Clean text for various anomalies."""
     df.content = df.content.apply(lambda x: clean(x,
@@ -34,5 +50,5 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     df = clean_text(df)
     tkns = tokenize(df)
     counts = count_sort(tkns)
-    no_head = counts[50:]
-    return no_head
+    no_head_no_tail =(cut_tail(counts , 100, 50))
+    return no_head_no_tail 
