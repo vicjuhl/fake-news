@@ -4,19 +4,17 @@ from cleantext import clean
 
 
 def cut_tail(df : pd.DataFrame, min_occurence: int, head_size: int) -> pd.DataFrame :
-        
-    total_words = df.sum(["freq"])   
+    total_words = df["freq"].sum()   
     ratio = total_words / min_occurence     
     lower_bound = max(ratio , 50)
     acc = 0
     while df["freq"][acc] > lower_bound:
         acc += 1
-    
     words_removed = len(df["freq"])-acc
-    print("words removed: ", words_removed, "with minimum occurence level: ", min_occurence)
-    return df.loc[:acc, head_size:]
-    #no_head = counts[50:]
-
+    print("words removed: ", words_removed + head_size , "with minimum occurence level: ", min_occurence, "and head size: ", head_size )
+    tailcut = df[:acc]
+    headcut =tailcut[head_size:]
+    return headcut
     
  
 
