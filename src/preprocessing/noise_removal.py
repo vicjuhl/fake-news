@@ -3,7 +3,7 @@ import pandas as pd
 from cleantext import clean
 
 
-def cut_tail(df : pd.DataFrame, min_occurence: int) -> pd.DataFrame :
+def cut_tail(df : pd.DataFrame, min_occurence: int, head_size: int) -> pd.DataFrame :
         
     total_words = df.sum(["freq"])   
     ratio = total_words / min_occurence     
@@ -14,9 +14,9 @@ def cut_tail(df : pd.DataFrame, min_occurence: int) -> pd.DataFrame :
     
     words_removed = len(df["freq"])-acc
     print("words removed: ", words_removed, "with minimum occurence level: ", min_occurence)
-    return df.loc[:acc, :]
+    return df.loc[:acc, head_size:]
+    #no_head = counts[50:]
 
-print(cut_tail(tokens , 100))
     
  
 
@@ -52,5 +52,5 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     df = clean_text(df)
     tkns = tokenize(df)
     counts = count_sort(tkns)
-    no_head = counts[50:]
-    return no_head
+    no_head_no_tail =(cut_tail(counts , 100, 50))
+    return no_head_no_tail 
