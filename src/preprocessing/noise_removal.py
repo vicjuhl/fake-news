@@ -8,7 +8,7 @@ def cut_tail_and_head(df : pd.DataFrame, min_occurence: int, head_quantile: floa
     cut the head and tail of the dataframe, where the head is the most frequent words and the tail the least frequent words. 
     
     '''
-    
+
     total_words = df["freq"].sum()   
     acc_index = 0
     acc_sum = 0
@@ -35,11 +35,14 @@ def cut_tail_and_head(df : pd.DataFrame, min_occurence: int, head_quantile: floa
     cut = df[index_upper: index_lower]  # remove tail and head from the dataframe
     
     #stats
-    words_removed = len(df["freq"]) - len(cut["freq"]) 
-    total_words_removed = int(total_words * head_quantile + total_words * tail_quantile)
+    uniquewords = len(df["freq"]) 
     words_left = len(cut["freq"])
-    words_prev = len(df["freq"])
-    print("unique words before cleaning: ", words_prev,  "unique words left: ", words_left , "unique words removed: " , words_removed  , "total words before removel" , total_words ,  " total words removed: ", total_words_removed , " with quantiles: ", head_quantile, " and ", tail_quantile) 
+    words_removed = uniquewords - words_left 
+
+
+    print("Head and tail cutoff.", "with quantiles: ", head_quantile, " and ", tail_quantile, "i.e", str((head_quantile+tail_quantile)*100) + "%" + " of total wordcount removed")
+    print("unique words before cleaning: ", uniquewords,  "unique words after: ", words_left , "unique words removed: " , words_removed)
+    print("unique words removed from head: ",index_upper, " unique words removed from tail: ", uniquewords - index_lower, "at minimum occurence level: ",lower_bound_count)
     return cut
 
     
