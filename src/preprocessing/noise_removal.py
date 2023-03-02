@@ -52,6 +52,18 @@ def frequency_adjustment(df:pd.DataFrame):
         df[col] = df[col].apply(lambda x: x*ratio)
     return df
 
+
+def td_idf(df:pd.DataFrame, total_num_articles: int):
+    '''total document frequency estimation'''
+    df['td_idf_weigh'] = 0
+    #To do expects: a dataframe with column "article_frequency"
+    for i, j in zip(df['freq_article'], df['freq_article']):
+        df['td_idf_weigh'] = np.log(total_num_articles/i) *(np.log(j)+1)
+    return df
+        
+    
+    #return df
+    
 def clean_text(df: pd.DataFrame) -> pd.DataFrame:
     """Clean text for various anomalies."""
     df.content = df.content.apply(lambda x: clean(x,
