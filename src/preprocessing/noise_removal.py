@@ -42,9 +42,15 @@ def cut_tail_and_head(df : pd.DataFrame, min_occurence: int, head_quantile: floa
     print("unique words removed from head: ",index_upper, " unique words removed from tail: ", uniquewords - index_lower, "at minimum occurence level: ",lower_bound_count)
     return cut
 
-    
 
- 
+def frequency_adjustment(df:pd.DataFrame):
+    '''we adjust locla frequencies by multiplying each value by the ration defined as the total frequency in of the corpus divided by the local frequency of the word in the corpus.'''
+    total = df['freq'].sum()
+    for col in df.columns[1:]: # discard first column, frequency adjust elements in the rest
+        local = df[col].sum()
+        ratio = total/local # ratio of total frequency to local frequency
+        df[col] = df[col].apply(lambda x: x*ratio)
+    return df
 
 def clean_text(df: pd.DataFrame) -> pd.DataFrame:
     """Clean text for various anomalies."""
@@ -79,4 +85,5 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     tkns = tokenize(df)
     counts = count_sort(tkns)
     no_head_no_tail =(cut_tail_and_head(counts, 10, 0.15, 0.05))
-    return no_head_no_tail 
+    frequency_adjusted_df = frequency_adjustment(no_head_no_tail) #missing label word count (viktor still works doesnt do anything)
+    return frequency_adjusted_df 
