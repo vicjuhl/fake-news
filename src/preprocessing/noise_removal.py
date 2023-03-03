@@ -1,5 +1,5 @@
 import pandas as pd
-from cleantext import clean
+from cleantext import clean # type: ignore
 from IPython.display import clear_output
 
 

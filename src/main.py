@@ -1,6 +1,6 @@
 import pathlib as pl
-from data_importer import TrainingData, raw_to_words
-from preprocessing.noise_removal import preprocess
+from data_importer import TrainingData, raw_to_words # type: ignore
+from preprocessing.noise_removal import preprocess # type: ignore
 import argparse as ap
 
 def init_argparse() -> ap.ArgumentParser:

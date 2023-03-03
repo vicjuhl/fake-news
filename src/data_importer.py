@@ -1,6 +1,6 @@
 import pathlib as pl
 import pandas as pd
-from preprocessing.noise_removal import clean_str
+from preprocessing.noise_removal import clean_str # type: ignore
 from typing import Union
 import csv
 import json
