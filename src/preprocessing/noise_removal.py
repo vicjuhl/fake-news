@@ -1,9 +1,5 @@
 import pandas as pd
 from cleantext import clean
-import pathlib as pl
-import csv
-from typing import Union
-import json
 from IPython.display import clear_output
 
 
