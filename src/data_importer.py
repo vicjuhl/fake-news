@@ -1,5 +1,9 @@
 import pathlib as pl
 import pandas as pd
+from preprocessing.noise_removal import clean_str
+from typing import Union
+import csv
+import json
 
 dtypes = {
     "id": int,
@@ -53,3 +57,51 @@ class TrainingData:
         def lookup_labels(data) -> str:
             return labels[data["type"]]
         self.df["labels"] = self.df.apply(lookup_labels, axis=1).astype("category")
+
+def dump_json(file_path: pl.Path, out_dict: dict) -> None:
+    """Dump dictionary to json."""
+    json_words = json.dumps(out_dict, indent=4)
+    with open(file_path, "w") as outfile:
+        outfile.write(json_words)
+
+def raw_to_words(from_file: pl.Path, to_path: pl.Path, n_rows: int) -> int:
+    """Read raw csv file line by line, clean words, count occurrences and dump to json."""
+    words: dict[str, dict[str, Union[int, dict[str, int]]]] = {} # Included words
+    excl: dict[str, dict[str, Union[int, dict[str, int]]]] = {} # Excludes words
+    skipped: int = 0 # Count skipped rows that could not be read.
+    to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
+    
+    with open(from_file) as f:
+        reader = csv.reader(f)
+        next(reader) # skip header
+
+        for i, row in enumerate(reader):
+            if i % 5000 == 0:
+                print("Processed lines: ", i, "...") # "progress bar"
+            try:
+                # Skip row if either type or content is not well defined
+                type_ = row[3]
+                content = row[5]
+            except:
+                skipped += 1
+                continue
+
+            to_dict = excl if type_ is None or type_ in ["satire", "unknown"] else words
+            content_clean = clean_str(content)
+            tkns = content_clean.split(" ")
+
+            # Increment total counter and type counter for word
+            for tkn in tkns:
+                to_dict[tkn] = to_dict.get(tkn, {"freq": 0, "type": {}})
+                to_dict[tkn]["freq"] += 1
+                to_dict[tkn]["type"][type_] = to_dict[tkn]["type"].get(type_, 0) + 1
+            
+            # Break when target rows reached
+            if i == n_rows:
+                break
+
+    # Export as json
+    dump_json(to_path / "words.json", words)
+    dump_json(to_path / "excluded_words.json", excl)
+
+    return skipped
