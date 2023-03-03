@@ -35,7 +35,7 @@ def tokenize(df: pd.DataFrame) -> list[str]:
 
 def count_sort(tkns: list[str]) -> pd.DataFrame:
     """Creat dataframe with tokens as rows and frequency as values."""
-    counts = dict()
+    counts: dict[str, int] = dict()
     for tkn in tkns:
         counts[tkn] = counts.get(tkn, 0) + 1
     df = pd.DataFrame.from_dict(counts, orient="index", columns=["freq"])
