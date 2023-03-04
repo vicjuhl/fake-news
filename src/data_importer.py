@@ -63,7 +63,13 @@ def dump_json(file_path: pl.Path, out_dict: dict) -> None:
     with open(file_path, "w") as outfile:
         outfile.write(json_words)
 
-def raw_to_words(from_file: pl.Path, to_path: pl.Path, n_rows: int) -> int:
+def raw_to_words(
+    from_file: pl.Path,
+    to_path: pl.Path,
+    n_rows: int,
+    incl_name: str,
+    excl_name: str
+) -> int:
     """Read raw csv file line by line, clean words, count occurrences and dump to json."""
     words: dict[str, dict[str, int]] = {} # Included words
     excl: dict[str, dict[str, int]] = {} # Excludes words
@@ -99,7 +105,7 @@ def raw_to_words(from_file: pl.Path, to_path: pl.Path, n_rows: int) -> int:
                 break
 
     # Export as json
-    dump_json(to_path / "words.json", words)
-    dump_json(to_path / "excluded_words.json", excl)
+    dump_json(to_path / f"{incl_name}.json", words)
+    dump_json(to_path / f"{excl_name}.json", excl)
 
     return skipped
