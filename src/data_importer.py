@@ -69,12 +69,17 @@ def raw_to_words(
     n_rows: int,
     incl_name: str,
     excl_name: str
-) -> int:
-    """Read raw csv file line by line, clean words, count occurrences and dump to json."""
+) -> tuple[int, int]:
+    """Read raw csv file line by line, clean words, count occurrences and dump to json.
+    
+    Return tuple of n_read, n_skipped
+    """
     incl: dict[str, dict[str, int]] = {} # Included words
     excl: dict[str, dict[str, int]] = {} # Excludes words
-    skipped: int = 0 # Count skipped rows that could not be read.
+    n_read: int = 0 # Count rows that were be read.
+    n_skipped: int = 0 # Count skipped rows that could not be read.
     to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
+    n_rows -= 1 # Compensate for 0-indexing
     
     with open(from_file) as f:
         reader = csv.reader(f)
@@ -87,8 +92,9 @@ def raw_to_words(
                 # Skip row if either type or content is not well defined
                 type_ = row[3]
                 content = row[5]
+                n_read += 1
             except:
-                skipped += 1
+                n_skipped += 1
                 continue
 
             to_dict = excl if type_ is None or type_ in ["satire", "unknown", ""] else incl
@@ -108,4 +114,4 @@ def raw_to_words(
     dump_json(to_path / f"{incl_name}.json", incl)
     dump_json(to_path / f"{excl_name}.json", excl)
 
-    return skipped
+    return n_read, n_skipped

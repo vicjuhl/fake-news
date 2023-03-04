@@ -16,12 +16,14 @@ if __name__ == "__main__":
     parser = init_argparse()
     args = parser.parse_args()
     data_path = pl.Path(__file__).parent.parent.resolve() / "data_files"
-    
+
     if args.file == "full":
         file_path = data_path / "news_cleaned_2018_02_13.csv"
         to_path = data_path / "words/"
-        skipped = raw_to_words(file_path, to_path, args.nrows, args.inclname, args.exclname)
-        print(f"Data written as json to {to_path}, skipped {skipped} rows")
+        n_read, n_skipped = raw_to_words(
+            file_path, to_path, args.nrows, args.inclname, args.exclname
+        )
+        print(f"{n_read} rows read, written as json to {to_path}; skipped {n_skipped} rows")
     
     elif args.file == "sample":
         file_path = data_path / "news_sample.csv"
