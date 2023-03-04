@@ -1,7 +1,6 @@
 import pathlib as pl
 import pandas as pd
 from preprocessing.noise_removal import clean_str # type: ignore
-from typing import Union
 import csv
 import json
 
@@ -66,8 +65,8 @@ def dump_json(file_path: pl.Path, out_dict: dict) -> None:
 
 def raw_to_words(from_file: pl.Path, to_path: pl.Path, n_rows: int) -> int:
     """Read raw csv file line by line, clean words, count occurrences and dump to json."""
-    words: dict[str, dict[str, Union[int, dict[str, int]]]] = {} # Included words
-    excl: dict[str, dict[str, Union[int, dict[str, int]]]] = {} # Excludes words
+    words: dict[str, dict[str, int]] = {} # Included words
+    excl: dict[str, dict[str, int]] = {} # Excludes words
     skipped: int = 0 # Count skipped rows that could not be read.
     to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
     
@@ -92,9 +91,8 @@ def raw_to_words(from_file: pl.Path, to_path: pl.Path, n_rows: int) -> int:
 
             # Increment total counter and type counter for word
             for tkn in tkns:
-                to_dict[tkn] = to_dict.get(tkn, {"freq": 0, "type": {}})
-                to_dict[tkn]["freq"] += 1
-                to_dict[tkn]["type"][type_] = to_dict[tkn]["type"].get(type_, 0) + 1
+                to_dict[tkn] = to_dict.get(tkn, {})
+                to_dict[tkn][type_] = to_dict[tkn].get(type_, 0) + 1
             
             # Break when target rows reached
             if i == n_rows:
