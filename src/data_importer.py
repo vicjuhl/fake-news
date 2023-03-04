@@ -3,6 +3,14 @@ import pandas as pd
 from preprocessing.noise_removal import clean_str # type: ignore
 import csv
 import json
+from multiprocessing import Pool, pool
+import sys
+
+news_info  = tuple[str, str] # type and content
+words_info = tuple[str, list[str]] # type and words
+words_dict = dict[str, dict[str, int]] # words and {type: count}
+
+csv.field_size_limit(sys.maxsize)
 
 dtypes = {
     "id": int,
@@ -63,6 +71,39 @@ def dump_json(file_path: pl.Path, out_dict: dict) -> None:
     with open(file_path, "w") as outfile:
         outfile.write(json_words)
 
+def process_batch(articles: list[news_info]) -> list[words_info]:
+    return [(t, clean_str(c).split(" ")) for t, c in articles]
+
+def add_words_to_dict(
+    data_list: list[words_info],
+    incl: words_dict,
+    excl: words_dict
+) -> None:
+    # Increment total counter and type counter for word
+    for type_, words in data_list:
+        out_dict = excl if type_ is None or type_ in ["satire", "unknown", ""] else incl
+        for word in words:
+            out_dict[word] = out_dict.get(word, {}) # Add word if it is new
+            out_dict[word][type_] = out_dict[word].get(type_, 0) + 1
+
+def process_batches(
+    p: pool.Pool,
+    incl: words_dict,
+    excl: words_dict,
+    buffer: list[list[news_info]]
+) -> None:
+    data_lists = p.map(process_batch, buffer)
+    # Combine list of lists to list of elements
+    data_list = [item for sublist in data_lists for item in sublist]
+    # Add processed words to out_dicts
+    add_words_to_dict(data_list, incl, excl)
+
+def create_clear_buffer(n_procs: int) -> list[list[news_info]]:
+    buffer: list[list[news_info]] = []
+    for _ in range(n_procs):
+        buffer.append([])
+    return buffer
+
 def raw_to_words(
     from_file: pl.Path,
     to_path: pl.Path,
@@ -74,41 +115,75 @@ def raw_to_words(
     
     Return tuple of n_read, n_skipped
     """
-    incl: dict[str, dict[str, int]] = {} # Included words
-    excl: dict[str, dict[str, int]] = {} # Excludes words
+    incl: words_dict = {} # Included words
+    excl: words_dict = {} # Excludes words
+    to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
+
     n_read: int = 0 # Count rows that were be read.
     n_skipped: int = 0 # Count skipped rows that could not be read.
-    to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
     n_rows -= 1 # Compensate for 0-indexing
+
+    n_procs = 8 # DYNAMIC TODO
+    batch_sz = 1000
+    buffer_sz = n_procs * batch_sz
+    # n empty lists
+    buffer = create_clear_buffer(n_procs)
+    data_list: list[words_info] = []
+
+    running = True
+    i = 0
     
     with open(from_file) as f:
         reader = csv.reader(f)
         next(reader) # skip header
+        row = next(reader)
 
-        for i, row in enumerate(reader):
-            if i % 5000 == 0:
-                print("Processed lines: ", i, "...") # "progress bar"
+        while running:
             try:
-                # Skip row if either type or content is not well defined
-                type_ = row[3]
-                content = row[5]
-                n_read += 1
-            except:
-                n_skipped += 1
-                continue
+                row = next(reader)
+                if i % 5000 == 0:
+                    print("Processed lines:", i, "...") # "progress bar"
 
-            to_dict = excl if type_ is None or type_ in ["satire", "unknown", ""] else incl
-            content_clean = clean_str(content)
-            tkns = content_clean.split(" ")
+                # Parallel process data if all batches are full
+                if n_read % buffer_sz == 0:
+                    with Pool(n_procs) as p:
+                        data_results = p.map_async(process_batch, buffer)
+                        data_results.wait()
+                        data_lists = data_results.get()
+                        p.close()
+                        p.join()
+                        # Combine list of lists of elements to just list of elements
+                        data_list = [article for batch in data_lists for article in batch]
+                        # Add processed words to out_dicts
+                        add_words_to_dict(data_list, incl, excl)
+                        buffer = create_clear_buffer(n_procs)
 
-            # Increment total counter and type counter for word
-            for tkn in tkns:
-                to_dict[tkn] = to_dict.get(tkn, {})
-                to_dict[tkn][type_] = to_dict[tkn].get(type_, 0) + 1
-            
-            # Break when target rows reached
-            if i == n_rows:
-                break
+                # Read and save line
+                try:
+                    type_ = row[3]
+                    content = row[5]
+                    n_read += 1
+                    # Add article to appropriate batch
+                    buffer_index = (n_read % buffer_sz)//batch_sz
+                    batch = buffer[buffer_index]
+                    batch.append((type_, content))
+                # Or skip row if either type or content cannot be read
+                except:
+                    n_skipped += 1 # ERROR HERE TODO
+                    print("batch add fail", i, n_skipped)
+                
+                # Break when target rows reached
+                if i >= n_rows:
+                    running = False
+                i += 1
+
+            except: # No row to read (or other error)
+                running = False
+        
+        # Flush buffer in single process
+        data_lists = [process_batch(batch) for batch in buffer]
+        data_list = [article for batch in data_lists for article in batch]
+        add_words_to_dict(data_list, incl, excl)
 
     # Export as json
     dump_json(to_path / f"{incl_name}.json", incl)

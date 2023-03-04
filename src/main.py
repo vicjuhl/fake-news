@@ -2,6 +2,7 @@ import pathlib as pl
 from data_importer import TrainingData, raw_to_words # type: ignore
 from preprocessing.noise_removal import preprocess # type: ignore
 import argparse as ap
+import time
 
 def init_argparse() -> ap.ArgumentParser:
     parser = ap.ArgumentParser()
@@ -13,6 +14,7 @@ def init_argparse() -> ap.ArgumentParser:
 
 if __name__ == "__main__":
     """Run entire pipeline from import to preprocessing to analysis."""
+    t0 = time.time()
     parser = init_argparse()
     args = parser.parse_args()
     data_path = pl.Path(__file__).parent.parent.resolve() / "data_files"
@@ -33,4 +35,6 @@ if __name__ == "__main__":
     
     else:
         raise ValueError("Wrong file name alias given")
+    
+    print(time.time() - t0)
     
