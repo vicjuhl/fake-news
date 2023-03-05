@@ -65,6 +65,16 @@ class TrainingData:
             return labels[data["type"]]
         self.df["labels"] = self.df.apply(lookup_labels, axis=1).astype("category")
 
+class WordsDict:
+    def __init__(self) -> None:
+        self.data: words_dict = {}
+
+    def add_words(self, type_: str, words: list[str]) -> None:
+        """Add bag of words to self."""
+        for word in words:
+            self.data[word] = self.data.get(word, {}) # Add word if it is new
+            self.data[word][type_] = self.data[word].get(type_, 0) + 1
+
 def dump_json(file_path: pl.Path, out_dict: dict) -> None:
     """Dump dictionary to json."""
     json_words = json.dumps(out_dict, indent=4)
@@ -76,15 +86,13 @@ def process_batch(articles: list[news_info]) -> list[words_info]:
 
 def add_words_to_dict(
     data_list: list[words_info],
-    incl: words_dict,
-    excl: words_dict
+    incl: WordsDict,
+    excl: WordsDict
 ) -> None:
     # Increment total counter and type counter for word
     for type_, words in data_list:
         out_dict = excl if type_ is None or type_ in ["satire", "unknown", ""] else incl
-        for word in words:
-            out_dict[word] = out_dict.get(word, {}) # Add word if it is new
-            out_dict[word][type_] = out_dict[word].get(type_, 0) + 1
+        out_dict.add_words(type_, words)
 
 def create_clear_buffer(n_procs: int) -> list[list[news_info]]:
     buffer: list[list[news_info]] = []
@@ -110,8 +118,8 @@ def raw_to_words(
     
     Return tuple of n_read, n_skipped
     """
-    incl: words_dict = {} # Included words
-    excl: words_dict = {} # Excludes words
+    incl =  WordsDict() # Included words
+    excl =  WordsDict() # Excludes words
     to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
 
     n_read: int = 0 # Count rows that were be read.
@@ -169,7 +177,7 @@ def raw_to_words(
         add_words_to_dict(process_buffer(buffer, n_procs), incl, excl)
 
     # Export as json
-    dump_json(to_path / f"{incl_name}.json", incl)
-    dump_json(to_path / f"{excl_name}.json", excl)
+    dump_json(to_path / f"{incl_name}.json", incl.data)
+    dump_json(to_path / f"{excl_name}.json", excl.data)
 
     return n_read, n_skipped
