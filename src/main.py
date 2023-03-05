@@ -22,10 +22,10 @@ if __name__ == "__main__":
     if args.file == "full":
         file_path = data_path / "news_cleaned_2018_02_13.csv"
         to_path = data_path / "words/"
-        n_read, n_skipped = raw_to_words(
+        n_incl, n_excl, n_skipped = raw_to_words(
             file_path, to_path, args.nrows, args.inclname, args.exclname
         )
-        print(f"{n_read} rows read, written as json to {to_path}; skipped {n_skipped} rows")
+        print(f"{n_incl + n_excl} rows read, \n {n_incl} were included \n {n_excl} were excluded \n {n_skipped} were skipped \n JSON files were written to {to_path}")
     
     elif args.file == "sample":
         file_path = data_path / "news_sample.csv"
