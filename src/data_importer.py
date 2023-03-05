@@ -65,34 +65,42 @@ class TrainingData:
             return labels[data["type"]]
         self.df["labels"] = self.df.apply(lookup_labels, axis=1).astype("category")
 
-class WordsDict:
-    def __init__(self) -> None:
-        self.data: words_dict = {}
+class WordsDicts:
+    """Two dictionaries with included and excluded words, respectively."""
+    def __init__(self, to_path: pl.Path, incl_name: str, excl_name: str) -> None:
+        """Create empty dicts, store file paths and make destination folder."""
+        self.incl: words_dict = {}
+        self.excl: words_dict = {}
+        self.incl_path = to_path / f"{incl_name}.json"
+        self.excl_path = to_path / f"{excl_name}.json"
+        to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
 
-    def add_words(self, type_: str, words: list[str]) -> None:
+    def add_words(self, data_list: list[words_info]) -> None:
         """Add bag of words to self."""
-        for word in words:
-            self.data[word] = self.data.get(word, {}) # Add word if it is new
-            self.data[word][type_] = self.data[word].get(type_, 0) + 1
+        for type_, words in data_list:
+            # Decide where to add word based on type
+            out_dict = (
+                self.excl if type_ is None or type_ in ["satire", "unknown", ""]
+                else self.incl
+            )
+            for word in words:
+                out_dict[word] = out_dict.get(word, {}) # Add word if it is new
+                out_dict[word][type_] = out_dict[word].get(type_, 0) + 1 # Add one
+        
+    def export_json(self) -> None:
+        """Dump both dicts as json files."""
+        self.dump_json(self.incl_path, self.incl)
+        self.dump_json(self.excl_path, self.excl)
 
-def dump_json(file_path: pl.Path, out_dict: dict) -> None:
-    """Dump dictionary to json."""
-    json_words = json.dumps(out_dict, indent=4)
-    with open(file_path, "w") as outfile:
-        outfile.write(json_words)
+    @classmethod
+    def dump_json(cls, file_path: pl.Path, out_dict: dict) -> None:
+        """Dump dictionary to json."""
+        json_words = json.dumps(out_dict, indent=4)
+        with open(file_path, "w") as outfile:
+            outfile.write(json_words)
 
 def process_batch(articles: list[news_info]) -> list[words_info]:
     return [(t, clean_str(c).split(" ")) for t, c in articles]
-
-def add_words_to_dict(
-    data_list: list[words_info],
-    incl: WordsDict,
-    excl: WordsDict
-) -> None:
-    # Increment total counter and type counter for word
-    for type_, words in data_list:
-        out_dict = excl if type_ is None or type_ in ["satire", "unknown", ""] else incl
-        out_dict.add_words(type_, words)
 
 def create_clear_buffer(n_procs: int) -> list[list[news_info]]:
     buffer: list[list[news_info]] = []
@@ -118,9 +126,7 @@ def raw_to_words(
     
     Return tuple of n_read, n_skipped
     """
-    incl =  WordsDict() # Included words
-    excl =  WordsDict() # Excludes words
-    to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
+    out_dicts = WordsDicts(to_path, incl_name, excl_name) # Included words
 
     n_read: int = 0 # Count rows that were be read.
     n_skipped: int = 0 # Count skipped rows that could not be read.
@@ -148,7 +154,7 @@ def raw_to_words(
 
                 # Parallel process data if all batches are full
                 if n_read % buffer_sz == 0:
-                    add_words_to_dict(process_buffer(buffer, n_procs), incl, excl)
+                    out_dicts.add_words(process_buffer(buffer, n_procs))
                     buffer = create_clear_buffer(n_procs)
 
                 # Read and save line
@@ -174,10 +180,9 @@ def raw_to_words(
                 running = False
         
         # Flush what remains in the buffer
-        add_words_to_dict(process_buffer(buffer, n_procs), incl, excl)
+        out_dicts.add_words(process_buffer(buffer, n_procs))
 
     # Export as json
-    dump_json(to_path / f"{incl_name}.json", incl.data)
-    dump_json(to_path / f"{excl_name}.json", excl.data)
+    out_dicts.export_json()
 
     return n_read, n_skipped
