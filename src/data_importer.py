@@ -86,23 +86,18 @@ def add_words_to_dict(
             out_dict[word] = out_dict.get(word, {}) # Add word if it is new
             out_dict[word][type_] = out_dict[word].get(type_, 0) + 1
 
-def process_batches(
-    p: pool.Pool,
-    incl: words_dict,
-    excl: words_dict,
-    buffer: list[list[news_info]]
-) -> None:
-    data_lists = p.map(process_batch, buffer)
-    # Combine list of lists to list of elements
-    data_list = [item for sublist in data_lists for item in sublist]
-    # Add processed words to out_dicts
-    add_words_to_dict(data_list, incl, excl)
-
 def create_clear_buffer(n_procs: int) -> list[list[news_info]]:
     buffer: list[list[news_info]] = []
     for _ in range(n_procs):
         buffer.append([])
     return buffer
+
+def process_buffer(buffer: list[list[news_info]], n_procs: int) -> list[words_info]:
+    with Pool(n_procs) as p:
+        data_results = p.map_async(process_batch, buffer)
+        data_lists = data_results.get()
+        # Concattenate list of lists of words to just list of word_info
+        return [article for batch in data_lists for article in batch]
 
 def raw_to_words(
     from_file: pl.Path,
@@ -128,7 +123,6 @@ def raw_to_words(
     buffer_sz = n_procs * batch_sz
     # n empty lists
     buffer = create_clear_buffer(n_procs)
-    data_list: list[words_info] = []
 
     running = True
     i = 0
@@ -146,27 +140,18 @@ def raw_to_words(
 
                 # Parallel process data if all batches are full
                 if n_read % buffer_sz == 0:
-                    with Pool(n_procs) as p:
-                        data_results = p.map_async(process_batch, buffer)
-                        data_results.wait()
-                        data_lists = data_results.get()
-                        p.close()
-                        p.join()
-                        # Combine list of lists of elements to just list of elements
-                        data_list = [article for batch in data_lists for article in batch]
-                        # Add processed words to out_dicts
-                        add_words_to_dict(data_list, incl, excl)
-                        buffer = create_clear_buffer(n_procs)
+                    add_words_to_dict(process_buffer(buffer, n_procs), incl, excl)
+                    buffer = create_clear_buffer(n_procs)
 
                 # Read and save line
                 try:
                     type_ = row[3]
                     content = row[5]
-                    n_read += 1
                     # Add article to appropriate batch
                     buffer_index = (n_read % buffer_sz)//batch_sz
                     batch = buffer[buffer_index]
                     batch.append((type_, content))
+                    n_read += 1
                 # Or skip row if either type or content cannot be read
                 except:
                     n_skipped += 1 # ERROR HERE TODO
@@ -180,10 +165,8 @@ def raw_to_words(
             except: # No row to read (or other error)
                 running = False
         
-        # Flush buffer in single process
-        data_lists = [process_batch(batch) for batch in buffer]
-        data_list = [article for batch in data_lists for article in batch]
-        add_words_to_dict(data_list, incl, excl)
+        # Flush what remains in the buffer
+        add_words_to_dict(process_buffer(buffer, n_procs), incl, excl)
 
     # Export as json
     dump_json(to_path / f"{incl_name}.json", incl)
