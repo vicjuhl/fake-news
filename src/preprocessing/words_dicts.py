@@ -2,6 +2,9 @@ import json
 
 import pathlib as pl
 from utils.types import words_info, words_dict # type: ignore
+from nltk import PorterStemmer # type: ignore
+
+ps = PorterStemmer()
 
 class WordsDicts:
     """Two dictionaries with included and excluded words, respectively."""
@@ -9,9 +12,13 @@ class WordsDicts:
         """Create empty dicts, store file paths and make destination folder."""
         self._incl: words_dict = {}
         self._excl: words_dict = {}
+        self._incl_stem: words_dict = {}
+        self._excl_stem: words_dict = {}
+
         self._incl_path = to_path / f"{incl_name}.json"
         self._excl_path = to_path / f"{excl_name}.json"
         to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
+        
         self._n_incl: int = 0
         self._n_excl: int = 0
 
@@ -22,6 +29,10 @@ class WordsDicts:
     @property
     def n_excl(self) -> int:
         return self._n_excl
+    
+    @property
+    def all_dicts(self) -> list[words_dict]:
+        return [self._incl, self._excl]
 
     def add_words(self, data_list: list[words_info]) -> None:
         """Add bag of words to self."""
@@ -42,6 +53,22 @@ class WordsDicts:
         """Dump both dicts as json files."""
         self.dump_json(self._incl_path, self._incl)
         self.dump_json(self._excl_path, self._excl)
+
+    def stem(self) -> None:
+        """Stem dicts and combine each into new dict."""
+         # Loop through both dicts
+        for dct in self.all_dicts:
+            old_dct = dct.copy()
+            dct.clear()
+            # Loop through words
+            for tkn in old_dct.keys():
+                stemmed_tkn = ps.stem(tkn)
+                try:
+                    # Loop through frequencies for word
+                    for type_, freq in old_dct[tkn].items():
+                        dct[stemmed_tkn][type_] += freq
+                except:
+                    dct[stemmed_tkn] = old_dct[tkn]
 
     @classmethod
     def dump_json(cls, file_path: pl.Path, out_dict: dict) -> None:
