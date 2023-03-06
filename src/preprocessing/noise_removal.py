@@ -18,8 +18,8 @@ def cut_tail_and_head(
     index_upper = 0 
     index_lower = 0 
     
-    Target_sum_head = head_quantile * total_words
-    while acc_sum < Target_sum_head: # finds index of head quantile   
+    target_sum_head = head_quantile * total_words
+    while acc_sum < target_sum_head: # finds index of head quantile   
         acc_sum += df["freq"][acc_index]
         acc_index += 1
     
@@ -29,9 +29,9 @@ def cut_tail_and_head(
         acc_index += 1
     
     index_upper = acc_index   
-    Target_sum_tail = (1-tail_quantile) * total_words    
+    target_sum_tail = (1-tail_quantile) * total_words    
         
-    while acc_sum < Target_sum_tail and df["freq"][acc_index] > min_occurence: # finds index of tail quantile
+    while acc_sum < target_sum_tail and df["freq"][acc_index] > min_occurence: # finds index of tail quantile
         acc_sum += df["freq"][acc_index]
         acc_index += 1
 
@@ -53,14 +53,14 @@ def cut_tail_and_head(
           head_quantile, " and ", tail_quantile, "i.e", 
           str((head_quantile+tail_quantile)*100)
           + "%" + " of total wordcount removed"
-          )
+    )
     print("unique words before cleaning: ", uniquewords,  "unique words after: ",
           words_left , "unique words removed: " , words_removed
-          )
+    )
     print("unique words removed from head: ",index_upper, 
           " unique words removed from tail: ", uniquewords - index_lower,
           "at minimum occurence level: ",lower_bound_count
-          )
+    )
     return cut
   
 
