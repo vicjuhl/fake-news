@@ -1,7 +1,7 @@
 import pathlib as pl
 import csv
 import sys
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 
 from preprocessing.noise_removal import clean_str # type: ignore
 from utils.types import news_info, words_info # type: ignore
@@ -42,8 +42,8 @@ def raw_to_words(
     n_skipped: int = 0 # Count skipped rows that could not be read.
     n_rows -= 1 # Compensate for 0-indexing
 
-    n_procs = 8 # DYNAMIC TODO
-    batch_sz = 1000
+    n_procs = cpu_count()
+    batch_sz = 10000
     buffer_sz = n_procs * batch_sz
     # n empty lists
     buffer = create_clear_buffer(n_procs)
