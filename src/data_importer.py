@@ -7,18 +7,19 @@ from preprocessing.noise_removal import clean_str # type: ignore
 from utils.types import news_info, words_info # type: ignore
 from preprocessing.words_dicts import WordsDicts # type: ignore
 
-csv.field_size_limit(sys.maxsize)
-
-def process_batch(articles: list[news_info]) -> list[words_info]:
-    return [(t, clean_str(c).split(" ")) for t, c in articles]
-
 def create_clear_buffer(n_procs: int) -> list[list[news_info]]:
+    """Create buffer list with n_procs empty lists."""
     buffer: list[list[news_info]] = []
     for _ in range(n_procs):
         buffer.append([])
     return buffer
 
+def process_batch(articles: list[news_info]) -> list[words_info]:
+    """Clean text and split into list of type/bag of words pairs."""
+    return [(t, clean_str(c).split(" ")) for t, c in articles]
+
 def process_buffer(buffer: list[list[news_info]], n_procs: int) -> list[words_info]:
+    """Multiprocess article buffer, return list of type/bag of words pairs."""
     with Pool(n_procs) as p:
         data_results = p.map_async(process_batch, buffer)
         data_lists = data_results.get()
@@ -34,9 +35,11 @@ def raw_to_words(
 ) -> tuple[int, int, int]:
     """Read raw csv file line by line, clean words, count occurrences and dump to json.
     
-    Return tuple of n_read, n_skipped
+    Return tuple of n_included, n_excluded, n_skipped
     """
-    out_dicts = WordsDicts(to_path, incl_name, excl_name) # Included words
+
+    csv.field_size_limit(sys.maxsize) # Allow long content texts
+    out_dicts = WordsDicts(to_path, incl_name, excl_name)
 
     n_read: int = 0 # Count rows that were be read.
     n_skipped: int = 0 # Count skipped rows that could not be read.
