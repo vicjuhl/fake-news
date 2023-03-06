@@ -53,13 +53,16 @@ def frequency_adjustment(df:pd.DataFrame):
     return df
 
 
+
 def td_idf(df:pd.DataFrame, total_num_articles: int):
     '''total document frequency estimation'''
-    df['td_idf_weigh'] = 0
+    df['td_idf_weight'] = 0
     #To do expects: a dataframe with column "article_frequency"
-    for i, j in zip(df['freq_article'], df['freq_article']):
-        df['td_idf_weigh'] = np.log(total_num_articles/i) *(np.log(j)+1)
+
+    for i in range(len(df)):
+        df['td_idf_weight'][i] = np.log(total_num_articles/df['freq_article'][i])*(np.log(df['freq'][i])+1)
     return df
+
         
     
     #return df
