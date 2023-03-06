@@ -1,7 +1,5 @@
 import pandas as pd
 from cleantext import clean # type: ignore
-from IPython.display import clear_output
-
 
 def clean_text(df: pd.DataFrame) -> pd.DataFrame:
     """Clean text for various anomalies for "content" in df."""
