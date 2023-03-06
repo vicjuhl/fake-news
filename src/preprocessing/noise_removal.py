@@ -1,6 +1,5 @@
-import numpy as np
 import pandas as pd
-from cleantext import clean
+from cleantext import clean # type: ignore
 
 
 def cut_tail_and_head(
@@ -65,7 +64,7 @@ def cut_tail_and_head(
   
 
 def clean_text(df: pd.DataFrame) -> pd.DataFrame:
-    """Clean text for various anomalies."""
+    """Clean text for various anomalies for "content" in df."""
     df.content = df.content.apply(lambda x: clean(x,
         lower=True,
         normalize_whitespace=True,
@@ -76,6 +75,18 @@ def clean_text(df: pd.DataFrame) -> pd.DataFrame:
     ))
     return df
 
+def clean_str(text: str) -> str:
+    """Clean text for various anomalies."""
+    return clean(
+        text,
+        lower=True,
+        normalize_whitespace=True,
+        replace_with_url=True,
+        replace_with_email=True,
+        replace_with_number=True,
+        no_punct=True,
+    ).replace("\n", "")
+
 def tokenize(df: pd.DataFrame) -> list[str]:
     """Generate list of tokens from dataframe."""
     tkns: list[list[str]] = [c.split(" ") for c in df["content"]]
@@ -84,7 +95,7 @@ def tokenize(df: pd.DataFrame) -> list[str]:
 
 def count_sort(tkns: list[str]) -> pd.DataFrame:
     """Creat dataframe with tokens as rows and frequency as values."""
-    counts = dict()
+    counts: dict[str, int] = dict()
     for tkn in tkns:
         counts[tkn] = counts.get(tkn, 0) + 1
     df = pd.DataFrame.from_dict(counts, orient="index", columns=["freq"])
