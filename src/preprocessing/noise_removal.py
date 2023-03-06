@@ -3,8 +3,7 @@ import pandas as pd
 from cleantext import clean
 
 
-def cut_tail_and_head(df : pd.DataFrame, min_occurence: int, head_quantile: float, tail_quantile: float) -> pd.DataFrame :
-    ''' cut the head and tail of the dataframe, where the head is the most frequent words and the tail the least frequent words. '''
+    min_occurence: int,
 
     total_words = df["freq"].sum()   
     acc_index = 0
