@@ -73,7 +73,7 @@ class WordsDicts:
                 try:
                     # Loop through frequencies for word
                     for type_, freq in old_dct[tkn].items():
-                        dct[stemmed_tkn][type_] += freq
+                        dct[stemmed_tkn][type_] += dct[stemmed_tkn].get(type_, 0) + freq
                 except:
                     dct[stemmed_tkn] = old_dct[tkn]
 
