@@ -93,15 +93,23 @@ def logistic_Classification_weight(df:pd.DataFrame ):
         df["fakeness_score"][i] = 1/(1+ math.exp(x))
     return df
 
+import os
 
 def build_model(df: pd.DataFrame):
-    new_df= pd.DataFrame
+    '''Construct model with weights and scores, and '''
+    #makes new dataframe
+    new_df= pd.DataFrame()
     new_df["idf_weight"] = df["idf_weight"]
     new_df["fakeness_score"] = df["fakeness_score"]
 
-    #make new csv file and output to Models
+    #makes new csv file and outputs the model
+    dir = "Models"
+    model_amount = len(os.listdir(dir)) #used for model naming
+    Outputfilepath = os.path.join(dir, "Model{}.csv".format(model_amount+1))
+    Outputfile = open (Outputfilepath, "w+")
+    new_df.to_csv(Outputfile)
 
-    
+
 
 
     
