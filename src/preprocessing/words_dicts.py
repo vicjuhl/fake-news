@@ -33,6 +33,14 @@ class WordsDicts:
     @property
     def all_dicts(self) -> list[words_dict]:
         return [self._incl, self._excl]
+    
+    @property
+    def all_paths(self) -> list[pl.Path]:
+        return [self._incl_path, self._excl_path]
+    
+    @property
+    def all_pairs(self) -> list[tuple[pl.Path, words_dict]]:
+        return [(path, dct) for path, dct in zip(self.all_paths, self.all_dicts)]
 
     def add_words(self, data_list: list[words_info]) -> None:
         """Add bag of words to self."""
@@ -51,8 +59,7 @@ class WordsDicts:
         
     def export_json(self) -> None:
         """Dump both dicts as json files."""
-        self.dump_json(self._incl_path, self._incl)
-        self.dump_json(self._excl_path, self._excl)
+        [self.dump_json(*pair) for pair in self.all_pairs]
 
     def stem(self) -> None:
         """Stem dicts and combine each into new dict."""
