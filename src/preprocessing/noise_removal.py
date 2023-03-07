@@ -1,7 +1,7 @@
 import pandas as pd
 from cleantext import clean # type: ignore
-
-
+import numpy as np
+import math 
 def cut_tail_and_head(
     df : pd.DataFrame,
     min_occurence: int,
@@ -11,7 +11,8 @@ def cut_tail_and_head(
     '''Cut the head and tail of the dataframe,
     where the head is the most frequent words and the tail the least frequent words. '''
 
-    total_words = df["freq"].sum()   
+    word_freq = df["freq"].apply(lambda x: x[1])
+    total_words = word_freq.sum()   
     acc_index = 0
     acc_sum = 0
     index_upper = 0 
@@ -19,30 +20,30 @@ def cut_tail_and_head(
     
     target_sum_head = head_quantile * total_words
     while acc_sum < target_sum_head: # finds index of head quantile   
-        acc_sum += df["freq"][acc_index]
+        acc_sum += word_freq[acc_index]
         acc_index += 1
     
-    upper_bound_count = df["freq"][acc_index]
+    upper_bound_count = word_freq[acc_index]
     
-    while df["freq"][acc_index] == upper_bound_count: # continues until frequency changes
+    while word_freq[acc_index] == upper_bound_count: # continues until frequency changes
         acc_index += 1
     
     index_upper = acc_index   
     target_sum_tail = (1-tail_quantile) * total_words    
         
-    while acc_sum < target_sum_tail and df["freq"][acc_index] > min_occurence: # finds index of tail quantile
-        acc_sum += df["freq"][acc_index]
+    while acc_sum < target_sum_tail and word_freq[acc_index] > min_occurence: # finds index of tail quantile
+        acc_sum += word_freq[acc_index]
         acc_index += 1
-    lower_bound_count = df["freq"][acc_index] 
+    lower_bound_count = word_freq[acc_index] 
     
-    while df["freq"][acc_index] == lower_bound_count: # continues until frequency changes
+    while word_freq[acc_index] == lower_bound_count: # continues until frequency changes
         acc_index += 1
 
     index_lower = acc_index
     cut_df = df[index_upper: index_lower]  # remove tail and head from the dataframe
     
     #stats
-    uniquewords = len(df["freq"]) 
+    uniquewords = len(word_freq) 
     words_left = len(cut_df["freq"])
     words_removed = uniquewords - words_left 
 
@@ -58,26 +59,52 @@ def cut_tail_and_head(
           " unique words removed from tail: ", uniquewords - index_lower,
           "at minimum occurence level: ",lower_bound_count
     )
-    return cut
+    return cut_df
   
 def frequency_adjustment(df:pd.DataFrame):
-    total = df["freq"].sum()
-    for col in df.columns[1:]:
-        local = df[col].sum()
-        ratio = total/local
-        print(ratio)
-        df[col] = df[col].apply(lambda x: x*ratio)
+    '''adjusts wordfrequency of all words depending on their labeled'''
+    word_freq = df["freq"].apply(lambda x: x[1])
+    total = word_freq.sum()
+    for col in df.columns[1:]: # skip fisrt collumn (contains total frequency)
+        local = df[col][1].sum()
+        ratio = total/local # ratio multipled on each word under current label.
+        df[col] = df[col].apply(lambda x: x*ratio) #apply adjustment to all words collumn
 
 
 def td_idf(df:pd.DataFrame, total_num_articles: int):
-    '''total document frequency estimation'''
-    df['td_idf_weigh'] = 0
+    '''Total document frequency estimation'''
+    Article_freq = df["freq"].apply(lambda x: x[0])
+    word_freq = df["freq"].apply(lambda x: x[1])
+    
+    df['idf_weight'] = 0
     #To do expects: a dataframe with column "article_frequency"
 
     for i in range(len(df)):
-        df['td_idf_weigh'][i] = np.log(total_num_articles/df['freq_article'][i])*(np.log(df['freq'][i])+1)
+        df['idf_weight'][i] = np.log(total_num_articles/Article_freq[i])*(np.log(word_freq[i])+1)
+    return df #returns dataframe with weight collumn added.
+
+def logistic_Classification_weight(df:pd.DataFrame ):
+    '''makes a real/fake classifcation between -1 (fake) and 1 (real)'''
+    fake = df["fake-freq"].apply(lambda x: x[0])
+    real =df["real-freq"].apply(lambda x: x[1])
+
+    for i in range(len(df)): # Makes a new collumn containing real/fakeness scores for each word
+        x = (real[i] - fake[i]) / min(real[i], fake[i])
+        df["fakeness_score"][i] = 1/(1+ math.exp(x))
     return df
 
+
+def build_model(df: pd.DataFrame):
+    new_df= pd.DataFrame
+    new_df["idf_weight"] = df["idf_weight"]
+    new_df["fakeness_score"] = df["fakeness_score"]
+
+    #make new csv file and output to Models
+
+    
+
+
+    
 
 def clean_text(df: pd.DataFrame) -> pd.DataFrame:
     """Clean text for various anomalies for "content" in df."""
