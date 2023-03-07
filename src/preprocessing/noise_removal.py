@@ -4,7 +4,7 @@ from cleantext import clean
 
 
 def cut_tail_and_head(df : pd.DataFrame, min_occurence: int, head_quantile: float, tail_quantile: float) -> pd.DataFrame :
-    ''' cut the head and tail of the dataframe, where the head is the most frequent words and the tail the least frequent words. '''
+    ''' cut_df the head and tail of the dataframe, where the head is the most frequent words and the tail the least frequent words. '''
 
     total_words = df["freq"].sum()   
     acc_index = 0
@@ -16,57 +16,46 @@ def cut_tail_and_head(df : pd.DataFrame, min_occurence: int, head_quantile: floa
         
         acc_sum += df["freq"][acc_index]
         acc_index += 1
-    
     index_upper = acc_index
         
     while acc_sum < (1-tail_quantile) * total_words and df["freq"][acc_index] > min_occurence: # finds index of tail quantile
         acc_sum += df["freq"][acc_index]
         acc_index += 1
-
     lower_bound_count = df["freq"][acc_index] 
     
     while df["freq"][acc_index] == lower_bound_count: # continues until frequency changes
         acc_index += 1
     index_lower = acc_index
-    
-    cut = df[index_upper: index_lower]  # remove tail and head from the dataframe
+    cut_df = df[index_upper: index_lower]  # remove tail and head from the dataframe
     
     #stats
     uniquewords = len(df["freq"]) 
-    words_left = len(cut["freq"])
+    words_left = len(cut_df["freq"])
     words_removed = uniquewords - words_left 
-
 
     print("Head and tail cutoff.", "with quantiles: ", head_quantile, " and ", tail_quantile, "i.e", str((head_quantile+tail_quantile)*100) + "%" + " of total wordcount removed")
     print("unique words before cleaning: ", uniquewords,  "unique words after: ", words_left , "unique words removed: " , words_removed)
     print("unique words removed from head: ",index_upper, " unique words removed from tail: ", uniquewords - index_lower, "at minimum occurence level: ",lower_bound_count)
-    return cut
-
+    return cut_df #returns dataframe with head and tail removed
 
 def frequency_adjustment(df:pd.DataFrame):
-    '''we adjust locla frequencies by multiplying each value by the ration defined as the total frequency in of the corpus divided by the local frequency of the word in the corpus.'''
+    '''The frequency count of each words labels is adjusted by the total frequency ratio of each label '''
     total = df['freq'].sum()
-    for col in df.columns[1:]: # discard first column, frequency adjust elements in the rest
+    for col in df.columns[1:]: # don't freq adjust first column (if we did it would do nothing)
         local = df[col].sum()
         ratio = total/local # ratio of total frequency to local frequency
-        df[col] = df[col].apply(lambda x: x*ratio)
+        df[col] = df[col].apply(lambda x: x*ratio) # adjust frequency in colloum  
     return df
 
-
-
-def td_idf(df:pd.DataFrame, total_num_articles: int):
-    '''total document frequency estimation'''
+def td_idf(df: pd.DataFrame, total_num_articles: int):
+    '''Given a dataframe with word and article freq, it the weighs each word using'''
     df['td_idf_weight'] = 0
-    #To do expects: a dataframe with column "article_frequency"
 
+    #TODO expects: a dataframe with column "article_frequency"
     for i in range(len(df)):
         df['td_idf_weight'][i] = np.log(total_num_articles/df['freq_article'][i])*(np.log(df['freq'][i])+1)
     return df
 
-        
-    
-    #return df
-    
 def clean_text(df: pd.DataFrame) -> pd.DataFrame:
     """Clean text for various anomalies."""
     df.content = df.content.apply(lambda x: clean(x,
