@@ -41,15 +41,15 @@ def raw_to_words(
     csv.field_size_limit(sys.maxsize) # Allow long content texts
     out_dicts = WordsDicts(to_path, incl_name, excl_name)
 
-    n_read: int = 0 # Count rows that were be read.
-    n_skipped: int = 0 # Count skipped rows that could not be read.
-    n_rows -= 1 # Compensate for 0-indexing
-
     n_procs = cpu_count()
-    batch_sz = 10000
+    batch_sz = max(1, min(10000, n_rows//n_procs))
     buffer_sz = n_procs * batch_sz
     # n empty lists
     buffer = create_clear_buffer(n_procs)
+
+    n_read: int = 0 # Count rows that were be read.
+    n_skipped: int = 0 # Count skipped rows that could not be read.
+    n_rows -= 1 # Compensate for 0-indexing
 
     running = True
     i = 0
@@ -63,7 +63,7 @@ def raw_to_words(
             try:
                 row = next(reader)
                 if i % 5000 == 0:
-                    print("Processed lines:", i, "...") # "progress bar"
+                    print("Lines read:", i, "...") # "progress bar"
 
                 # Parallel process data if all batches are full
                 if n_read % buffer_sz == 0:
@@ -96,6 +96,7 @@ def raw_to_words(
         out_dicts.add_words(process_buffer(buffer, n_procs))
 
     # Export as json
+    out_dicts.stem()
     out_dicts.export_json()
 
     return out_dicts.n_incl, out_dicts.n_excl, n_skipped
