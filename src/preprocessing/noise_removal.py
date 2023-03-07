@@ -33,19 +33,17 @@ def cut_tail_and_head(
     while acc_sum < target_sum_tail and df["freq"][acc_index] > min_occurence: # finds index of tail quantile
         acc_sum += df["freq"][acc_index]
         acc_index += 1
-
     lower_bound_count = df["freq"][acc_index] 
     
     while df["freq"][acc_index] == lower_bound_count: # continues until frequency changes
         acc_index += 1
 
     index_lower = acc_index
-    
-    cut = df[index_upper: index_lower]  # remove tail and head from the dataframe
+    cut_df = df[index_upper: index_lower]  # remove tail and head from the dataframe
     
     #stats
     uniquewords = len(df["freq"]) 
-    words_left = len(cut["freq"])
+    words_left = len(cut_df["freq"])
     words_removed = uniquewords - words_left 
 
     print("Head and tail cutoff.", "with quantiles: ", 
@@ -62,6 +60,24 @@ def cut_tail_and_head(
     )
     return cut
   
+def frequency_adjustment(df:pd.DataFrame):
+    total = df["freq"].sum()
+    for col in df.columns[1:]:
+        local = df[col].sum()
+        ratio = total/local
+        print(ratio)
+        df[col] = df[col].apply(lambda x: x*ratio)
+
+
+def td_idf(df:pd.DataFrame, total_num_articles: int):
+    '''total document frequency estimation'''
+    df['td_idf_weigh'] = 0
+    #To do expects: a dataframe with column "article_frequency"
+
+    for i in range(len(df)):
+        df['td_idf_weigh'][i] = np.log(total_num_articles/df['freq_article'][i])*(np.log(df['freq'][i])+1)
+    return df
+
 
 def clean_text(df: pd.DataFrame) -> pd.DataFrame:
     """Clean text for various anomalies for "content" in df."""
@@ -108,4 +124,5 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     tkns = tokenize(df)
     counts = count_sort(tkns)
     no_head_no_tail =(cut_tail_and_head(counts, 10, 0.15, 0.05))
-    return no_head_no_tail 
+    frequency_adjusted_df = frequency_adjustment(no_head_no_tail) #missing label word count (viktor still works doesnt do anything)
+    return frequency_adjusted_df 
