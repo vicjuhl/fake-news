@@ -14,16 +14,6 @@ class DataClass(ABC):
         self._n_incl: int = 0
         self._n_excl: int = 0
 
-    @abstractmethod
-    def write(self, articles) -> None: # TYPING TODO
-        """Write data to relevant object or file."""
-        pass
-
-    @abstractmethod
-    def finalize(self) -> None:
-        """Do final actions if needed."""
-        pass
-
     @classmethod
     @abstractmethod
     def extract(cls, row: list[str]):
@@ -34,6 +24,16 @@ class DataClass(ABC):
     @abstractmethod
     def process_batch(cls, data): # TYPING TODO
         """Perform preprocessing on extracted data"""
+        pass
+
+    @abstractmethod
+    def write(self, articles) -> None: # TYPING TODO
+        """Write data to relevant object or file."""
+        pass
+
+    @abstractmethod
+    def finalize(self) -> None:
+        """Do final actions if needed."""
         pass
 
 
@@ -70,6 +70,16 @@ class WordsDicts(DataClass):
     def all_pairs(self) -> list[tuple[pl.Path, words_dict]]:
         return [(path, dct) for path, dct in zip(self.all_paths, self.all_dicts)]
 
+    @classmethod
+    def extract(cls, row: list[str]): # TYPING TODO
+        """Extract type and content from row"""
+        return row[3], row[5]
+    
+    @classmethod
+    def process_batch(cls, data: list[news_info]) -> list[words_info]:
+        """Clean text and split into list of type/bag of words pairs."""
+        return [(t, clean_str(c).split(" ")) for t, c in data]
+    
     def write(self, articles: list[words_info]):
         """Add article as bag of words counts to relevant dictionary."""
         for type_, words in articles:
@@ -94,10 +104,6 @@ class WordsDicts(DataClass):
                 )
                 counted_in_article.add(word)
 
-    def export_json(self) -> None:
-        """Dump both dicts as json files."""
-        [self.dump_json(*pair) for pair in self.all_pairs]
-
     def stem_dicts(self) -> None:
         """Stem dicts and combine each into new dict."""
          # Loop through both dicts
@@ -114,20 +120,9 @@ class WordsDicts(DataClass):
                     current_pair = dct[stemmed_tkn][type_]
                     current_pair = add_tuples(current_pair, freqs)
 
-    def finalize(self):
-        """Stem, export as JSON and return counts for included and excluded words."""
-        self.stem_dicts()
-        self.export_json()
-
-    @classmethod
-    def extract(cls, row: list[str]): # TYPING TODO
-        """Extract type and content from row"""
-        return row[3], row[5]
-
-    @classmethod
-    def process_batch(cls, data: list[news_info]) -> list[words_info]:
-        """Clean text and split into list of type/bag of words pairs."""
-        return [(t, clean_str(c).split(" ")) for t, c in data]
+    def export_json(self) -> None:
+        """Dump both dicts as json files."""
+        [self.dump_json(*pair) for pair in self.all_pairs]
     
     @classmethod
     def dump_json(cls, file_path: pl.Path, out_dict: dict) -> None:
@@ -136,19 +131,16 @@ class WordsDicts(DataClass):
         with open(file_path, "w") as outfile:
             outfile.write(json_words)
 
+    def finalize(self):
+        """Stem, export as JSON and return counts for included and excluded words."""
+        self.stem_dicts()
+        self.export_json()
+
 
 class CsvWriter(DataClass):
     def __init__(self, writer: '_csv._writer', to_path: pl.Path) -> None:
         super().__init__(to_path)
         self.writer = writer
-
-    def write(self, articles) -> None: # TYPING ARTCLES TODO
-        """Write rows"""
-        self.writer.writerows(articles)
-
-    def finalize(self):
-        """Do nothing."""
-        pass
 
     @classmethod
     def extract(cls): # TODO
@@ -156,4 +148,12 @@ class CsvWriter(DataClass):
 
     @classmethod
     def process_batch(cls, data): # TYPING TODO
+        pass
+
+    def write(self, articles) -> None: # TYPING ARTCLES TODO
+        """Write rows"""
+        self.writer.writerows(articles)
+
+    def finalize(self):
+        """Do nothing."""
         pass
