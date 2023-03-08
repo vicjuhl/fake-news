@@ -8,7 +8,7 @@ from utils.functions import add_tuples, stem # type: ignore
 from utils.mappings import incl_inds, excl_types # type: ignore
 from preprocessing.noise_removal import clean_str # type: ignore
 
-class DataClass(ABC):
+class DataHandler(ABC):
     """Abstract class for data object such as dictionaries of words or csv-writers."""
     def __init__(self) -> None:
         self._n_incl: int = 0
@@ -43,7 +43,7 @@ class DataClass(ABC):
         """Do final actions if needed."""
         pass
 
-class WordsDicts(DataClass):
+class WordsDicts(DataHandler):
     """Two dictionaries with included and excluded words, respectively."""
     def __init__(self, to_path: pl.Path, incl_name: str, excl_name: str) -> None:
         """Create empty dicts, store file paths and define destination paths."""
@@ -135,7 +135,7 @@ class WordsDicts(DataClass):
         self.export_json()
 
 
-class CsvWriter(DataClass):
+class CsvWriter(DataHandler):
     """Class which manages preprocessing and exporting of data on article level."""
     def __init__(self, writer: '_csv._writer') -> None:
         # TODO increment n_incl, n_excl

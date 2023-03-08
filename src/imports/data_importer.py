@@ -8,7 +8,7 @@ from multiprocessing import Pool, cpu_count
 from preprocessing.noise_removal import clean_str # type: ignore
 from utils.types import news_info, words_info # type: ignore
 from utils.mappings import incl_inds # type: ignore
-from preprocessing.words_dicts import WordsDicts, CsvWriter # type: ignore
+from preprocessing.data_handlers import WordsDicts, CsvWriter # type: ignore
 
 def create_clear_buffer(n_procs: int) -> list[list[news_info]]:
     """Create buffer list with n_procs empty lists."""
