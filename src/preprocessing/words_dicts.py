@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 
 from utils.types import news_info, words_info, words_dict # type: ignore
 from utils.functions import add_tuples, stem # type: ignore
-from utils.mappings import incl_inds # type: ignore
+from utils.mappings import incl_inds, excl_types # type: ignore
 from preprocessing.noise_removal import clean_str # type: ignore
 
 class DataClass(ABC):
@@ -22,9 +22,8 @@ class DataClass(ABC):
     def n_excl(self) -> int:
         return self._n_excl
     
-    @classmethod
     @abstractmethod
-    def extract(cls, row: list[str]):
+    def extract(self, row: list[str]):
         """Extract relevant data from source row."""
         pass
 
@@ -70,8 +69,7 @@ class WordsDicts(DataClass):
     def all_pairs(self) -> list[tuple[pl.Path, words_dict]]:
         return [(path, dct) for path, dct in zip(self.all_paths, self.all_dicts)]
 
-    @classmethod
-    def extract(cls, row: list[str]): # TYPING TODO
+    def extract(self, row: list[str]): # TYPING TODO
         """Extract type and content from row"""
         return row[3], row[5]
     
@@ -86,7 +84,7 @@ class WordsDicts(DataClass):
             # Keep track of words already counted in current article
             counted_in_article: set[str] = set()
             # Decide where to add word based on type
-            if type_ is None or type_ in ["satire", "unknown", ""]:
+            if type_ is None or type_ in excl_types:
                 out_dict = self._excl
                 self._n_excl += 1
             else:
@@ -144,10 +142,15 @@ class CsvWriter(DataClass):
         super().__init__()
         self.writer = writer
 
-    @classmethod
-    def extract(cls, row: list[str]):
+    def extract(self, row: list[str]):
         """Extract all relevant entries from row."""
-        return ([row[i] for i in incl_inds])
+        type_ = row[3]
+        if type_ is None or type_ in excl_types:
+            self._n_excl += 1
+            return []
+        else:
+            self._n_incl += 1
+            return [row[i] for i in incl_inds]
 
     @classmethod
     def process_batch(cls, data): # TYPING TODO

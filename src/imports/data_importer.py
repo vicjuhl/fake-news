@@ -108,7 +108,9 @@ def raw_to_words(
         reader = csv.reader(ff)
         next(reader) # skip header
         n_incl, n_excl, n_skipped = process_lines(n_rows, reader, out_obj=out_dicts)
-        print(f"{n_incl + n_excl} rows read, \n {n_incl} were included \n {n_excl} were excluded \n {n_skipped} were skipped \n JSON files were written to {to_path}") # PACK away in classes maybe TODO
+    print(f"{n_incl + n_excl} rows read, \n {n_incl} were included \n {n_excl} were excluded \n {n_skipped} were skipped \n JSON files were written to {to_path}") # PACK away in classes maybe TODO
+    if n_incl + n_excl != n_rows:
+        raise ValueError("Count numbers do not match")
 
 def reduce_raw(
     from_file: pl.Path,
@@ -128,4 +130,6 @@ def reduce_raw(
             csv_writer.writerow(row[i] for i in incl_inds) # Write headers
             writer = CsvWriter(csv_writer)
             n_incl, n_excl, n_skipped = process_lines(n_rows, reader, out_obj=writer)
-            print(f"{n_incl + n_excl} rows read, \n {n_incl} were included \n {n_excl} were excluded \n {n_skipped} were skipped \n Reduced csv data file was written to {to_path}")
+    print(f"{n_incl + n_excl} rows read, \n {n_incl} were included \n {n_excl} were excluded \n {n_skipped} were skipped \n Reduced csv data file was written to {to_path}")
+    if n_incl + n_excl != n_rows:
+        raise ValueError("Count numbers do not match")

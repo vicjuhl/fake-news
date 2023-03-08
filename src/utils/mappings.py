@@ -1,11 +1,5 @@
 import pandas as pd
 
-excluded = {
-    "satire",
-    "unknown",
-    ""
-}
-
 labels = {
     "unreliable": "fake",
     "fake": "fake",
@@ -33,6 +27,12 @@ incl_cols = {
 }
 
 incl_inds = [ind for ind in incl_cols.values()]
+
+excl_types = {
+    "satire",
+    "unknown",
+    ""
+}
 
 def add_labels(df: pd.DataFrame) -> pd.DataFrame:
     """Add custom labels based on 'type' column to dataframe."""
