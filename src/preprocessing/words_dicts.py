@@ -10,8 +10,7 @@ from preprocessing.noise_removal import clean_str # type: ignore
 
 class DataClass(ABC):
     """Abstract class for data object such as dictionaries of words or csv-writers."""
-    def __init__(self, to_path: pl.Path) -> None:
-        to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
+    def __init__(self) -> None:
         self._n_incl: int = 0
         self._n_excl: int = 0
 
@@ -48,8 +47,9 @@ class DataClass(ABC):
 class WordsDicts(DataClass):
     """Two dictionaries with included and excluded words, respectively."""
     def __init__(self, to_path: pl.Path, incl_name: str, excl_name: str) -> None:
-        """Create empty dicts, store file paths and make destination folder."""
-        super().__init__(to_path)
+        """Create empty dicts, store file paths and define destination paths."""
+        super().__init__()
+        
         self._incl: words_dict = {}
         self._excl: words_dict = {}
         self._incl_stem: words_dict = {}
@@ -57,7 +57,6 @@ class WordsDicts(DataClass):
 
         self._incl_path = to_path / f"{incl_name}.json"
         self._excl_path = to_path / f"{excl_name}.json"
-
     
     @property
     def all_dicts(self) -> list[words_dict]:
@@ -139,9 +138,10 @@ class WordsDicts(DataClass):
 
 
 class CsvWriter(DataClass):
-    def __init__(self, writer: '_csv._writer', to_path: pl.Path) -> None:
+    """Class which manages preprocessing and exporting of data on article level."""
+    def __init__(self, writer: '_csv._writer') -> None:
         # TODO increment n_incl, n_excl
-        super().__init__(to_path)
+        super().__init__()
         self.writer = writer
 
     @classmethod

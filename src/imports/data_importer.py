@@ -102,6 +102,7 @@ def raw_to_words(
     
     Return tuple of n_included, n_excluded, n_skipped.
     """
+    to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
     out_dicts = WordsDicts(to_path, incl_name, excl_name)
     with open(from_file) as ff:
         reader = csv.reader(ff)
@@ -118,13 +119,13 @@ def reduce_raw(
     
     Return tuple of n_included, n_excluded, n_skipped.
     """
-    to_path.mkdir(parents=True, exist_ok=True)
+    to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
     with open(from_file) as ff:
         reader = csv.reader(ff)
         row = next(reader) # Get headers
         with open(to_path / "reduced_corpus.csv", 'w') as tf:
             csv_writer = csv.writer(tf)
             csv_writer.writerow(row[i] for i in incl_inds) # Write headers
-            writer = CsvWriter(csv_writer, to_path) # to_path unnecessary here TODO
+            writer = CsvWriter(csv_writer)
             n_incl, n_excl, n_skipped = process_lines(n_rows, reader, out_obj=writer)
             print(f"{n_incl + n_excl} rows read, \n {n_incl} were included \n {n_excl} were excluded \n {n_skipped} were skipped \n Reduced csv data file was written to {to_path}")
