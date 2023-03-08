@@ -20,7 +20,7 @@ def process_buffer(
     out_obj: Union[CsvWriter, WordsDicts],
     buffer: list[list[news_info]],
     n_procs: int,
-) -> list[words_info]:
+) -> list[words_info]: # TYPING TODO
     """Multiprocess article buffer, return list of type/bag of words pairs."""
     with Pool(n_procs) as p:
         data_results = p.map_async(out_obj.process_batch, buffer)
@@ -99,11 +99,13 @@ def reduce_raw(
     
     Return tuple of n_included, n_excluded, n_skipped.
     """
+    to_path.mkdir(parents=True, exist_ok=True)
     with open(from_file) as ff:
         reader = csv.reader(ff)
         next(reader) # skip header
-        with open(to_path / "redeuced_raw.csv") as tf:
-            writer = csv.writer(tf, str(to_path))
+        with open(to_path / "redeuced_raw.csv", 'w') as tf:
+            csv_writer = csv.writer(tf)
+            writer = CsvWriter(csv_writer, to_path) # to_path unnecessary here TODO
             return process_lines(n_rows, reader, out_obj=writer)
 
 def raw_to_words(

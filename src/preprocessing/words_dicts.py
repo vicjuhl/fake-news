@@ -14,6 +14,14 @@ class DataClass(ABC):
         self._n_incl: int = 0
         self._n_excl: int = 0
 
+    @property
+    def n_incl(self) -> int:
+        return self._n_incl
+
+    @property
+    def n_excl(self) -> int:
+        return self._n_excl
+    
     @classmethod
     @abstractmethod
     def extract(cls, row: list[str]):
@@ -36,7 +44,6 @@ class DataClass(ABC):
         """Do final actions if needed."""
         pass
 
-
 class WordsDicts(DataClass):
     """Two dictionaries with included and excluded words, respectively."""
     def __init__(self, to_path: pl.Path, incl_name: str, excl_name: str) -> None:
@@ -50,13 +57,6 @@ class WordsDicts(DataClass):
         self._incl_path = to_path / f"{incl_name}.json"
         self._excl_path = to_path / f"{excl_name}.json"
 
-    @property
-    def n_incl(self) -> int:
-        return self._n_incl
-
-    @property
-    def n_excl(self) -> int:
-        return self._n_excl
     
     @property
     def all_dicts(self) -> list[words_dict]:
@@ -143,15 +143,27 @@ class CsvWriter(DataClass):
         self.writer = writer
 
     @classmethod
-    def extract(cls): # TODO
-        pass
+    def extract(cls, row: list[str]):
+        """Extract all relevant entries from row."""
+        id = row[1]
+        domain = row[2]
+        type_ = row[3]
+        url = row[4]
+        content = row[5]
+        scraped = row[6]
+        title = row[9]
+        authors = row[10]
+        keywords = row[11]
+        tags = row[14]
+        summary = row[15]
+        return (id, domain, type_, url, content, scraped, title, authors, keywords, tags, summary)
 
     @classmethod
     def process_batch(cls, data): # TYPING TODO
-        pass
+        return data # FOR TESTING TODO
 
-    def write(self, articles) -> None: # TYPING ARTCLES TODO
-        """Write rows"""
+    def write(self, articles: list[list[str]]) -> None: # TYPING ARTCLES TODO
+        """Write rows."""
         self.writer.writerows(articles)
 
     def finalize(self):

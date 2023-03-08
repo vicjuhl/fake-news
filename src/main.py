@@ -40,6 +40,6 @@ if __name__ == "__main__":
             to_path / "processed_csv/",
             args.nrows
         )
-        print(f"{n_incl + n_excl} rows read, \n {n_incl} were included \n {n_excl} were excluded \n {n_skipped} were skipped \n Reduced csv data file was written to files were written to {to_path}")
+        print(f"{n_incl + n_excl} rows read, \n {n_incl} were included \n {n_excl} were excluded \n {n_skipped} were skipped \n Reduced csv data file was written to {to_path}")
         print("runtime:", time.time() - t0)
     
