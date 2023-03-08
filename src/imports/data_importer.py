@@ -64,12 +64,10 @@ def process_lines(
 
             # Read and save line
             try:
-                type_ = row[3]
-                content = row[5]
                 # Add article to appropriate batch
                 buffer_index = (n_read % buffer_sz)//batch_sz
                 batch = buffer[buffer_index]
-                batch.append((type_, content))
+                batch.append(out_obj.extract(row))
                 n_read += 1
             # Or skip row if either type or content cannot be read
             except:
@@ -97,7 +95,10 @@ def reduce_raw(
     to_path: pl.Path,
     n_rows: int
 ) -> tuple[int, int, int]:
-    """Stream-read corpus, process and stream-write to new file."""
+    """Stream-read corpus, process and stream-write to new file.
+    
+    Return tuple of n_included, n_excluded, n_skipped.
+    """
     with open(from_file) as ff:
         reader = csv.reader(ff)
         next(reader) # skip header
@@ -114,10 +115,9 @@ def raw_to_words(
 ) -> tuple[int, int, int]:
     """Read raw csv file line by line, clean words, count occurrences and dump to json.
     
-    Return tuple of n_included, n_excluded, n_skipped
+    Return tuple of n_included, n_excluded, n_skipped.
     """
     out_dicts = WordsDicts(to_path, incl_name, excl_name)
-
     with open(from_file) as ff:
         reader = csv.reader(ff)
         next(reader) # skip header

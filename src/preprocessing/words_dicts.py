@@ -26,8 +26,8 @@ class DataClass(ABC):
 
     @classmethod
     @abstractmethod
-    def extract(cls): # TYPING TODO
-        """Extract relevant data from source."""
+    def extract(cls, row: list[str]):
+        """Extract relevant data from source row."""
         pass
 
     @classmethod
@@ -120,8 +120,9 @@ class WordsDicts(DataClass):
         self.export_json()
 
     @classmethod
-    def extract(cls): # TODO
-        pass
+    def extract(cls, row: list[str]): # TYPING TODO
+        """Extract type and content from row"""
+        return row[3], row[5]
 
     @classmethod
     def process_batch(cls, data: list[news_info]) -> list[words_info]:
