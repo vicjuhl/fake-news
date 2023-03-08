@@ -1,17 +1,47 @@
 import json
 import pathlib as pl
-from utils.types import words_info, words_dict # type: ignore
-from nltk import PorterStemmer # type: ignore
-import numpy as np
+import _csv
+from abc import ABC, abstractmethod
 
-from utils.functions import add_tuples # type: ignore
+from utils.types import news_info, words_info, words_dict # type: ignore
+from utils.functions import add_tuples, stem # type: ignore
+from preprocessing.noise_removal import clean_str # type: ignore
 
-ps = PorterStemmer()
+class DataClass(ABC):
+    """Abstract class for data object such as dictionaries of words or csv-writers."""
+    def __init__(self, to_path: pl.Path) -> None:
+        to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
+        self._n_incl: int = 0
+        self._n_excl: int = 0
 
-class WordsDicts:
+    @abstractmethod
+    def write(self, articles) -> None: # TYPING TODO
+        """Write data to relevant object or file."""
+        pass
+
+    @abstractmethod
+    def finalize(self) -> None:
+        """Do final actions if needed."""
+        pass
+
+    @classmethod
+    @abstractmethod
+    def extract(cls): # TYPING TODO
+        """Extract relevant data from source."""
+        pass
+
+    @classmethod
+    @abstractmethod
+    def process_batch(cls, data): # TYPING TODO
+        """Perform preprocessing on extracted data"""
+        pass
+
+
+class WordsDicts(DataClass):
     """Two dictionaries with included and excluded words, respectively."""
     def __init__(self, to_path: pl.Path, incl_name: str, excl_name: str) -> None:
         """Create empty dicts, store file paths and make destination folder."""
+        super().__init__(to_path)
         self._incl: words_dict = {}
         self._excl: words_dict = {}
         self._incl_stem: words_dict = {}
@@ -19,10 +49,6 @@ class WordsDicts:
 
         self._incl_path = to_path / f"{incl_name}.json"
         self._excl_path = to_path / f"{excl_name}.json"
-        to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
-        
-        self._n_incl: int = 0
-        self._n_excl: int = 0
 
     @property
     def n_incl(self) -> int:
@@ -44,7 +70,7 @@ class WordsDicts:
     def all_pairs(self) -> list[tuple[pl.Path, words_dict]]:
         return [(path, dct) for path, dct in zip(self.all_paths, self.all_dicts)]
 
-    def add_words(self, articles: list[words_info]) -> None:
+    def write(self, articles: list[words_info]):
         """Add article as bag of words counts to relevant dictionary."""
         for type_, words in articles:
             # Keep track of words already counted in current article
@@ -72,7 +98,7 @@ class WordsDicts:
         """Dump both dicts as json files."""
         [self.dump_json(*pair) for pair in self.all_pairs]
 
-    def stem(self) -> None:
+    def stem_dicts(self) -> None:
         """Stem dicts and combine each into new dict."""
          # Loop through both dicts
         for dct in self.all_dicts:
@@ -80,7 +106,7 @@ class WordsDicts:
             dct.clear()
             # Loop through words
             for tkn in old_dct.keys():
-                stemmed_tkn = ps.stem(tkn)
+                stemmed_tkn = stem(tkn)
                 dct[stemmed_tkn] = dct.get(stemmed_tkn, old_dct[tkn])
                 # Loop through frequencies for word
                 for type_, freqs in old_dct[tkn].items():
@@ -88,9 +114,45 @@ class WordsDicts:
                     current_pair = dct[stemmed_tkn][type_]
                     current_pair = add_tuples(current_pair, freqs)
 
+    def finalize(self):
+        """Stem, export as JSON and return counts for included and excluded words."""
+        self.stem_dicts()
+        self.export_json()
+
+    @classmethod
+    def extract(cls): # TODO
+        pass
+
+    @classmethod
+    def process_batch(cls, data: list[news_info]) -> list[words_info]:
+        """Clean text and split into list of type/bag of words pairs."""
+        return [(t, clean_str(c).split(" ")) for t, c in data]
+    
     @classmethod
     def dump_json(cls, file_path: pl.Path, out_dict: dict) -> None:
         """Dump dictionary to json."""
         json_words = json.dumps(out_dict, indent=4)
         with open(file_path, "w") as outfile:
             outfile.write(json_words)
+
+
+class CsvWriter(DataClass):
+    def __init__(self, writer: '_csv._writer', to_path: pl.Path) -> None:
+        super().__init__(to_path)
+        self.writer = writer
+
+    def write(self, articles) -> None: # TYPING ARTCLES TODO
+        """Write rows"""
+        self.writer.writerows(articles)
+
+    def finalize(self):
+        """Do nothing."""
+        pass
+
+    @classmethod
+    def extract(cls): # TODO
+        pass
+
+    @classmethod
+    def process_batch(cls, data): # TYPING TODO
+        pass
