@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 
 from utils.types import news_info, words_info, words_dict # type: ignore
 from utils.functions import add_tuples, stem # type: ignore
+from utils.mappings import incl_inds # type: ignore
 from preprocessing.noise_removal import clean_str # type: ignore
 
 class DataClass(ABC):
@@ -146,18 +147,7 @@ class CsvWriter(DataClass):
     @classmethod
     def extract(cls, row: list[str]):
         """Extract all relevant entries from row."""
-        id = row[1]
-        domain = row[2]
-        type_ = row[3]
-        url = row[4]
-        content = row[5]
-        scraped = row[6]
-        title = row[9]
-        authors = row[10]
-        keywords = row[11]
-        tags = row[14]
-        summary = row[15]
-        return (id, domain, type_, url, content, scraped, title, authors, keywords, tags, summary)
+        return ([row[i] for i in incl_inds])
 
     @classmethod
     def process_batch(cls, data): # TYPING TODO

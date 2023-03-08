@@ -7,6 +7,7 @@ from multiprocessing import Pool, cpu_count
 
 from preprocessing.noise_removal import clean_str # type: ignore
 from utils.types import news_info, words_info # type: ignore
+from utils.mappings import incl_inds # type: ignore
 from preprocessing.words_dicts import WordsDicts, CsvWriter # type: ignore
 
 def create_clear_buffer(n_procs: int) -> list[list[news_info]]:
@@ -120,9 +121,10 @@ def reduce_raw(
     to_path.mkdir(parents=True, exist_ok=True)
     with open(from_file) as ff:
         reader = csv.reader(ff)
-        next(reader) # skip header
-        with open(to_path / "redeuced_raw.csv", 'w') as tf:
+        row = next(reader) # Get headers
+        with open(to_path / "reduced_corpus.csv", 'w') as tf:
             csv_writer = csv.writer(tf)
+            csv_writer.writerow(row[i] for i in incl_inds) # Write headers
             writer = CsvWriter(csv_writer, to_path) # to_path unnecessary here TODO
             n_incl, n_excl, n_skipped = process_lines(n_rows, reader, out_obj=writer)
             print(f"{n_incl + n_excl} rows read, \n {n_incl} were included \n {n_excl} were excluded \n {n_skipped} were skipped \n Reduced csv data file was written to {to_path}")
