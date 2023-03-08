@@ -22,24 +22,20 @@ if __name__ == "__main__":
     from_file = data_path / "news_cleaned_2018_02_13.csv"
     to_path = data_path
 
-    if "raw_to_words" in args.processes:
-        n_incl, n_excl, n_skipped = raw_to_words(
+    if "json" in args.processes:
+        raw_to_words(
             from_file,
             to_path / "words/",
             args.nrows,
             args.inclname,
             args.exclname
         )
-        print(f"{n_incl + n_excl} rows read, \n {n_incl} were included \n {n_excl} were excluded \n {n_skipped} were skipped \n JSON files were written to {to_path}")
         print("runtime:", time.time() - t0)
         t0 = time.time()
         
-    if "reduce_raw" in args.processes:
-        n_incl, n_excl, n_skipped = reduce_raw(
-            from_file,
-            to_path / "processed_csv/",
-            args.nrows
-        )
-        print(f"{n_incl + n_excl} rows read, \n {n_incl} were included \n {n_excl} were excluded \n {n_skipped} were skipped \n Reduced csv data file was written to {to_path}")
+    if "csv" in args.processes:
+        reduce_raw(from_file, to_path / "processed_csv/", args.nrows)
         print("runtime:", time.time() - t0)
+        t0 = time.time()
+
     

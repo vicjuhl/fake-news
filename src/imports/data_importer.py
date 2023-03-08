@@ -90,11 +90,29 @@ def process_lines(
 
     return out_obj.n_incl, out_obj.n_excl, n_skipped
 
+def raw_to_words(
+    from_file: pl.Path,
+    to_path: pl.Path,
+    n_rows: int,
+    incl_name: str,
+    excl_name: str
+) -> None:
+    """Read raw csv file line by line, clean words, count occurrences and dump to json.
+    
+    Return tuple of n_included, n_excluded, n_skipped.
+    """
+    out_dicts = WordsDicts(to_path, incl_name, excl_name)
+    with open(from_file) as ff:
+        reader = csv.reader(ff)
+        next(reader) # skip header
+        n_incl, n_excl, n_skipped = process_lines(n_rows, reader, out_obj=out_dicts)
+        print(f"{n_incl + n_excl} rows read, \n {n_incl} were included \n {n_excl} were excluded \n {n_skipped} were skipped \n JSON files were written to {to_path}") # PACK away in classes maybe TODO
+
 def reduce_raw(
     from_file: pl.Path,
     to_path: pl.Path,
     n_rows: int
-) -> tuple[int, int, int]:
+) -> None:
     """Stream-read corpus, process and stream-write to new file.
     
     Return tuple of n_included, n_excluded, n_skipped.
@@ -106,21 +124,5 @@ def reduce_raw(
         with open(to_path / "redeuced_raw.csv", 'w') as tf:
             csv_writer = csv.writer(tf)
             writer = CsvWriter(csv_writer, to_path) # to_path unnecessary here TODO
-            return process_lines(n_rows, reader, out_obj=writer)
-
-def raw_to_words(
-    from_file: pl.Path,
-    to_path: pl.Path,
-    n_rows: int,
-    incl_name: str,
-    excl_name: str
-) -> tuple[int, int, int]:
-    """Read raw csv file line by line, clean words, count occurrences and dump to json.
-    
-    Return tuple of n_included, n_excluded, n_skipped.
-    """
-    out_dicts = WordsDicts(to_path, incl_name, excl_name)
-    with open(from_file) as ff:
-        reader = csv.reader(ff)
-        next(reader) # skip header
-        return process_lines(n_rows, reader, out_obj=out_dicts)
+            n_incl, n_excl, n_skipped = process_lines(n_rows, reader, out_obj=writer)
+            print(f"{n_incl + n_excl} rows read, \n {n_incl} were included \n {n_excl} were excluded \n {n_skipped} were skipped \n Reduced csv data file was written to {to_path}")

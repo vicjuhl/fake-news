@@ -139,6 +139,7 @@ class WordsDicts(DataClass):
 
 class CsvWriter(DataClass):
     def __init__(self, writer: '_csv._writer', to_path: pl.Path) -> None:
+        # TODO increment n_incl, n_excl
         super().__init__(to_path)
         self.writer = writer
 
