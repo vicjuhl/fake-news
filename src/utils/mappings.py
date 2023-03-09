@@ -43,7 +43,8 @@ out_cols = [
     "keywords",
     "tags",
     "summary",
-    "content_len"
+    "content_len",
+    "mean_word_len"
 ]
 
 # Label types to disregard

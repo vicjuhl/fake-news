@@ -6,8 +6,8 @@ from typing import Any
 
 from utils.types import news_info, words_info, words_dict # type: ignore
 from utils.functions import add_tuples, stem # type: ignore
-from utils.mappings import incl_inds, incl_keys, excl_types, out_cols, incl_cols # type: ignore
-from preprocessing.noise_removal import clean_str # type: ignore
+from utils.mappings import incl_keys, excl_types, out_cols, incl_cols # type: ignore
+from preprocessing.noise_removal import clean_str, tokenize_str # type: ignore
 
 
 class DataHandler(ABC):
@@ -79,7 +79,7 @@ class WordsDicts(DataHandler):
     @classmethod
     def process_batch(cls, data: list[news_info]) -> list[words_info]:
         """Clean text and split into list of type/bag of words pairs."""
-        return [(t, clean_str(c).split(" ")) for t, c in data]
+        return [(t, tokenize_str(clean_str(c))) for t, c in data]
     
     def write(self, articles: list[words_info]):
         """Add article as bag of words counts to relevant dictionary."""
@@ -167,7 +167,13 @@ class CsvWriter(DataHandler):
                     out_row.append(in_row[col_index])
                 # Add values of calculated columns
                 else:
-                    out_row.append(len(in_row[5])) # length of content
+                    content = in_row[5]
+                    # Length of content
+                    out_row.append(len(content))
+                    # Mean token length
+                    tkns = tokenize_str(clean_str(content))
+                    mean_len = sum(map(len, tkns))/float(len(tkns))
+                    out_row.append(mean_len)
             return_lst.append(out_row)
         return return_lst
 
