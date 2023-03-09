@@ -3,6 +3,7 @@ import pathlib as pl
 import _csv
 from abc import ABC, abstractmethod
 from typing import Any
+import statistics as stat
 
 from utils.types import news_info, words_info, words_dict # type: ignore
 from utils.functions import add_tuples, stem # type: ignore
@@ -164,6 +165,18 @@ class CsvWriter(DataHandler):
                 # Add values of transfered cols without processing
                 col_index = incl_cols[col_name]
                 out_row.append(in_row[col_index])
+            # Add values of calculated columns
+            content = in_row[5]
+            # Length of content
+            out_row.append(len(content))
+            # Mean token length
+            tkns = tokenize_str(clean_str(content))
+            tkns_lens = [len(tkn) for tkn in tkns]
+            mean_len = sum(tkns_lens)/float(len(tkns))
+            out_row.append(mean_len)
+            # Median token length
+            median_len = stat.median(tkns_lens)
+            out_row.append(median_len)
             return_lst.append(out_row)
         return return_lst
 
