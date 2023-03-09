@@ -2,12 +2,12 @@ import pathlib as pl
 import csv
 import sys
 import _csv # for type annotation
-from typing import Union, Any, Iterable
+from typing import Union
 from multiprocessing import Pool, cpu_count
 
 from preprocessing.noise_removal import clean_str # type: ignore
 from utils.types import news_info, words_info # type: ignore
-from utils.mappings import incl_inds # type: ignore
+from utils.mappings import out_cols # type: ignore
 from preprocessing.data_handlers import WordsDicts, CsvWriter # type: ignore
 
 def create_clear_buffer(n_procs: int) -> list[list[news_info]]:
@@ -19,9 +19,9 @@ def create_clear_buffer(n_procs: int) -> list[list[news_info]]:
 
 def process_buffer(
     out_obj: Union[CsvWriter, WordsDicts],
-    buffer: list[list[news_info]],
+    buffer: list[list[Union[words_info, tuple[str, ...]]]],
     n_procs: int,
-) -> list[words_info]: # TYPING TODO
+) -> list[Union[words_info, tuple[str, ...]]]:
     """Multiprocess article buffer, return list of type/bag of words pairs."""
     with Pool(n_procs) as p:
         data_results = p.map_async(out_obj.process_batch, buffer)
@@ -65,16 +65,15 @@ def process_lines(
             # Read and save line
             try:
                 # Add article to appropriate batch
-                buffer_index = (n_read % buffer_sz)//batch_sz
-                batch = buffer[buffer_index]
                 extracted = out_obj.extract(row)
-                if extracted != []:
+                if extracted != ():
+                    buffer_index = (n_read % buffer_sz)//batch_sz
+                    batch = buffer[buffer_index]
                     batch.append(extracted)
                 n_read += 1
             # Or skip row if either type or content cannot be read
             except:
-                n_skipped += 1 # ERROR HERE TODO
-                print("batch add fail", i, n_skipped)
+                n_skipped += 1
             # Break when target rows reached
             if i >= n_rows:
                 running = False
@@ -123,7 +122,7 @@ def reduce_raw(
         row = next(reader) # Get headers
         with open(to_path / "reduced_corpus.csv", 'w') as tf:
             csv_writer = csv.writer(tf)
-            csv_writer.writerow(row[i] for i in incl_inds) # Write headers
+            csv_writer.writerow(out_cols) # Write headers
             writer = CsvWriter(csv_writer)
             n_incl, n_excl, n_skipped = process_lines(n_rows, reader, out_obj=writer)
     print(f"{n_incl + n_excl} rows read, \n {n_incl} were included \n {n_excl} were excluded \n {n_skipped} were skipped \n Reduced csv data file was written to {to_path}")

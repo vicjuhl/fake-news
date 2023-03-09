@@ -2,10 +2,11 @@ import json
 import pathlib as pl
 import _csv
 from abc import ABC, abstractmethod
+from typing import Any
 
 from utils.types import news_info, words_info, words_dict # type: ignore
 from utils.functions import add_tuples, stem # type: ignore
-from utils.mappings import incl_inds, excl_types # type: ignore
+from utils.mappings import incl_inds, incl_keys, excl_types, out_cols, incl_cols # type: ignore
 from preprocessing.noise_removal import clean_str # type: ignore
 
 class DataHandler(ABC):
@@ -69,7 +70,7 @@ class WordsDicts(DataHandler):
     def all_pairs(self) -> list[tuple[pl.Path, words_dict]]:
         return [(path, dct) for path, dct in zip(self.all_paths, self.all_dicts)]
 
-    def extract(self, row: list[str]): # TYPING TODO
+    def extract(self, row: list[str]) -> news_info:
         """Extract type and content from row"""
         return row[3], row[5]
     
@@ -138,27 +139,39 @@ class WordsDicts(DataHandler):
 class CsvWriter(DataHandler):
     """Class which manages preprocessing and exporting of data on article level."""
     def __init__(self, writer: '_csv._writer') -> None:
-        # TODO increment n_incl, n_excl
         super().__init__()
         self.writer = writer
 
-    def extract(self, row: list[str]):
+    def extract(self, row: list[str]) -> tuple[str, ...]:
         """Extract all relevant entries from row."""
         type_ = row[3]
         if type_ is None or type_ in excl_types:
             self._n_excl += 1
-            return []
+            return ()
         else:
             self._n_incl += 1
-            return [row[i] for i in incl_inds]
+            return tuple(row[i] for i in incl_inds)
 
     @classmethod
-    def process_batch(cls, data): # TYPING TODO
-        return data # FOR TESTING TODO
+    def process_batch(cls, data: list[tuple[str, ...]]) -> list[Any]:
+        """Transfer specified columns without processing, process others."""
+        return_lst = []
+        for row in data:
+            out_row = []
+            for col_name in out_cols:
+                # Add values of transfered cols without processing
+                if col_name in incl_keys:
+                    col_index = incl_cols[col_name]
+                    out_row.append(row[col_index])
+                # Add values of calculated columns
+                else:
+                    out_row.append("test_str")
+            return_lst.append(out_row)
+        return return_lst
 
-    def write(self, articles: list[list[str]]) -> None: # TYPING ARTCLES TODO
+    def write(self, row: list[list[str]]) -> None:
         """Write rows."""
-        self.writer.writerows(articles)
+        self.writer.writerows(row)
 
     def finalize(self):
         """Do nothing."""

@@ -1,5 +1,6 @@
 import pandas as pd
 
+# Mapping labels to either fake or real unused TODO
 labels = {
     "unreliable": "fake",
     "fake": "fake",
@@ -12,10 +13,11 @@ labels = {
     "political": "fake"
 }
 
+# Column headers and indexes for input csv
 incl_cols = {
     "id": 1,
     "domain": 2,
-    "type_": 3,
+    "type": 3,
     "url": 4,
     "content": 5,
     "scraped": 6,
@@ -27,14 +29,27 @@ incl_cols = {
 }
 
 incl_inds = [ind for ind in incl_cols.values()]
+incl_keys = [key for key in incl_cols.keys()]
 
+# Column headers for output csv
+out_cols = [
+    "id",
+    "domain",
+    "type",
+    "test"
+]
+
+# Label types to disregard
 excl_types = {
     "satire",
     "unknown",
     ""
 }
 
-def add_labels(df: pd.DataFrame) -> pd.DataFrame:
+# Store columns that transfer unchanged from input to output csv's
+transfered_cols = [col_name for col_name in incl_keys]
+
+def add_labels(df: pd.DataFrame) -> pd.DataFrame: # Unused TODO
     """Add custom labels based on 'type' column to dataframe."""
     def lookup_labels(data) -> str:
         return labels[data["type"]]
