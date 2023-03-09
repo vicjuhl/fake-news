@@ -25,7 +25,7 @@ if __name__ == "__main__":
         file_path, to_path,
         args.nrows,
         args.inclname,
-        args.exclname
+        args.exclname,
         args.filename
     )
     
