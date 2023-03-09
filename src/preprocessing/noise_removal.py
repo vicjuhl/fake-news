@@ -69,17 +69,6 @@ def cut_tail_and_head(
     )
     return cut_df
   
-def frequency_adjustment(df:pd.DataFrame, total_num_articles):
-    '''adjusts wordfrequency of all words depending on their labeled'''
-    word_freq = df["freq"].apply(lambda x: x[1])
-    total_words = word_freq.sum()
-    for col in df.columns[1:]: # skip first collumn (contains total frequency)
-        local_words = df[col][1].sum()
-        local_articles = df[col][0].sum()
-        word_ratio = total_words / local_words # ratio multipled on each word under current label.
-        article_ratio = total_num_articles / local_articles
-        df[col] = df[col].apply(lambda x: (x[0]*article_ratio,x[1]*word_ratio)) #apply adjustment to all words/article collumns
-
 def clean_text(df: pd.DataFrame) -> pd.DataFrame:
     """Clean text for various anomalies for "content" in df."""
     df.content = df.content.apply(lambda x: clean(x,
@@ -124,9 +113,8 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     df = clean_text(df)
     tkns = tokenize(df)
     counts = count_sort(tkns)
-
-    no_head_no_tail =(cut_tail_and_head(counts, 10, 0.50, 0.05))
-    frequency_adjusted_df = frequency_adjustment(no_head_no_tail) #missing label word count (viktor still works doesnt do anything)
-    return frequency_adjusted_df 
+    count_total = adding_total_freq(counts)
+    no_head_no_tail =(cut_tail_and_head(count_total, 10, 0.50, 0.05))
+    return no_head_no_tail 
 
 preprocess(pd.DataFrame)

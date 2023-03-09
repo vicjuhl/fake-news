@@ -5,6 +5,18 @@ import numpy as np
 import math 
 
 
+def frequency_adjustment(df:pd.DataFrame, total_num_articles):
+    '''adjusts wordfrequency of all words depending on their labeled'''
+    word_freq = df["freq"].apply(lambda x: x[1])
+    total_words = word_freq.sum()
+    for col in df.columns[1:]: # skip first collumn (contains total frequency)
+        local_words = df[col][1].sum()
+        local_articles = df[col][0].sum()
+        word_ratio = total_words / local_words # ratio multipled on each word under current label.
+        article_ratio = total_num_articles / local_articles
+        df[col] = df[col].apply(lambda x: (x[0]*article_ratio,x[1]*word_ratio)) #apply adjustment to all words/article collumns
+
+
 def td_idf(df:pd.DataFrame, total_num_articles: int):
     '''Total document frequency estimation'''
     Article_freq = df["freq"].apply(lambda x: x[0])
@@ -45,3 +57,13 @@ def build_model(df: pd.DataFrame, save_to_csv : bool) -> pd.DataFrame:
         new_df.to_csv(Outputfile)
         print("Model saved to csv as: " + "Model" + str(model_amount+1))
     return new_df
+
+
+def build(df: pd.DataFrame, article_count, save_to_csv: bool) -> pd.DataFrame:
+        freq_adj = frequency_adjustment(df, article_count)
+        idf = td_idf(freq_adj, article_count)
+        log_class = (idf)
+        final_model =build_model(log_class, save_to_csv)
+        return final_model
+
+
