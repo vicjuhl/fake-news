@@ -117,4 +117,3 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     no_head_no_tail =(cut_tail_and_head(count_total, 10, 0.50, 0.05))
     return no_head_no_tail 
 
-preprocess(pd.DataFrame)
