@@ -4,7 +4,6 @@ from cleantext import clean # type: ignore
 import numpy as np
 import math 
 
-
 def frequency_adjustment(df:pd.DataFrame, total_num_articles):
     '''adjusts wordfrequency of all words depending on their labeled'''
     word_freq = df["freq"].apply(lambda x: x[1])
@@ -59,7 +58,7 @@ def build_model(df: pd.DataFrame, save_to_csv : bool) -> pd.DataFrame:
     return new_df
 
 
-def build(df: pd.DataFrame, article_count, save_to_csv: bool) -> pd.DataFrame:
+def build(df: pd.DataFrame, article_count: int, save_to_csv: bool) -> pd.DataFrame:
         freq_adj = frequency_adjustment(df, article_count)
         idf = td_idf(freq_adj, article_count)
         log_class = (idf)
