@@ -55,11 +55,7 @@ excl_types = {
 }
 
 # Store columns that transfer unchanged from input to output csv's
-transfered_cols = [col_name for col_name in incl_keys]
-
-def add_labels(df: pd.DataFrame) -> pd.DataFrame: # Unused TODO
-    """Add custom labels based on 'type' column to dataframe."""
-    def lookup_labels(data) -> str:
-        return labels[data["type"]]
-    df["labels"] = df.apply(lookup_labels, axis=1).astype("category")
-    return df
+transfered_cols: list[str] = []
+for col_name in incl_keys:
+    if col_name in out_cols:
+        transfered_cols.append(col_name)

@@ -6,7 +6,7 @@ from typing import Any
 
 from utils.types import news_info, words_info, words_dict # type: ignore
 from utils.functions import add_tuples, stem # type: ignore
-from utils.mappings import incl_keys, excl_types, out_cols, incl_cols # type: ignore
+from utils.mappings import transfered_cols, excl_types, incl_cols # type: ignore
 from preprocessing.noise_removal import clean_str, tokenize_str # type: ignore
 
 
@@ -160,20 +160,10 @@ class CsvWriter(DataHandler):
         return_lst = []
         for in_row in data:
             out_row = []
-            for col_name in out_cols:
+            for col_name in transfered_cols:
                 # Add values of transfered cols without processing
-                if col_name in incl_keys:
-                    col_index = incl_cols[col_name]
-                    out_row.append(in_row[col_index])
-                # Add values of calculated columns
-                else:
-                    content = in_row[5]
-                    # Length of content
-                    out_row.append(len(content))
-                    # Mean token length
-                    tkns = tokenize_str(clean_str(content))
-                    mean_len = sum(map(len, tkns))/float(len(tkns))
-                    out_row.append(mean_len)
+                col_index = incl_cols[col_name]
+                out_row.append(in_row[col_index])
             return_lst.append(out_row)
         return return_lst
 
