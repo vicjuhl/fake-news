@@ -1,8 +1,10 @@
 import json
-
 import pathlib as pl
 from utils.types import words_info, words_dict # type: ignore
 from nltk import PorterStemmer # type: ignore
+import numpy as np
+
+from utils.functions import add_tuples # type: ignore
 
 ps = PorterStemmer()
 
@@ -42,9 +44,11 @@ class WordsDicts:
     def all_pairs(self) -> list[tuple[pl.Path, words_dict]]:
         return [(path, dct) for path, dct in zip(self.all_paths, self.all_dicts)]
 
-    def add_words(self, data_list: list[words_info]) -> None:
-        """Add bag of words to self."""
-        for type_, words in data_list:
+    def add_words(self, articles: list[words_info]) -> None:
+        """Add article as bag of words counts to relevant dictionary."""
+        for type_, words in articles:
+            # Keep track of words already counted in current article
+            counted_in_article: set[str] = set()
             # Decide where to add word based on type
             if type_ is None or type_ in ["satire", "unknown", ""]:
                 out_dict = self._excl
@@ -54,9 +58,16 @@ class WordsDicts:
                 self._n_incl += 1
             # Add to relevant dictionary
             for word in words:
-                out_dict[word] = out_dict.get(word, {}) # Add word if it is new
-                out_dict[word][type_] = out_dict[word].get(type_, 0) + 1 # Add one
-        
+                # Add word if it is new
+                out_dict[word] = out_dict.get(word, {})
+                # Add type if it is new
+                out_dict[word][type_] = out_dict[word].get(type_, (0, 0))
+                out_dict[word][type_] = add_tuples(
+                    out_dict[word][type_],
+                    (1 if not word in counted_in_article else 0, 1)
+                )
+                counted_in_article.add(word)
+
     def export_json(self) -> None:
         """Dump both dicts as json files."""
         [self.dump_json(*pair) for pair in self.all_pairs]
@@ -70,12 +81,12 @@ class WordsDicts:
             # Loop through words
             for tkn in old_dct.keys():
                 stemmed_tkn = ps.stem(tkn)
-                try:
-                    # Loop through frequencies for word
-                    for type_, freq in old_dct[tkn].items():
-                        dct[stemmed_tkn][type_] = dct[stemmed_tkn].get(type_, 0) + freq
-                except:
-                    dct[stemmed_tkn] = old_dct[tkn]
+                dct[stemmed_tkn] = dct.get(stemmed_tkn, old_dct[tkn])
+                # Loop through frequencies for word
+                for type_, freqs in old_dct[tkn].items():
+                    dct[stemmed_tkn][type_] = dct[stemmed_tkn].get(type_, (0, 0))
+                    current_pair = dct[stemmed_tkn][type_]
+                    current_pair = add_tuples(current_pair, freqs)
 
     @classmethod
     def dump_json(cls, file_path: pl.Path, out_dict: dict) -> None:
