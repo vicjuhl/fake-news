@@ -89,7 +89,7 @@ def clean_str(text: str) -> str:
 
 def tokenize_str(text: str) -> list[str]:
     """Generate list of tokens form string."""
-    return text.split(" ")
+    return text.split()
 
 def tokenize(df: pd.DataFrame) -> list[str]:
     """Generate list of tokens from dataframe."""
