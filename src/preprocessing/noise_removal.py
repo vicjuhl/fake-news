@@ -68,7 +68,7 @@ def frequency_adjustment(df:pd.DataFrame):
     for col in df.columns[1:]: # skip fisrt collumn (contains total frequency)
         local = df[col][1].sum()
         ratio = total/local # ratio multipled on each word under current label.
-        df[col] = df[col].apply(lambda x: x*ratio) #apply adjustment to all words collumn
+        df[col] = df[col].apply(lambda x: (x[0],x[1]*ratio)) #apply adjustment to all words collumn
 
 
 def td_idf(df:pd.DataFrame, total_num_articles: int):
@@ -85,17 +85,19 @@ def td_idf(df:pd.DataFrame, total_num_articles: int):
 
 def logistic_Classification_weight(df:pd.DataFrame ):
     '''makes a real/fake classifcation between -1 (fake) and 1 (real)'''
-    fake = df["fake-freq"].apply(lambda x: x[0])
+    fake = df["fake-freq"].apply(lambda x: x[1])
     real =df["real-freq"].apply(lambda x: x[1])
-
-    for i in range(len(df)): # Makes a new collumn containing real/fakeness scores for each word
-        x = (real[i] - fake[i]) / min(real[i], fake[i])
-        df["fakeness_score"][i] = 1/(1+ math.exp(x))
+    scores = [] 
+    for f,r in zip(fake, real): 
+        x = (r - f) / min(r, f)
+        score= 1/(1+ math.exp(-x))
+        scores.append(score)
+    df['fakeness_score'] = scores
     return df
 
 import os
 
-def build_model(df: pd.DataFrame):
+def build_model(df: pd.DataFrame, save_to_csv : bool) -> pd.DataFrame:
     '''Construct model with weights and scores, and '''
     #makes new dataframe
     new_df= pd.DataFrame()
@@ -103,16 +105,14 @@ def build_model(df: pd.DataFrame):
     new_df["fakeness_score"] = df["fakeness_score"]
 
     #makes new csv file and outputs the model
-    dir = "Models"
-    model_amount = len(os.listdir(dir)) #used for model naming
-    Outputfilepath = os.path.join(dir, "Model{}.csv".format(model_amount+1))
-    Outputfile = open (Outputfilepath, "w+")
-    new_df.to_csv(Outputfile)
-
-
-
-
-    
+    if save_to_csv:
+        dir = "models"
+        model_amount = len(os.listdir(dir)) #used for model naming
+        Outputfilepath = os.path.join(dir, "Model{}.csv".format(model_amount+1))
+        Outputfile = open (Outputfilepath, "w+")
+        new_df.to_csv(Outputfile)
+        print("Model saved to csv as: " + "Model" + str(model_amount+1))
+    return new_df
 
 def clean_text(df: pd.DataFrame) -> pd.DataFrame:
     """Clean text for various anomalies for "content" in df."""
@@ -158,6 +158,8 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     df = clean_text(df)
     tkns = tokenize(df)
     counts = count_sort(tkns)
-    no_head_no_tail =(cut_tail_and_head(counts, 10, 0.15, 0.05))
+    no_head_no_tail =(cut_tail_and_head(counts, 10, 0.50, 0.05))
     frequency_adjusted_df = frequency_adjustment(no_head_no_tail) #missing label word count (viktor still works doesnt do anything)
     return frequency_adjusted_df 
+
+preprocess(pd.DataFrame)
