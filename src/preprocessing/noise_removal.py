@@ -2,6 +2,7 @@ import pandas as pd
 from cleantext import clean # type: ignore
 import numpy as np
 import math 
+
 def cut_tail_and_head(
     df : pd.DataFrame,
     min_occurence: int,
@@ -61,14 +62,16 @@ def cut_tail_and_head(
     )
     return cut_df
   
-def frequency_adjustment(df:pd.DataFrame):
+def frequency_adjustment(df:pd.DataFrame, total_num_articles):
     '''adjusts wordfrequency of all words depending on their labeled'''
     word_freq = df["freq"].apply(lambda x: x[1])
-    total = word_freq.sum()
-    for col in df.columns[1:]: # skip fisrt collumn (contains total frequency)
-        local = df[col][1].sum()
-        ratio = total/local # ratio multipled on each word under current label.
-        df[col] = df[col].apply(lambda x: (x[0],x[1]*ratio)) #apply adjustment to all words collumn
+    total_words = word_freq.sum()
+    for col in df.columns[1:]: # skip first collumn (contains total frequency)
+        local_words = df[col][1].sum()
+        local_articles = df[col][0].sum()
+        word_ratio = total_words / local_words # ratio multipled on each word under current label.
+        article_ratio = total_num_articles / local_articles
+        df[col] = df[col].apply(lambda x: (x[0]*article_ratio,x[1]*word_ratio)) #apply adjustment to all words/article collumns
 
 
 def td_idf(df:pd.DataFrame, total_num_articles: int):
@@ -150,7 +153,7 @@ def count_sort(tkns: list[str]) -> pd.DataFrame:
     for tkn in tkns:
         counts[tkn] = counts.get(tkn, 0) + 1
     df = pd.DataFrame.from_dict(counts, orient="index", columns=["freq"])
-    df.sort_values(by=["freq"], ascending=False, inplace=True)
+    df.sort_values(by=["freq"][1], ascending=False, inplace=True)
     return df
 
 def preprocess(df: pd.DataFrame) -> pd.DataFrame:
@@ -158,6 +161,7 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     df = clean_text(df)
     tkns = tokenize(df)
     counts = count_sort(tkns)
+
     no_head_no_tail =(cut_tail_and_head(counts, 10, 0.50, 0.05))
     frequency_adjusted_df = frequency_adjustment(no_head_no_tail) #missing label word count (viktor still works doesnt do anything)
     return frequency_adjusted_df 
