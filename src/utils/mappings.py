@@ -1,18 +1,3 @@
-import pandas as pd
-
-# Mapping labels to either fake or real unused TODO
-labels = {
-    "unreliable": "fake",
-    "fake": "fake",
-    "clickbait": "fake",
-    "conspiracy": "fake",
-    "reliable": "real",
-    "bias": "fake",
-    "hate": "fake",
-    "junksci": "fake",
-    "political": "fake"
-}
-
 # Column headers and indexes for input csv
 incl_cols = {
     "id": 1,
@@ -20,7 +5,7 @@ incl_cols = {
     "type": 3,
     "url": 4,
     "content": 5,
-    "scraped": 6,
+    "scraped_at": 6,
     "title": 9,
     "authors": 10,
     "keywords": 11,
@@ -37,21 +22,30 @@ out_cols = [
     "domain",
     "type",
     "url",
-    "scraped",
+    "scraped_at",
     "title",
     "authors",
     "keywords",
     "tags",
     "summary",
     "content_len",
-    "mean_word_len"
+    "mean_word_len",
+    "median_word_len"
 ]
 
 # Label types to disregard
 excl_types = {
     "satire",
     "unknown",
-    ""
+    "",
+    "unreliable",
+    "clickbait",
+    "conspiracy",
+    "bias",
+    "hate",
+    "junksci",
+    "political",
+    "rumor"
 }
 
 # Store columns that transfer unchanged from input to output csv's
