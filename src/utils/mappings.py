@@ -36,7 +36,14 @@ out_cols = [
     "id",
     "domain",
     "type",
-    "test"
+    "url",
+    "scraped",
+    "title",
+    "authors",
+    "keywords",
+    "tags",
+    "summary",
+    "content_len"
 ]
 
 # Label types to disregard

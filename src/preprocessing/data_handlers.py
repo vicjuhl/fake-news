@@ -9,6 +9,7 @@ from utils.functions import add_tuples, stem # type: ignore
 from utils.mappings import incl_inds, incl_keys, excl_types, out_cols, incl_cols # type: ignore
 from preprocessing.noise_removal import clean_str # type: ignore
 
+
 class DataHandler(ABC):
     """Abstract class for data object such as dictionaries of words or csv-writers."""
     def __init__(self) -> None:
@@ -43,6 +44,7 @@ class DataHandler(ABC):
     def finalize(self) -> None:
         """Do final actions if needed."""
         pass
+
 
 class WordsDicts(DataHandler):
     """Two dictionaries with included and excluded words, respectively."""
@@ -150,22 +152,22 @@ class CsvWriter(DataHandler):
             return ()
         else:
             self._n_incl += 1
-            return tuple(row[i] for i in incl_inds)
+            return tuple(row)
 
     @classmethod
     def process_batch(cls, data: list[tuple[str, ...]]) -> list[Any]:
         """Transfer specified columns without processing, process others."""
         return_lst = []
-        for row in data:
+        for in_row in data:
             out_row = []
             for col_name in out_cols:
                 # Add values of transfered cols without processing
                 if col_name in incl_keys:
                     col_index = incl_cols[col_name]
-                    out_row.append(row[col_index])
+                    out_row.append(in_row[col_index])
                 # Add values of calculated columns
                 else:
-                    out_row.append("test_str")
+                    out_row.append(len(in_row[5])) # length of content
             return_lst.append(out_row)
         return return_lst
 
