@@ -18,6 +18,7 @@ incl_keys = [key for key in incl_cols.keys()]
 
 # Column headers for output csv
 out_cols = [
+    # Transfered
     "id",
     "domain",
     "type",
@@ -28,6 +29,7 @@ out_cols = [
     "keywords",
     "tags",
     "summary",
+    # Derived
     "content_len",
     "mean_word_len",
     "median_word_len"
