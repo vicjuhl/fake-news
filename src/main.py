@@ -1,11 +1,11 @@
 import pathlib as pl
-from data_importer import raw_to_words # type: ignore
+from imports.data_importer import raw_to_words, reduce_raw # type: ignore
 import argparse as ap
 import time
 
 def init_argparse() -> ap.ArgumentParser:
     parser = ap.ArgumentParser()
-    parser.add_argument("-n", "--nrows", type=int, default=1000)
+    parser.add_argument("-n", "--nrows", type=int, default=250)
     parser.add_argument("-i", "--inclname", type=str, default="included_words")
     parser.add_argument("-e", "--exclname", type=str, default="excluded_words")
     parser.add_argument("-f", "--filename", type=str, default="news_sample.csv") #"news_cleaned_2018_02_13.csv"
