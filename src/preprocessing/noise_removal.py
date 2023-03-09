@@ -2,11 +2,12 @@ import pandas as pd
 from cleantext import clean # type: ignore
 import numpy as np
 import math 
+import src.utils.functions as f # type: ignore
 
 def adding_total_freq(df: pd.DataFrame) -> pd.DataFrame:
     '''Adds a total frequency collumn to the dataframe'''
-    df['total_freq'][1] = df["fake"].apply(lambda x: x[1]) + df["real"].apply(lambda x: x[1])
-    df['total_freq'][0] = df["fake"].apply(lambda x: x[0]) + df["real"].apply(lambda x: x[1])
+    df['total_freq'] = [(f.add_tuples(x, y)) for x, y in zip(df['fake'], df['real'])]
+    df = df.reindex(columns=['total_freq', 'fake', 'real'])
     return df
 
 
