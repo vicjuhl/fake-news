@@ -67,7 +67,9 @@ def process_lines(
                 # Add article to appropriate batch
                 buffer_index = (n_read % buffer_sz)//batch_sz
                 batch = buffer[buffer_index]
-                batch.append(out_obj.extract(row))
+                extracted = out_obj.extract(row)
+                if extracted != []:
+                    batch.append(extracted)
                 n_read += 1
             # Or skip row if either type or content cannot be read
             except:
