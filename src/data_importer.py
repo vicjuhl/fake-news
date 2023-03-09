@@ -26,6 +26,16 @@ def process_buffer(buffer: list[list[news_info]], n_procs: int) -> list[words_in
         # Concattenate list of lists of words to just list of word_info
         return [article for batch in data_lists for article in batch]
 
+def set_maxsize():
+    """decrease the maxInt value by factor 10 as long as the OverflowError occurs."""
+    maxInt = sys.maxsize
+    while True:
+        try:
+            csv.field_size_limit(maxInt)
+            break
+        except OverflowError:
+            maxInt = int(maxInt/10)
+
 def raw_to_words(
     from_file: pl.Path,
     to_path: pl.Path,
@@ -37,8 +47,8 @@ def raw_to_words(
     
     Return tuple of n_included, n_excluded, n_skipped
     """
-
-    csv.field_size_limit(sys.maxsize) # Allow long content texts
+    set_maxsize()
+    
     out_dicts = WordsDicts(to_path, incl_name, excl_name)
 
     n_procs = cpu_count()
@@ -54,7 +64,7 @@ def raw_to_words(
     running = True
     i = 0
     
-    with open(from_file) as f:
+    with open(from_file, encoding="utf8") as f:
         reader = csv.reader(f)
         next(reader) # skip header
         row = next(reader)
