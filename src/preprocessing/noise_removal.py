@@ -95,7 +95,7 @@ def td_idf(df:pd.DataFrame, total_num_articles: int):
     return df #returns dataframe with weight collumn added.
 
 def logistic_Classification_weight(df:pd.DataFrame ):
-    '''makes a real/fake classifcation between -1 (fake) and 1 (real)'''
+    '''makes a real/fake classifcation between -1 (fake) and 1 (real), 0 being a neutral word'''
     fake = df["fake-freq"].apply(lambda x: x[1])
     real =df["real-freq"].apply(lambda x: x[1])
     scores = [] 
