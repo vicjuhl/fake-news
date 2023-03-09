@@ -41,8 +41,7 @@ def raw_to_words(
     to_path: pl.Path,
     n_rows: int,
     incl_name: str,
-    excl_name: str,
-    file_name: str
+    excl_name: str
 ) -> tuple[int, int, int]:
     """Read raw csv file line by line, clean words, count occurrences and dump to json.
     
