@@ -6,10 +6,9 @@ import src.utils.functions as f # type: ignore
 
 def adding_total_freq(df: pd.DataFrame) -> pd.DataFrame:
     '''Adds a total frequency collumn to the dataframe'''
-    df['total_freq'] = [(f.add_tuples(x, y)) for x, y in zip(df['fake'], df['real'])]
-    df = df.reindex(columns=['total_freq', 'fake', 'real'])
+    df['freq'] = [(f.add_tuples(x, y)) for x, y in zip(df['fake'], df['real'])]
+    df = df.reindex(columns=['freq', 'fake', 'real'])
     return df
-
 
 def cut_tail_and_head(
     df : pd.DataFrame,
@@ -96,8 +95,8 @@ def td_idf(df:pd.DataFrame, total_num_articles: int):
 
 def logistic_Classification_weight(df:pd.DataFrame ):
     '''makes a real/fake classifcation between -1 (fake) and 1 (real), 0 being a neutral word'''
-    fake = df["fake-freq"].apply(lambda x: x[1])
-    real =df["real-freq"].apply(lambda x: x[1])
+    fake = df["fake"].apply(lambda x: x[1])
+    real =df["real"].apply(lambda x: x[1])
     scores = [] 
     for f,r in zip(fake, real): 
         x = (r - f) / min(r, f)
@@ -164,14 +163,17 @@ def count_sort(tkns: list[str]) -> pd.DataFrame:
     df.sort_values(by=["freq"][1], ascending=False, inplace=True)
     return df
 
-def preprocess(df: pd.DataFrame) -> pd.DataFrame:
+def preprocess(df: pd.DataFrame, totalArticles: int) -> pd.DataFrame:
     """Run the preprocessing pipeline."""
     df = clean_text(df)
     tkns = tokenize(df)
     counts = count_sort(tkns)
-
-    no_head_no_tail =(cut_tail_and_head(counts, 10, 0.50, 0.05))
-    frequency_adjusted_df = frequency_adjustment(no_head_no_tail) #missing label word count (viktor still works doesnt do anything)
-    return frequency_adjusted_df 
+    with_total_freq = adding_total_freq(counts)
+    no_head_no_tail =(cut_tail_and_head(with_total_freq, 10, 0.50, 0.05))
+    frequency_adjusted_df = frequency_adjustment(no_head_no_tail,totalArticles) #missing label word count (viktor still works doesnt do anything)
+    td_idf_df =  td_idf(frequency_adjusted_df,totalArticles)
+    log_class_df = logistic_Classification_weight(td_idf_df)
+    final_model = build_model(log_class_df)
+    return final_model 
 
 preprocess(pd.DataFrame)
