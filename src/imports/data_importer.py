@@ -55,14 +55,13 @@ def process_lines(
     while running:
         try:
             row = next(reader)
+            # "Progress bar"
             if i % 5000 == 0:
-                print("Lines read:", i, "...") # "progress bar"
-
+                print("Lines read:", i, "...")
             # Parallel process data if all batches are full
             if n_read % buffer_sz == 0:
                 out_obj.write(process_buffer(out_obj, buffer, n_procs))
                 buffer = create_clear_buffer(n_procs)
-
             # Read and save line
             try:
                 # Add article to appropriate batch
@@ -74,21 +73,16 @@ def process_lines(
             except:
                 n_skipped += 1 # ERROR HERE TODO
                 print("batch add fail", i, n_skipped)
-            
             # Break when target rows reached
             if i >= n_rows:
                 running = False
             i += 1
-
         except: # No row to read (or other error)
             running = False
-    
     # Flush what remains in the buffer
     out_obj.write(process_buffer(out_obj, buffer, n_procs))
-
     # Export as json
     out_obj.finalize()
-
     return out_obj.n_incl, out_obj.n_excl, n_skipped
 
 def raw_to_words(
