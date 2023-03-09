@@ -2,6 +2,13 @@ import pandas as pd
 from cleantext import clean # type: ignore
 import numpy as np
 import math 
+
+def adding_total_freq(df: pd.DataFrame) -> pd.DataFrame:
+    '''Adds a total frequency collumn to the dataframe'''
+    df['total_freq'][1] = df["fake"].apply(lambda x: x[1]) + df["real"].apply(lambda x: x[1])
+    df['total_freq'][0] = df["fake"].apply(lambda x: x[0]) + df["real"].apply(lambda x: x[1])
+    return df
+
 def cut_tail_and_head(
     df : pd.DataFrame,
     min_occurence: int,
