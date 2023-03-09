@@ -29,6 +29,16 @@ def process_buffer(
         # Concattenate list of lists of words to just list of word_info
         return [article for batch in data_lists for article in batch]
 
+def set_maxsize():
+    """decrease the maxInt value by factor 10 as long as the OverflowError occurs."""
+    maxInt = sys.maxsize
+    while True:
+        try:
+            csv.field_size_limit(maxInt)
+            break
+        except OverflowError:
+            maxInt = int(maxInt/10)
+
 def process_lines(
     n_rows: int,
     reader: '_csv._reader',
@@ -38,7 +48,7 @@ def process_lines(
     
     Return tuple of n_included, n_excluded, n_skipped
     """
-    csv.field_size_limit(sys.maxsize) # Allow long content texts
+    set_maxsize()
 
     n_procs = cpu_count()
     batch_sz = max(1, min(10000, n_rows//n_procs)) # At least 1, at most 10000
@@ -99,7 +109,7 @@ def raw_to_words(
     """
     to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
     out_dicts = WordsDicts(to_path, incl_name, excl_name)
-    with open(from_file) as ff:
+    with open(from_file, encoding="utf8") as ff:
         reader = csv.reader(ff)
         next(reader) # skip header
         n_incl, n_excl, n_skipped = process_lines(n_rows, reader, out_obj=out_dicts)
@@ -117,10 +127,10 @@ def reduce_raw(
     Return tuple of n_included, n_excluded, n_skipped.
     """
     to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
-    with open(from_file) as ff:
+    with open(from_file, encoding="utf8") as ff:
         reader = csv.reader(ff)
         row = next(reader) # Get headers
-        with open(to_path / "reduced_corpus.csv", 'w') as tf:
+        with open(to_path / "reduced_corpus.csv", 'w', encoding="utf8") as tf:
             csv_writer = csv.writer(tf)
             csv_writer.writerow(out_cols) # Write headers
             writer = CsvWriter(csv_writer)
