@@ -6,9 +6,9 @@ import utils.functions as f # type: ignore
 
 def adding_total_freq(df: pd.DataFrame) -> pd.DataFrame:
     '''Adds a total frequency collumn to the dataframe'''
-    df['freq'] = [(f.add_tuples(x, y)) for x, y in zip(df['fake'], df['real'])]
-    df = df.reindex(columns=['freq', 'fake', 'real'])
-    return df
+    df['freq'] = [(f.add_tuples(x, y)) for x, y in zip(df['fake'], df['reliable'])]
+    df = df.reindex(columns=['freq', 'fake', 'reliable'])
+    return df 
 
 def cut_tail_and_head(
     df : pd.DataFrame,
@@ -18,6 +18,8 @@ def cut_tail_and_head(
 ) -> pd.DataFrame:
     '''Cut the head and tail of the dataframe,
     where the head is the most frequent words and the tail the least frequent words. '''
+
+    df = df.sort_values(by="freq", ascending=False, key=lambda x: x.apply(lambda y: y[1]))
 
     word_freq = df["freq"].apply(lambda x: x[1])
     total_words = word_freq.sum()   
@@ -108,11 +110,10 @@ def count_sort(tkns: list[str]) -> pd.DataFrame:
     df.sort_values(by=["freq"][1], ascending=False, inplace=True)
     return df
 
+
 def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     """Run the preprocessing pipeline."""
-    df = clean_text(df)
-    tkns = tokenize(df)
-    total_freq = adding_total_freq(tkns)
-    counts = count_sort(total_freq)
-    no_head_no_tail =(cut_tail_and_head(counts, 10, 0.50, 0.05))
+    total_freq = adding_total_freq(df)
+    no_head_no_tail =(cut_tail_and_head(total_freq, 5, 0.20, 0.01))
     return no_head_no_tail 
+
