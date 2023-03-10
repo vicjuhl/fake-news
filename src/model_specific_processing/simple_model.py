@@ -4,45 +4,43 @@ from cleantext import clean # type: ignore
 import numpy as np
 import math 
 
-def frequency_adjustment(df:pd.DataFrame, total_num_articles):
+def frequency_adjustment(df:pd.DataFrame, total_num_articles) -> pd.DataFrame:
     '''adjusts wordfrequency of all words depending on their labeled'''
     word_freq = df["freq"].apply(lambda x: x[1])
     total_words = word_freq.sum()
     for col in df.columns[1:]: # skip first collumn (contains total frequency)
-        local_words = df[col][1].sum()
-        local_articles = df[col][0].sum()
+        local_words = df[col].apply(lambda x: x[1]).sum()
+        local_articles = df[col].apply(lambda x: x[0]).sum()
         word_ratio = total_words / local_words # ratio multipled on each word under current label.
         article_ratio = total_num_articles / local_articles
         df[col] = df[col].apply(lambda x: (x[0]*article_ratio,x[1]*word_ratio)) #apply adjustment to all words/article collumns
+    return df
 
 
-def td_idf(df:pd.DataFrame, total_num_articles: int):
+def td_idf(df:pd.DataFrame, total_num_articles: int) -> pd.DataFrame:
     '''Total document frequency estimation'''
     Article_freq = df["freq"].apply(lambda x: x[0])
-    word_freq = df["freq"].apply(lambda x: x[1])
+    word_freq = df["freq"].apply(lambda x: 1 if x is None else x[1] if len(x) > 0 else 0)
     
-    df['idf_weight'] = 0
+    #df['idf_weight'] = 0
     #To do expects: a dataframe with column "article_frequency"
-
-    for i in range(len(df)):
-        df['idf_weight'][i] = np.log(total_num_articles/Article_freq[i])*(np.log(word_freq[i])+1)
+    for i, row in df.iterrows():
+        df.loc[i,"idf_weight"] = np.log(total_num_articles/((row['freq'])[0] + 1.1))
     return df #returns dataframe with weight collumn added.
 
-def logistic_Classification_weight(df:pd.DataFrame ):
+def logistic_Classification_weight(df:pd.DataFrame) -> pd.DataFrame:
     '''makes a real/fake classifcation between -1 (fake) and 1 (real), 0 being a neutral word'''
-    fake = df["fake-freq"].apply(lambda x: x[1])
-    real =df["real-freq"].apply(lambda x: x[1])
-    scores = [] 
-    for f,r in zip(fake, real): 
-        x = (r - f) / max(min(r, f),1) #divided by min of real and fake count but must be atleast 1
-        score= 1/(1+ math.exp(-x))
-        scores.append(score)
-    df['fakeness_score'] = scores
+    for i, rows in df.iterrows():   
+        f = (rows['fake'])[1]
+        r = (rows['reliable'])[1]
+        x = (r - f) / max(min(r, f), 1) #divided by min of real and fake count but must be atleast 1
+        df.loc[i, 'fakeness_score'] = 2 / (1 + math.exp(-x)) - 1
     return df
 
 def Create_model(df: pd.DataFrame) -> pd.DataFrame:
     '''Construct model with weights and scores'''
     #makes new dataframe
+    print(df)
     new_df= pd.DataFrame()
     new_df["idf_weight"] = df["idf_weight"]
     new_df["fakeness_score"] = df["fakeness_score"]
@@ -50,7 +48,10 @@ def Create_model(df: pd.DataFrame) -> pd.DataFrame:
 
 def save_to_csv(df: pd.DataFrame):
     """Saves the model to csvfile in Models-csv folder"""
-    dir = "Models-csv"
+    dir = "models-csv"
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+        
     model_amount = len(os.listdir(dir)) #used for model naming
     Outputfilepath = os.path.join(dir, "Model{}.csv".format(model_amount+1))
     Outputfile = open (Outputfilepath, "w+")
@@ -62,8 +63,21 @@ def build_model(df: pd.DataFrame, article_count: int, make_csv: bool) -> pd.Data
     """Uses the functions in the module to build a dataframe with weights and scores for words"""
     freq_adj = frequency_adjustment(df, article_count)
     idf = td_idf(freq_adj, article_count)
-    log_class = (idf)
-    final_model =Create_model(log_class)
-    if make_csv: save_to_csv(final_model)
+    log_class = logistic_Classification_weight(idf)
+    final_model = Create_model(log_class)
+    if make_csv: 
+        save_to_csv(log_class)
     return final_model
+
+
+def binary_classifier(inp: list[(str, int)], df: pd.DataFrame):
+    acc_weight = 0
+    acc_score = 0
+    for word, freq in inp:
+        if word in df.index:
+            row = df.loc[str(word)]
+            acc_weight += freq * row['idf_weight']
+            acc_score +=  row['fakeness_score'] * freq * row['idf_weight']
+
+    return 'Fake' if (acc_score / acc_weight) < 0 else 'Real'
 
