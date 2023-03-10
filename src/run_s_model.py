@@ -13,6 +13,7 @@ df=pd.read_csv(csv)
 def run_model_on_df(df: pd.DataFrame):
     preprocessed_df = nr.preprocess(df)
     simple_model = sm.build(preprocessed_df, True)
+    return simple_model
     
 
 
