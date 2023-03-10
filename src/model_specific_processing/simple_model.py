@@ -34,35 +34,37 @@ def logistic_Classification_weight(df:pd.DataFrame ):
     real =df["real-freq"].apply(lambda x: x[1])
     scores = [] 
     for f,r in zip(fake, real): 
-        x = (r - f) / min(r, f)
+        x = (r - f) / max(min(r, f),1) #divided by min of real and fake count but must be atleast 1
         score= 1/(1+ math.exp(-x))
         scores.append(score)
     df['fakeness_score'] = scores
     return df
 
-def build_model(df: pd.DataFrame, save_to_csv : bool) -> pd.DataFrame:
-    '''Construct model with weights and scores, and '''
+def Create_model(df: pd.DataFrame) -> pd.DataFrame:
+    '''Construct model with weights and scores'''
     #makes new dataframe
     new_df= pd.DataFrame()
     new_df["idf_weight"] = df["idf_weight"]
     new_df["fakeness_score"] = df["fakeness_score"]
-
-    #makes new csv file and outputs the model
-    if save_to_csv:
-        dir = "models"
-        model_amount = len(os.listdir(dir)) #used for model naming
-        Outputfilepath = os.path.join(dir, "Model{}.csv".format(model_amount+1))
-        Outputfile = open (Outputfilepath, "w+")
-        new_df.to_csv(Outputfile)
-        print("Model saved to csv as: " + "Model" + str(model_amount+1))
     return new_df
 
+def save_to_csv(df: pd.DataFrame):
+    """Saves the model to csvfile in Models-csv folder"""
+    dir = "Models-csv"
+    model_amount = len(os.listdir(dir)) #used for model naming
+    Outputfilepath = os.path.join(dir, "Model{}.csv".format(model_amount+1))
+    Outputfile = open (Outputfilepath, "w+")
+    df.to_csv(Outputfile)
+    print("Model saved to csv as: " + "Model" + str(model_amount+1))
+    
 
-def build(df: pd.DataFrame, article_count: int, save_to_csv: bool) -> pd.DataFrame:
-        freq_adj = frequency_adjustment(df, article_count)
-        idf = td_idf(freq_adj, article_count)
-        log_class = (idf)
-        final_model =build_model(log_class, save_to_csv)
-        return final_model
+def build_model(df: pd.DataFrame, article_count: int, make_csv: bool) -> pd.DataFrame:
+    """Uses the functions in the module to build a dataframe with weights and scores for words"""
+    freq_adj = frequency_adjustment(df, article_count)
+    idf = td_idf(freq_adj, article_count)
+    log_class = (idf)
+    final_model =Create_model(log_class)
+    if make_csv: save_to_csv(final_model)
+    return final_model
 
 
