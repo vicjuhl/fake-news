@@ -10,7 +10,6 @@ from preprocessing import noise_removal as nr
 from preprocessing import words_dicts as wd
 
 
-
 def frequency_adjustment(df:pd.DataFrame, total_num_articles):
     '''adjusts wordfrequency of all words depending on their labeled'''
     word_freq = df["freq"].apply(lambda x: x[1])
@@ -72,7 +71,7 @@ def build(df: pd.DataFrame, article_count: int, save_to_csv: bool) -> pd.DataFra
         final_model =build_model(log_class, save_to_csv)
         return final_model
 
-#first model
+    
 
 
 ps = PorterStemmer()
@@ -92,3 +91,5 @@ def binary_classifier_simple(inp: list[(str, int)]):
             acc_score +=  row['fakeness_score'] * freq * row['idf_weight']
 
     return 'Fake' if (acc_score / acc_weight) < 0 else 'True'
+
+
