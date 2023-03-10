@@ -5,6 +5,8 @@ import pandas as pd
 import pathlib as pl
 import numpy as np
 import json
+import csv
+
 
 # file reference for dataframe
 json_file_path = pl.Path(os.path.abspath('')).parent.resolve() / "data_files/words/included_words.json"
@@ -23,12 +25,17 @@ df = df.applymap(lambda x: [0,0] if x is np.nan else x)
 
 
 
-#run model
-def run_model_on_df(df: pd.DataFrame):
+#build model
+def build_model(df: pd.DataFrame):
     preprocessed_df = nr.preprocess(df)
-    simple_model = sm.build_model(preprocessed_df, 10000, True)
+    simple_model = sm.build_model(preprocessed_df, 250, True)
     return simple_model
 
 
-run_model_on_df(df) 
+csv_file_path = pl.Path(os.path.abspath('')).parent.resolve() / "data_files/news_sample.csv"
+article_df = pd.read_csv(csv_file_path)
+
+sm.infer(article_df, build_model(df))
+
+        
 

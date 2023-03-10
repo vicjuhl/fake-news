@@ -3,6 +3,9 @@ import pandas as pd
 from cleantext import clean # type: ignore
 import numpy as np
 import math 
+from utils.functions import stem 
+from collections import Counter
+
 
 def frequency_adjustment(df:pd.DataFrame, total_num_articles) -> pd.DataFrame:
     '''adjusts wordfrequency of all words depending on their labeled'''
@@ -70,7 +73,13 @@ def build_model(df: pd.DataFrame, article_count: int, make_csv: bool) -> pd.Data
     return final_model
 
 
-def binary_classifier(inp: list[(str, int)], df: pd.DataFrame):
+
+# inference functions
+
+def binary_classifier(inp: list[(str,int)], df: pd.DataFrame) -> str:
+
+    if any(len(item) != 2 for item in inp):
+        raise ValueError("Input data should be a list of tuples with two elements each")
     acc_weight = 0
     acc_score = 0
     for word, freq in inp:
@@ -79,5 +88,45 @@ def binary_classifier(inp: list[(str, int)], df: pd.DataFrame):
             acc_weight += freq * row['idf_weight']
             acc_score +=  row['fakeness_score'] * freq * row['idf_weight']
 
-    return 'Fake' if (acc_score / acc_weight) < 0 else 'Real'
+    return 'fake' if (acc_score / acc_weight) < 0 else 'reliable'
 
+
+
+def preproccess_for_inference(article : str) -> list[(str,int)]:
+    words = article.split()
+    words = [stem(word) for word in words]
+    counts = Counter(words)
+    counts = [(word, count) for word, count in counts.items()]
+
+    #print(counts)
+    return Counter(counts)
+    
+
+
+def infer(input_df: pd.DataFrame, model_df: pd.DataFrame): 
+    
+    def classifyArticle(inp: str):
+        words = preproccess_for_inference(inp)
+        return binary_classifier(words, model_df )
+    
+    input_df["prediction"] = input_df["content"].apply(classifyArticle)
+    lst = []
+    for index, row in input_df.iterrows():
+        if row['type'] == 'fake' or row['type'] == 'reliable':
+            lst.append((row['type'], row['prediction'], row['type'] == row['prediction'] ))
+    acc = 0
+
+    print(lst)
+    for i, j, z in lst:
+        if z:
+            acc += 1
+    accuracy = acc/len(lst)
+    print(accuracy)
+
+    return lst, accuracy
+
+
+
+
+    
+    
