@@ -1,5 +1,6 @@
 import pathlib as pl
-from imports.data_importer import raw_to_words, reduce_raw # type: ignore
+from data_importer import raw_to_words, reduce_raw # type: ignore
+from imports.json_to_pandas import json_to_pd
 import argparse as ap
 import time
 
@@ -39,4 +40,8 @@ if __name__ == "__main__":
         print("runtime:", time.time() - t0)
         t0 = time.time()
 
-    
+    if "df" in args.processes:
+        df = json_to_pd()
+        print("runtime:", time.time() - t0)
+        t0 = time.time()
+        print(df)
