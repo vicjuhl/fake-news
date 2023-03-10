@@ -112,7 +112,7 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     """Run the preprocessing pipeline."""
     df = clean_text(df)
     tkns = tokenize(df)
-    counts = count_sort(tkns)
-    count_total = adding_total_freq(counts)
-    no_head_no_tail =(cut_tail_and_head(count_total, 10, 0.50, 0.05))
+    total_freq = adding_total_freq(tkns)
+    counts = count_sort(total_freq)
+    no_head_no_tail =(cut_tail_and_head(counts, 10, 0.50, 0.05))
     return no_head_no_tail 
