@@ -9,7 +9,7 @@ import csv
 
 
 # file reference for dataframe
-json_file_path = pl.Path(os.path.abspath('')).parent.resolve() / "data_files/words/included_words.json"
+json_file_path = pl.Path(os.path.abspath('')).parent.resolve() / "data_files/included_words10k.json"
 
 with open(json_file_path) as json_file:
     json_dict = json.load(json_file)
@@ -28,7 +28,7 @@ df = df.applymap(lambda x: [0,0] if x is np.nan else x)
 #build model
 def build_model(df: pd.DataFrame):
     preprocessed_df = nr.preprocess(df)
-    simple_model = sm.build_model(preprocessed_df, 250, True)
+    simple_model = sm.build_model(preprocessed_df, 5000, False)
     return simple_model
 
 

@@ -36,7 +36,7 @@ def logistic_Classification_weight(df:pd.DataFrame) -> pd.DataFrame:
     for i, rows in df.iterrows():   
         f = (rows['fake'])[1]
         r = (rows['reliable'])[1]
-        x = (r - f) / max(min(r, f), 1) #divided by min of real and fake count but must be atleast 1
+        x = np.clip((r - f) / max(min(r, f), 1),-100,100) #divided by min of real and fake count but must be atleast 1
         df.loc[i, 'fakeness_score'] = 2 / (1 + math.exp(-x)) - 1
     return df
 
@@ -69,7 +69,7 @@ def build_model(df: pd.DataFrame, article_count: int, make_csv: bool) -> pd.Data
     log_class = logistic_Classification_weight(idf)
     final_model = Create_model(log_class)
     if make_csv: 
-        save_to_csv(log_class)
+        save_to_csv(final_model)
     return final_model
 
 
