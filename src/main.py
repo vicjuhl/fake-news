@@ -44,4 +44,3 @@ if __name__ == "__main__":
         df = json_to_pd()
         print("runtime:", time.time() - t0)
         t0 = time.time()
-        print(df)
