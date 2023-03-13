@@ -98,6 +98,10 @@ def clean_str(text: str) -> str:
         no_punct=True,
     ).replace("\n", "")
 
+def tokenize_str(text: str) -> list[str]:
+    """Generate list of tokens form string."""
+    return text.split()
+
 def tokenize(df: pd.DataFrame) -> list[str]:
     """Generate list of tokens from dataframe."""
     tkns: list[list[str]] = [c.split(" ") for c in df["content"]]
