@@ -1,5 +1,6 @@
 import pathlib as pl
 from imports.data_importer import raw_to_words, reduce_raw # type: ignore
+from imports.json_to_pandas import json_to_pd
 import argparse as ap
 import time
 
@@ -8,6 +9,7 @@ def init_argparse() -> ap.ArgumentParser:
     parser.add_argument("-n", "--nrows", type=int, default=1000)
     parser.add_argument("-i", "--inclname", type=str, default="included_words")
     parser.add_argument("-e", "--exclname", type=str, default="excluded_words")
+    parser.add_argument("-f", "--filename", type=str, default="news_sample.csv") #"news_cleaned_2018_02_13.csv"
     parser.add_argument("-p", "--processes", nargs="*", type=str)
     return parser
 
@@ -19,7 +21,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     data_path = pl.Path(__file__).parent.parent.resolve() / "data_files"
 
-    from_file = data_path / "news_cleaned_2018_02_13.csv"
+    from_file = data_path / args.filename
     to_path = data_path
 
     if "json" in args.processes:
@@ -38,4 +40,7 @@ if __name__ == "__main__":
         print("runtime:", time.time() - t0)
         t0 = time.time()
 
-    
+    if "df" in args.processes:
+        df = json_to_pd()
+        print("runtime:", time.time() - t0)
+        t0 = time.time()
