@@ -5,7 +5,6 @@ import pandas as pd
 import pathlib as pl
 import numpy as np
 import json
-import csv
 
 
 # file reference for dataframe
@@ -28,7 +27,7 @@ df = df.applymap(lambda x: [0,0] if x is np.nan else x)
 #build model
 def build_model(df: pd.DataFrame):
     preprocessed_df = nr.preprocess(df)
-    simple_model = sm.build_model(preprocessed_df, 5000, False)
+    simple_model = sm.build_model(preprocessed_df, 5000, True)
     return simple_model
 
 

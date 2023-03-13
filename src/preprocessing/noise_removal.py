@@ -8,6 +8,7 @@ def adding_total_freq(df: pd.DataFrame) -> pd.DataFrame:
     '''Adds a total frequency collumn to the dataframe'''
     df['freq'] = [(f.add_tuples(x, y)) for x, y in zip(df['fake'], df['reliable'])]
     df = df.reindex(columns=['freq', 'fake', 'reliable'])
+    print('executing function: adding_total_freq')
     return df 
 
 def cut_tail_and_head(
@@ -57,7 +58,7 @@ def cut_tail_and_head(
     words_left = len(cut_df["freq"])
     words_removed = uniquewords - words_left 
 
-    print("Head and tail cutoff.", "with quantiles: ", 
+    print("execute function: cut_tail_and_head.", "with quantiles: ", 
           head_quantile, " and ", tail_quantile, "i.e", 
           str((head_quantile+tail_quantile)*100)
           + "%" + " of total wordcount removed"
@@ -87,6 +88,8 @@ def clean_str(text: str) -> str:
     """Clean text for various anomalies."""
     return clean(
         text,
+        fix_unicode=True,
+        to_ascii=True,
         lower=True,
         normalize_whitespace=True,
         replace_with_url=True,
@@ -115,4 +118,5 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     """Run the preprocessing pipeline."""
     total_freq = adding_total_freq(df)
     no_head_no_tail =(cut_tail_and_head(total_freq, 5, 0.20, 0.01))
+    print("--Preprocessing completed--")
     return no_head_no_tail 

@@ -5,7 +5,7 @@ import numpy as np
 import math 
 from utils.functions import stem 
 from collections import Counter
-
+import unicodedata
 
 def frequency_adjustment(df:pd.DataFrame, total_num_articles) -> pd.DataFrame:
     '''adjusts wordfrequency of all words depending on their labeled'''
@@ -17,19 +17,21 @@ def frequency_adjustment(df:pd.DataFrame, total_num_articles) -> pd.DataFrame:
         word_ratio = total_words / local_words # ratio multipled on each word under current label.
         article_ratio = total_num_articles / local_articles
         df[col] = df[col].apply(lambda x: (x[0]*article_ratio,x[1]*word_ratio)) #apply adjustment to all words/article collumns
+    print('executing function: frequency_adjustment on input with total article count {total_num_articles}')
     return df
 
 
-def td_idf(df:pd.DataFrame, total_num_articles: int) -> pd.DataFrame:
+def tf_idf(df:pd.DataFrame, total_num_articles: int) -> pd.DataFrame:
     '''Total document frequency estimation'''
     Article_freq = df["freq"].apply(lambda x: x[0])
     word_freq = df["freq"].apply(lambda x: 1 if x is None else x[1] if len(x) > 0 else 0)
-    
-    #df['idf_weight'] = 0
+
     #To do expects: a dataframe with column "article_frequency"
     for i, row in df.iterrows():
         df.loc[i,"idf_weight"] = np.log(total_num_articles/((row['freq'])[0] + 1.1))
+    print('excecuting function: tf_idf, applied term frequency adjustment weights')
     return df #returns dataframe with weight collumn added.
+
 
 def logistic_Classification_weight(df:pd.DataFrame) -> pd.DataFrame:
     '''makes a real/fake classifcation between -1 (fake) and 1 (real), 0 being a neutral word'''
@@ -38,15 +40,17 @@ def logistic_Classification_weight(df:pd.DataFrame) -> pd.DataFrame:
         r = (rows['reliable'])[1]
         x = np.clip((r - f) / max(min(r, f), 1),-100,100) #divided by min of real and fake count but must be atleast 1
         df.loc[i, 'fakeness_score'] = 2 / (1 + math.exp(-x)) - 1
+    print('executing function : logistic_Classification_weight which estimates the fakeness_score of a word')
     return df
 
 def Create_model(df: pd.DataFrame) -> pd.DataFrame:
     '''Construct model with weights and scores'''
     #makes new dataframe
-    print(df)
     new_df= pd.DataFrame()
     new_df["idf_weight"] = df["idf_weight"]
     new_df["fakeness_score"] = df["fakeness_score"]
+    print('executing function : Create_model that takes ')
+    print(new_df.index[2035])
     return new_df
 
 def save_to_csv(df: pd.DataFrame):
@@ -54,18 +58,20 @@ def save_to_csv(df: pd.DataFrame):
     dir = "models-csv"
     if not os.path.exists(dir):
         os.makedirs(dir)
-        
+
     model_amount = len(os.listdir(dir)) #used for model naming
     Outputfilepath = os.path.join(dir, "Model{}.csv".format(model_amount+1))
     Outputfile = open (Outputfilepath, "w+")
-    df.to_csv(Outputfile)
+    df.index = [unicodedata.normalize('NFKD', label).encode('ascii', 'ignore').decode('utf-8') for label in df.index]
+
+    df.to_csv(Outputfile, encoding='utf-8', errors='ignore')
     print("Model saved to csv as: " + "Model" + str(model_amount+1))
     
 
 def build_model(df: pd.DataFrame, article_count: int, make_csv: bool) -> pd.DataFrame:
     """Uses the functions in the module to build a dataframe with weights and scores for words"""
     freq_adj = frequency_adjustment(df, article_count)
-    idf = td_idf(freq_adj, article_count)
+    idf = tf_idf(freq_adj, article_count)
     log_class = logistic_Classification_weight(idf)
     final_model = Create_model(log_class)
     if make_csv: 
@@ -105,25 +111,24 @@ def preproccess_for_inference(article : str) -> list[(str,int)]:
 
 def infer(input_df: pd.DataFrame, model_df: pd.DataFrame): 
     
-    def classifyArticle(inp: str):
+    print("execute function: infer")
+    def classifyArticle(inp: str) -> bool:
         words = preproccess_for_inference(inp)
         return binary_classifier(words, model_df )
     
     input_df["prediction"] = input_df["content"].apply(classifyArticle)
-    lst = []
-    for index, row in input_df.iterrows():
-        if row['type'] == 'fake' or row['type'] == 'reliable':
-            lst.append((row['type'], row['prediction'], row['type'] == row['prediction'] ))
-    acc = 0
+    
+    mask = (input_df['type'] == 'fake') | (input_df['type'] == 'reliable')
+    results_df = input_df[mask]
+    results_df['correctness'] = (results_df["type"] == results_df["prediction"])
+    results_df = results_df.loc[:, ['type', 'prediction', 'correctness']]
+    acc = sum(results_df["correctness"])
+   
+    accuracy = acc/len(results_df)
+    print(results_df)
+    print("with accuracy",accuracy)
 
-    print(lst)
-    for i, j, z in lst:
-        if z:
-            acc += 1
-    accuracy = acc/len(lst)
-    print(accuracy)
-
-    return lst, accuracy
+    return results_df, accuracy
 
 
 
