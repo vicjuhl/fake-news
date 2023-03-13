@@ -1,5 +1,5 @@
 import pathlib as pl
-from data_importer import raw_to_words, reduce_raw # type: ignore
+from imports.data_importer import raw_to_words, reduce_raw # type: ignore
 from imports.json_to_pandas import json_to_pd
 import argparse as ap
 import time
