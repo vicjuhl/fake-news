@@ -8,7 +8,7 @@ import json
 
 
 # file reference for dataframe
-json_file_path = pl.Path(os.path.abspath('')).parent.resolve() / "data_files/included_words10k.json"
+json_file_path = pl.Path(os.path.abspath('')).parent.resolve() / "data_files/100k/included_words_100k.json"
 
 with open(json_file_path) as json_file:
     json_dict = json.load(json_file)
