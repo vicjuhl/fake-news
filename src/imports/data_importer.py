@@ -8,7 +8,8 @@ from multiprocessing import Pool, cpu_count
 from preprocessing.noise_removal import clean_str # type: ignore
 from utils.types import news_info, words_info # type: ignore
 from utils.mappings import out_cols # type: ignore
-from preprocessing.data_handlers import WordsDicts, CsvWriter # type: ignore
+from preprocessing.data_handlers import DataHandler, WordsDicts, CorpusSummarizer, CorpusReducer # type: ignore
+from imports.prints import print_row_counts
 
 def create_clear_buffer(n_procs: int) -> list[list[news_info]]:
     """Create buffer list with n_procs empty lists."""
@@ -18,7 +19,7 @@ def create_clear_buffer(n_procs: int) -> list[list[news_info]]:
     return buffer
 
 def process_buffer(
-    out_obj: Union[CsvWriter, WordsDicts],
+    out_obj: DataHandler,
     buffer: list[list[Union[words_info, tuple[str, ...]]]],
     n_procs: int,
 ) -> list[Union[words_info, tuple[str, ...]]]:
@@ -42,7 +43,7 @@ def set_maxsize():
 def process_lines(
     n_rows: int,
     reader: '_csv._reader',
-    out_obj: Union[CsvWriter, WordsDicts],
+    out_obj: DataHandler,
 ) -> tuple[int, int, int]:
     """Read raw csv file line by line, clean words, count occurrences and dump to json.
     
@@ -66,7 +67,7 @@ def process_lines(
         try:
             row = next(reader)
             # "Progress bar"
-            if i % 5000 == 0:
+            if i % 100000 == 0:
                 print("Lines read:", i, "...")
             # Parallel process data if all batches are full
             if n_read % buffer_sz == 0:
@@ -96,6 +97,21 @@ def process_lines(
     out_obj.finalize()
     return out_obj.n_incl, out_obj.n_excl, n_skipped
 
+def reduce_raw(
+    from_file: pl.Path,
+    to_path: pl.Path,
+    n_rows: int,
+) -> None:
+    print("Reducing corpus...")
+    with open(from_file, encoding="utf8") as ff:
+        reader = csv.reader(ff)
+        with open(to_path / "reduced_corpus.csv", 'w', encoding="utf8") as tf:
+            writer = csv.writer(tf)
+            writer.writerow(next(reader)) # Copy headers
+            reducer = CorpusReducer(writer)
+            n_incl, n_excl, n_skipped = process_lines(n_rows, reader, out_obj=reducer)
+    print_row_counts(n_incl, n_excl, n_skipped, f"Reduced corpus was written to {to_path}")
+
 def raw_to_words(
     from_file: pl.Path,
     to_path: pl.Path,
@@ -107,17 +123,16 @@ def raw_to_words(
     
     Return tuple of n_included, n_excluded, n_skipped.
     """
+    print("Extracting words...")
     to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
     out_dicts = WordsDicts(to_path, incl_name, excl_name)
     with open(from_file, encoding="utf8") as ff:
         reader = csv.reader(ff)
         next(reader) # skip header
         n_incl, n_excl, n_skipped = process_lines(n_rows, reader, out_obj=out_dicts)
-    print(f"{n_incl + n_excl} rows read, \n {n_incl} were included \n {n_excl} were excluded \n {n_skipped} were skipped \n JSON files were written to {to_path}") # PACK away in classes maybe TODO
-    if n_incl + n_excl != n_rows:
-        raise ValueError("Count numbers do not match")
+    print_row_counts(n_incl, n_excl, n_skipped, f"JSON was written to {to_path}")
 
-def reduce_raw(
+def summarize_articles(
     from_file: pl.Path,
     to_path: pl.Path,
     n_rows: int
@@ -126,15 +141,14 @@ def reduce_raw(
     
     Return tuple of n_included, n_excluded, n_skipped.
     """
+    print("Summarizing articles...")
     to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
     with open(from_file, encoding="utf8") as ff:
         reader = csv.reader(ff)
-        row = next(reader) # Get headers
-        with open(to_path / "reduced_corpus.csv", 'w', encoding="utf8") as tf:
-            csv_writer = csv.writer(tf)
-            csv_writer.writerow(out_cols) # Write headers
-            writer = CsvWriter(csv_writer)
-            n_incl, n_excl, n_skipped = process_lines(n_rows, reader, out_obj=writer)
-    print(f"{n_incl + n_excl} rows read, \n {n_incl} were included \n {n_excl} were excluded \n {n_skipped} were skipped \n Reduced csv data file was written to {to_path}")
-    if n_incl + n_excl != n_rows:
-        raise ValueError("Count numbers do not match")
+        next(reader) # Skip headers (as they are not equal to output headers)
+        with open(to_path / "summarized_corpus.csv", 'w', encoding="utf8") as tf:
+            writer = csv.writer(tf)
+            writer.writerow(out_cols) # Write headers
+            summarizer = CorpusSummarizer(writer)
+            n_incl, n_excl, n_skipped = process_lines(n_rows, reader, out_obj=summarizer)
+    print_row_counts(n_incl, n_excl, n_skipped, f"Summarized corpus was written to {to_path}")

@@ -139,7 +139,7 @@ class WordsDicts(DataHandler):
         self.export_json()
 
 
-class CsvWriter(DataHandler):
+class CorpusSummarizer(DataHandler):
     """Class which manages preprocessing and exporting of data on article level."""
     def __init__(self, writer: '_csv._writer') -> None:
         super().__init__()
@@ -150,7 +150,7 @@ class CsvWriter(DataHandler):
         type_ = row[3]
         if type_ is None or type_ in excl_types:
             self._n_excl += 1
-            return ()
+            return () # Nothing added to buffer
         else:
             self._n_incl += 1
             return tuple(row)
@@ -180,6 +180,34 @@ class CsvWriter(DataHandler):
             return_lst.append(out_row)
         return return_lst
 
+    def write(self, row: list[tuple[str, ...]]) -> None:
+        """Write rows."""
+        self.writer.writerows(row)
+
+    def finalize(self):
+        """Do nothing."""
+        pass
+
+class CorpusReducer(DataHandler):
+    def __init__(self, writer: '_csv._writer') -> None:
+        super().__init__()
+        self.writer = writer
+    
+    def extract(self, row: list[str]) -> tuple[str, ...]:
+        """Extract all entries from row."""
+        type_ = row[3]
+        if type_ is None or type_ in excl_types:
+            self._n_excl += 1
+            return () # Nothing added to buffer
+        else:
+            self._n_incl += 1
+            # Make sure that every field has data
+            return tuple([row[i] for i in range(17)])
+        
+    @classmethod
+    def process_batch(cls, data: list[tuple[str, ...]]) -> list[Any]:
+        return data
+        
     def write(self, row: list[list[str]]) -> None:
         """Write rows."""
         self.writer.writerows(row)
