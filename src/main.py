@@ -1,5 +1,7 @@
 import pathlib as pl
-from imports.data_importer import extract_words, reduce_corpus, summarize_articles # type: ignore
+from imports.data_importer import (
+    extract_words, reduce_corpus, summarize_articles, split_data # type: ignore
+)
 from imports.json_to_pandas import json_to_pd
 import argparse as ap
 import time
@@ -24,6 +26,14 @@ if __name__ == "__main__":
             data_path / "corpus/news_cleaned_2018_02_13.csv",
             data_path / "corpus/",
             args.nrows
+        )
+        print("runtime:", time.time() - t0)
+        t0 = time.time()
+
+    if "split" in args.processes:
+        split_data(
+            data_path / "corpus" / args.filename,
+            data_path / "corpus/"
         )
         print("runtime:", time.time() - t0)
         t0 = time.time()

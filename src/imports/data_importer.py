@@ -1,4 +1,6 @@
 import pathlib as pl
+import pandas as pd
+import numpy as np
 import csv
 import sys
 import _csv # for type annotation
@@ -102,6 +104,7 @@ def reduce_corpus(
     to_path: pl.Path,
     n_rows: int,
 ) -> None:
+    """Include only readable rows with type 'fake' or 'reliable'."""
     print("Reducing corpus...")
     with open(from_file, encoding="utf8") as ff:
         reader = csv.reader(ff)
@@ -111,6 +114,20 @@ def reduce_corpus(
             reducer = CorpusReducer(writer)
             n_incl, n_excl, n_skipped = process_lines(n_rows, reader, reducer)
     print_row_counts(n_incl, n_excl, n_skipped, f"Reduced corpus was written to {to_path}")
+
+def split_data(from_file: pl.Path, to_path: pl.Path) -> None:
+    """Assign rows with batch numbers indicating train/val/test split."""
+    print("Splitting corpus...")
+    df = pd.read_csv(from_file, usecols=["id"])
+    n_rows = len(df.index)
+    # Make array of 1 to 10's of same length as id's
+    batch_nums = np.array([(i % 10) + 1 for i in range(n_rows)])
+    # Shuffle the batch numbers and add them to dataframe
+    np.random.seed(42)
+    np.random.shuffle(batch_nums)
+    df["batch"] = batch_nums.tolist()
+    # Export
+    df.to_csv(to_path / "batches.csv")
 
 def extract_words(
     from_file: pl.Path,
