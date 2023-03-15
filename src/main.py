@@ -1,5 +1,5 @@
 import pathlib as pl
-from imports.data_importer import raw_to_words, reduce_raw, summarize_articles # type: ignore
+from imports.data_importer import extract_words, reduce_corpus, summarize_articles # type: ignore
 from imports.json_to_pandas import json_to_pd
 import argparse as ap
 import time
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     data_path = pl.Path(__file__).parent.parent.resolve() / "data_files/"
 
     if "reduce" in args.processes:
-        reduce_raw(
+        reduce_corpus(
             data_path / "corpus/news_cleaned_2018_02_13.csv",
             data_path / "corpus/",
             args.nrows
@@ -29,7 +29,7 @@ if __name__ == "__main__":
         t0 = time.time()
 
     if "json" in args.processes:
-        raw_to_words(
+        extract_words(
             data_path / "corpus" / args.filename,
             data_path / "words/",
             args.nrows,

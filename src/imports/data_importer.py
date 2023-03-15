@@ -97,7 +97,7 @@ def process_lines(
     out_obj.finalize()
     return out_obj.n_incl, out_obj.n_excl, n_skipped
 
-def reduce_raw(
+def reduce_corpus(
     from_file: pl.Path,
     to_path: pl.Path,
     n_rows: int,
@@ -112,7 +112,7 @@ def reduce_raw(
             n_incl, n_excl, n_skipped = process_lines(n_rows, reader, reducer)
     print_row_counts(n_incl, n_excl, n_skipped, f"Reduced corpus was written to {to_path}")
 
-def raw_to_words(
+def extract_words(
     from_file: pl.Path,
     to_path: pl.Path,
     n_rows: int,
