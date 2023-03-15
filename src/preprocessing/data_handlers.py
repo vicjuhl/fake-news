@@ -141,6 +141,10 @@ class CorpusSummarizer(DataHandler):
                 out_row.append(in_row[col_index])
             # Add values of calculated columns
             content = in_row[5]
+            # Shortened article
+            cutoff = content.find(" ", 600) # returns -1 if no find, else index of ' '
+            short_content = content if cutoff == -1 else content[:cutoff]
+            out_row.append(short_content)
             # Length of content
             out_row.append(len(content))
             # Mean token length
