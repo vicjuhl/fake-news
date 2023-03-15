@@ -8,7 +8,7 @@ from multiprocessing import Pool, cpu_count
 from preprocessing.noise_removal import clean_str # type: ignore
 from utils.types import news_info, words_info # type: ignore
 from utils.mappings import out_cols # type: ignore
-from preprocessing.data_handlers import DataHandler, WordsDicts, CorpusSummarizer, CorpusReducer # type: ignore
+from preprocessing.data_handlers import DataHandler, WordsCollector, CorpusSummarizer, CorpusReducer # type: ignore
 from imports.prints import print_row_counts
 
 def create_clear_buffer(n_procs: int) -> list[list[news_info]]:
@@ -109,15 +109,13 @@ def reduce_raw(
             writer = csv.writer(tf)
             writer.writerow(next(reader)) # Copy headers
             reducer = CorpusReducer(writer)
-            n_incl, n_excl, n_skipped = process_lines(n_rows, reader, out_obj=reducer)
+            n_incl, n_excl, n_skipped = process_lines(n_rows, reader, reducer)
     print_row_counts(n_incl, n_excl, n_skipped, f"Reduced corpus was written to {to_path}")
 
 def raw_to_words(
     from_file: pl.Path,
     to_path: pl.Path,
     n_rows: int,
-    incl_name: str,
-    excl_name: str
 ) -> None:
     """Read raw csv file line by line, clean words, count occurrences and dump to json.
     
@@ -125,11 +123,11 @@ def raw_to_words(
     """
     print("Extracting words...")
     to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
-    out_dicts = WordsDicts(to_path, incl_name, excl_name)
+    collector = WordsCollector(to_path / "included_words.json")
     with open(from_file, encoding="utf8") as ff:
         reader = csv.reader(ff)
         next(reader) # skip header
-        n_incl, n_excl, n_skipped = process_lines(n_rows, reader, out_obj=out_dicts)
+        n_incl, n_excl, n_skipped = process_lines(n_rows, reader, collector)
     print_row_counts(n_incl, n_excl, n_skipped, f"JSON was written to {to_path}")
 
 def summarize_articles(
@@ -150,5 +148,5 @@ def summarize_articles(
             writer = csv.writer(tf)
             writer.writerow(out_cols) # Write headers
             summarizer = CorpusSummarizer(writer)
-            n_incl, n_excl, n_skipped = process_lines(n_rows, reader, out_obj=summarizer)
+            n_incl, n_excl, n_skipped = process_lines(n_rows, reader, summarizer)
     print_row_counts(n_incl, n_excl, n_skipped, f"Summarized corpus was written to {to_path}")

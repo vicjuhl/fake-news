@@ -7,8 +7,6 @@ import time
 def init_argparse() -> ap.ArgumentParser:
     parser = ap.ArgumentParser()
     parser.add_argument("-n", "--nrows", type=int, default=1000)
-    parser.add_argument("-i", "--inclname", type=str, default="included_words")
-    parser.add_argument("-e", "--exclname", type=str, default="excluded_words")
     parser.add_argument("-f", "--filename", type=str, default="reduced_corpus.csv")
     parser.add_argument("-p", "--processes", nargs="*", type=str)
     return parser
@@ -35,8 +33,6 @@ if __name__ == "__main__":
             data_path / "corpus" / args.filename,
             data_path / "words/",
             args.nrows,
-            args.inclname,
-            args.exclname
         )
         print("runtime:", time.time() - t0)
         t0 = time.time()
