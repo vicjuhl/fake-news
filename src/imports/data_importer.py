@@ -127,7 +127,7 @@ def split_data(from_file: pl.Path, to_path: pl.Path) -> None:
     np.random.shuffle(batch_nums)
     df["batch"] = batch_nums.tolist()
     # Export
-    df.to_csv(to_path / "batches.csv")
+    df.to_csv(to_path / "batches.csv", index=False)
 
 def extract_words(
     from_file: pl.Path,
