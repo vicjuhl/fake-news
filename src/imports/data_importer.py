@@ -2,16 +2,19 @@ import pathlib as pl
 import pandas as pd
 import numpy as np
 import csv
+import pandas as pd
 import sys
 import _csv # for type annotation
+import json
 from typing import Union
 from multiprocessing import Pool, cpu_count
-
+from preprocessing.noise_removal import cut_tail_and_head
 from preprocessing.noise_removal import clean_str # type: ignore
 from utils.types import news_info, words_info, NotInTrainingException # type: ignore
 from utils.mappings import out_cols # type: ignore
 from preprocessing.data_handlers import DataHandler, WordsCollector, CorpusSummarizer, CorpusReducer # type: ignore
 from imports.prints import print_row_counts
+from imports.json_to_pandas import json_to_pd
 
 def create_clear_buffer(n_procs: int) -> list[list[news_info]]:
     """Create buffer list with n_procs empty lists."""
@@ -155,6 +158,15 @@ def extract_words(
         n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, collector)
     print_row_counts( n_incl, n_excl, n_ignored, n_skipped, f"JSON was written to {to_path}/")
 
+def remove_stop_words_json(
+    from_file: pl.Path,
+    to_path: pl.Path,
+) -> None:
+    """Read json file, convert to df and stem words, then dump to json."""
+    df = json_to_pd(from_file) 
+    df = cut_tail_and_head (df, 100, 0.1, 0.1)  # default set args, min_occurence: int,  head_quantile: float, tail_quantile: float
+    json_data = df.to_json(to_path, orient='index', indent=4) # dump to json
+    
 def summarize_articles(
     from_file: pl.Path,
     to_path: pl.Path,

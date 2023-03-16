@@ -11,7 +11,7 @@ from imports.json_to_pandas import json_to_pd
 def init_argparse() -> ap.ArgumentParser:
     parser = ap.ArgumentParser()
     parser.add_argument("-n", "--nrows", type=int, default=1000)
-    parser.add_argument("-f", "--filename", type=str, default="reduced_corpus.csv")
+    parser.add_argument("-f", "--filename", type=str, default="reduced_corpus10k.csv")
     parser.add_argument("-p", "--processes", nargs="*", type=str)
     parser.add_argument("-v", "--validation_set_num", type=int)
     return parser
@@ -66,6 +66,13 @@ if __name__ == "__main__":
         )
         print("runtime:", time.time() - t0)
         t0 = time.time()
+        
+    if "stem_json" in args.processes:
+        remove_stop_words_json(
+            data_path / 'included_words10k.json',
+            data_path / 'stop_words_removed.json',
+        )
+        
         
     if "csv" in args.processes:
         summarize_articles(
