@@ -32,6 +32,7 @@ class DataHandler(ABC):
         pass
 
     def check_split(self, i: int, id_: int) -> None:
+        """Raise errors if id's don't match on lookup or row not in training set."""
         if self._splits[i, 0] != int(id_): # Sanity check on id numbers
             raise ValueError(f"ID's {(self._splits[i, 0], int(id_))} don't match")
         elif self._splits[i, 1] in {1, self._val_set}: # Discern which set
