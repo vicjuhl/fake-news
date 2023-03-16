@@ -117,9 +117,7 @@ def reduce_corpus(
             writer.writerow(next(reader)) # Copy headers
             reducer = CorpusReducer(writer)
             n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, reducer)
-    print_row_counts(
-        n_incl, n_excl, n_ignored, n_skipped, f"Reduced corpus was written to {to_path}/"
-    )
+    print_row_counts(n_incl, n_excl, n_ignored, n_skipped, f"Reduced corpus was written to {to_path}/")
 
 def split_data(from_file: pl.Path, to_path: pl.Path) -> None:
     """Assign rows with batch numbers indicating train/val/test split."""
@@ -155,9 +153,7 @@ def extract_words(
         reader = csv.reader(ff)
         next(reader) # skip header
         n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, collector)
-    print_row_counts(
-        n_incl, n_excl, n_ignored, n_skipped, f"JSON was written to {to_path}/"
-    )
+    print_row_counts( n_incl, n_excl, n_ignored, n_skipped, f"JSON was written to {to_path}/")
 
 def summarize_articles(
     from_file: pl.Path,
@@ -180,6 +176,4 @@ def summarize_articles(
             writer.writerow(out_cols) # Write headers
             summarizer = CorpusSummarizer(writer, val_set, splits)
             n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, summarizer)
-    print_row_counts(
-        n_incl, n_excl, n_ignored, n_skipped, f"Summarized corpus was written to {to_path}/"
-    )
+    print_row_counts(n_incl, n_excl, n_ignored, n_skipped, f"Summarized corpus was written to {to_path}/")
