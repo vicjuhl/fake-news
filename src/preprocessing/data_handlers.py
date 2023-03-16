@@ -4,8 +4,9 @@ import _csv
 from abc import ABC, abstractmethod
 from typing import Any
 import statistics as stat
+import numpy as np
 
-from utils.types import news_info, words_info, words_dict # type: ignore
+from utils.types import news_info, words_info, words_dict, NotInTrainingException # type: ignore
 from utils.functions import add_tuples, stem # type: ignore
 from utils.mappings import transfered_cols, excl_types, incl_cols # type: ignore
 from preprocessing.noise_removal import clean_str, tokenize_str # type: ignore
@@ -26,7 +27,7 @@ class DataHandler(ABC):
         return self._n_excl
     
     @abstractmethod
-    def extract(self, row: list[str]):
+    def extract(self, row: list[str], i: int):
         """Extract relevant data from source row."""
         pass
 
@@ -46,17 +47,50 @@ class DataHandler(ABC):
         """Do final actions if needed."""
         pass
 
+class CorpusReducer(DataHandler):
+    def __init__(self, writer: '_csv._writer') -> None:
+        super().__init__()
+        self.writer = writer
+    
+    def extract(self, row: list[str], _) -> tuple[str, ...]:
+        """Extract all entries from row."""
+        type_ = row[3]
+        if type_ is None or type_ in excl_types:
+            self._n_excl += 1
+            return () # Nothing added to buffer
+        else:
+            self._n_incl += 1
+            # Make sure that every field has data
+            return tuple([row[i] for i in range(17)])
+        
+    @classmethod
+    def process_batch(cls, data: list[tuple[str, ...]]) -> list[Any]:
+        return data
+        
+    def write(self, row: list[list[str]]) -> None:
+        """Write rows."""
+        self.writer.writerows(row)
+
+    def finalize(self):
+        """Do nothing."""
+        pass
 
 class WordsCollector(DataHandler):
     """Two dictionaries with included and excluded words, respectively."""
-    def __init__(self, to_path: pl.Path) -> None:
+    def __init__(self, to_path: pl.Path, val_set: int, splits: np.ndarray) -> None:
         """Create empty dicts, store file paths and define destination paths."""
         super().__init__()
         self._words: words_dict = {}
         self._to_path = to_path
+        self._val_set = val_set
+        self._splits = splits
 
-    def extract(self, row: list[str]) -> news_info:
+    def extract(self, row: list[str], i: int) -> news_info:
         """Extract type and content from row"""
+        if self._splits[i, 0] != int(row[1]): # Sanity check on id numbers
+            raise ValueError(f"ID's {(self._splits[i, 0], int(row[1]))} don't match")
+        elif self._splits[i, 1] in {1, self._val_set}: # Discern which set
+            raise NotInTrainingException
         return row[3], row[5]
     
     @classmethod
@@ -115,12 +149,19 @@ class WordsCollector(DataHandler):
 
 class CorpusSummarizer(DataHandler):
     """Class which manages preprocessing and exporting of data on article level."""
-    def __init__(self, writer: '_csv._writer') -> None:
+    def __init__(self, writer: '_csv._writer', val_set: int, splits: np.ndarray) -> None:
         super().__init__()
         self.writer = writer
+        self._val_set = val_set
+        self._splits = splits
 
-    def extract(self, row: list[str]) -> tuple[str, ...]:
+    def extract(self, row: list[str], i: int) -> tuple[str, ...]:
         """Extract all relevant entries from row."""
+        if self._splits[i, 0] != int(row[1]): # Sanity check on id numbers
+            raise ValueError(f"ID's {(self._splits[i, 0], int(row[1]))} don't match")
+        elif self._splits[i, 1] in {1, self._val_set}: # Discern which set
+            raise NotInTrainingException
+        
         type_ = row[3]
         if type_ is None or type_ in excl_types:
             self._n_excl += 1
@@ -159,34 +200,6 @@ class CorpusSummarizer(DataHandler):
         return return_lst
 
     def write(self, row: list[tuple[str, ...]]) -> None:
-        """Write rows."""
-        self.writer.writerows(row)
-
-    def finalize(self):
-        """Do nothing."""
-        pass
-
-class CorpusReducer(DataHandler):
-    def __init__(self, writer: '_csv._writer') -> None:
-        super().__init__()
-        self.writer = writer
-    
-    def extract(self, row: list[str]) -> tuple[str, ...]:
-        """Extract all entries from row."""
-        type_ = row[3]
-        if type_ is None or type_ in excl_types:
-            self._n_excl += 1
-            return () # Nothing added to buffer
-        else:
-            self._n_incl += 1
-            # Make sure that every field has data
-            return tuple([row[i] for i in range(17)])
-        
-    @classmethod
-    def process_batch(cls, data: list[tuple[str, ...]]) -> list[Any]:
-        return data
-        
-    def write(self, row: list[list[str]]) -> None:
         """Write rows."""
         self.writer.writerows(row)
 

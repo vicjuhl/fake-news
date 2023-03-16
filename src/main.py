@@ -1,25 +1,33 @@
 import pathlib as pl
+import time
+import argparse as ap
+import numpy as np
+
 from imports.data_importer import (
     extract_words, reduce_corpus, summarize_articles, split_data # type: ignore
 )
 from imports.json_to_pandas import json_to_pd
-import argparse as ap
-import time
 
 def init_argparse() -> ap.ArgumentParser:
     parser = ap.ArgumentParser()
     parser.add_argument("-n", "--nrows", type=int, default=1000)
     parser.add_argument("-f", "--filename", type=str, default="reduced_corpus.csv")
     parser.add_argument("-p", "--processes", nargs="*", type=str)
+    parser.add_argument("-v", "--validation_set_num", type=int)
     return parser
 
 if __name__ == "__main__":
     """Run entire pipeline from import to preprocessing to analysis."""
+
     t0 = time.time()
 
     parser = init_argparse()
     args = parser.parse_args()
     data_path = pl.Path(__file__).parent.parent.resolve() / "data_files/"
+    val_set = args.validation_set_num
+
+    if val_set is None or val_set not in [2, 3, 4, 5, 6, 7, 8, 9, 10]:
+        raise ValueError(f"Validation set value {val_set} is not allowed.")
 
     if "reduce" in args.processes:
         reduce_corpus(
@@ -38,11 +46,22 @@ if __name__ == "__main__":
         print("runtime:", time.time() - t0)
         t0 = time.time()
 
+    if not set(args.processes).isdisjoint({"json", "csv"}):
+        # Load splits information if needed
+        splits = np.loadtxt(
+            data_path / 'corpus/splits.csv',
+            delimiter=',',
+            skiprows=1,
+            dtype=np.int_
+        )
+
     if "json" in args.processes:
         extract_words(
             data_path / "corpus" / args.filename,
             data_path / "words/",
             args.nrows,
+            val_set,
+            splits,
         )
         print("runtime:", time.time() - t0)
         t0 = time.time()
@@ -51,7 +70,9 @@ if __name__ == "__main__":
         summarize_articles(
             data_path / "corpus" / args.filename,
             data_path / "processed_csv/",
-            args.nrows
+            args.nrows,
+            val_set,
+            splits,
         )
         print("runtime:", time.time() - t0)
         t0 = time.time()
