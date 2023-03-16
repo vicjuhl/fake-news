@@ -50,6 +50,7 @@ def cut_tail_and_head(
 
     index_lower = acc_index
     cut_df = df[index_upper: index_lower]  # remove tail and head from the dataframe
+    cut_df = df[index_upper: index_lower]  # remove tail and head from the dataframe
     
     #stats
     uniquewords = len(word_freq) 
