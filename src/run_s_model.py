@@ -22,8 +22,6 @@ df = df_json.copy()
 df = df.filter(items=['fake', 'reliable'], axis=1)
 df = df.applymap(lambda x: [0,0] if x is np.nan else x)
 
-
-
 #build model
 def build_model(df: pd.DataFrame):
     preprocessed_df = nr.preprocess(df)

@@ -21,7 +21,6 @@ def cut_tail_and_head(
 ) -> pd.DataFrame:
     '''Cut the head and tail of the dataframe,
     where the head is the most frequent words and the tail the least frequent words. '''
-
     df = df.sort_values(by="freq", ascending=False, key=lambda x: x.apply(lambda y: y[1]))
 
     word_freq = df["freq"].apply(lambda x: x[1])
@@ -32,7 +31,7 @@ def cut_tail_and_head(
     index_lower = 0 
     
     target_sum_head = head_quantile * total_words
-    target_sum_tail = (1-tail_quantile) * total_words   
+    target_sum_tail = (1 - tail_quantile) * total_words   
     while acc_sum < target_sum_head: # finds index of head quantile   
         acc_sum += word_freq[acc_index]
         acc_index += 1
@@ -52,7 +51,6 @@ def cut_tail_and_head(
         acc_index += 1
 
     index_lower = acc_index
-    cut_df = df[index_upper: index_lower]  # remove tail and head from the dataframe
     cut_df = df[index_upper: index_lower]  # remove tail and head from the dataframe
     
     #stats
@@ -82,9 +80,10 @@ def clean_str(text: str) -> str:
         to_ascii=True,
         lower=True,
         normalize_whitespace=True,
-        replace_with_url=True,
-        replace_with_email=True,
-        replace_with_number=True,
+        replace_with_url="<URL>",
+        replace_with_email="<EMAIL>",
+        replace_with_number="<NUM>",
+        replace_with_currency_symbol="<CUR>",
         no_punct=True,
     ).replace("\n", "")
 
@@ -113,6 +112,6 @@ def preprocess_string (text: str) -> dict[str, int]:
 def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     """Run the preprocessing pipeline."""
     total_freq = adding_total_freq(df)
-    no_head_no_tail =(cut_tail_and_head(total_freq, 0.50, 0.05))
+    no_head_no_tail =(cut_tail_and_head(total_freq, 0.5, 0.05))
     print("--Preprocessing completed--")
     return no_head_no_tail 

@@ -74,19 +74,25 @@ def build_model(df: pd.DataFrame, article_count: int, make_csv: bool) -> pd.Data
     log_class = logistic_Classification_weight(idf)
     final_model = Create_model(log_class)
     if make_csv: 
-        save_to_csv(final_model)
+        save_to_csv(log_class)
     return final_model
 
 
 def binary_classifier(words: dict[str, int], df: pd.DataFrame) -> str:
-    acc_weight = 0
+    """Given a dict of words and their freq, and dataframe for simpel model, it makes a binary prediction"""
+    acc_weight = 0.1
     acc_score = 0
-    for word, freq in words.items():
+    df = df.reset_index().drop_duplicates(subset='index', keep='first').set_index('index') # drops all duplicates
+
+    for word, freq in words.items(): 
         if word in df.index:
-            row = df.loc[str(word)]
+            row = df.loc[word]
             acc_weight += freq * row['idf_weight']
             acc_score +=  row['fakeness_score'] * freq * row['idf_weight']
-    return 'fake' if (acc_score / acc_weight) < 0 else 'reliable'
+            if not isinstance(acc_score,float):
+                raise ValueError
+        
+    return 'fake' if acc_score / acc_weight < 0 else 'reliable' 
 
 
 def infer(input_df: pd.DataFrame, model_df: pd.DataFrame): 
@@ -96,10 +102,11 @@ def infer(input_df: pd.DataFrame, model_df: pd.DataFrame):
         words = preprocess_string(inp)
         return binary_classifier(words, model_df)
     
-    input_df["prediction"] = input_df["content"].apply(classify_article)
-    
     mask = (input_df['type'] == 'fake') | (input_df['type'] == 'reliable')
     results_df = input_df[mask]
+
+    results_df["prediction"] = results_df["content"].apply(classify_article)
+    
     results_df['correctness'] = (results_df["type"] == results_df["prediction"])
     results_df = results_df.loc[:, ['type', 'prediction', 'correctness']]
     acc = sum(results_df["correctness"])
@@ -111,6 +118,7 @@ def infer(input_df: pd.DataFrame, model_df: pd.DataFrame):
     return results_df, accuracy
 
 
+    
 
 
     
