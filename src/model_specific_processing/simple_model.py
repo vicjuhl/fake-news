@@ -7,16 +7,14 @@ from utils.functions import stem
 from collections import Counter
 import unicodedata
 
-def frequency_adjustment(df:pd.DataFrame, total_num_articles) -> pd.DataFrame:
+def frequency_adjustment(df:pd.DataFrame) -> pd.DataFrame:
     '''adjusts wordfrequency of all words depending on their labeled'''
     word_freq = df["freq"].apply(lambda x: x[1])
     total_words = word_freq.sum()
     for col in df.columns[1:]: # skip first collumn (contains total frequency)
         local_words = df[col].apply(lambda x: x[1]).sum()
-        local_articles = df[col].apply(lambda x: x[0]).sum()
         word_ratio = total_words / local_words # ratio multipled on each word under current label.
-        article_ratio = total_num_articles / local_articles
-        df[col] = df[col].apply(lambda x: (x[0]*article_ratio,x[1]*word_ratio)) #apply adjustment to all words/article collumns
+        df[col] = df[col].apply(lambda x: (x[0],x[1]*word_ratio)) #apply adjustment to all words
     print('executing function: frequency_adjustment on input with total article count {total_num_articles}')
     return df
 
@@ -70,7 +68,7 @@ def save_to_csv(df: pd.DataFrame):
 
 def build_model(df: pd.DataFrame, article_count: int, make_csv: bool) -> pd.DataFrame:
     """Uses the functions in the module to build a dataframe with weights and scores for words"""
-    freq_adj = frequency_adjustment(df, article_count)
+    freq_adj = frequency_adjustment(df)
     idf = tf_idf(freq_adj, article_count)
     log_class = logistic_Classification_weight(idf)
     final_model = Create_model(log_class)

@@ -13,7 +13,6 @@ def adding_total_freq(df: pd.DataFrame) -> pd.DataFrame:
 
 def cut_tail_and_head(
     df : pd.DataFrame,
-    min_occurence: int,
     head_quantile: float,
     tail_quantile: float
 ) -> pd.DataFrame:
@@ -30,19 +29,18 @@ def cut_tail_and_head(
     index_lower = 0 
     
     target_sum_head = head_quantile * total_words
+    target_sum_tail = (1-tail_quantile) * total_words   
     while acc_sum < target_sum_head: # finds index of head quantile   
         acc_sum += word_freq[acc_index]
         acc_index += 1
-    
     upper_bound_count = word_freq[acc_index]
     
     while word_freq[acc_index] == upper_bound_count: # continues until frequency changes
+        acc_sum += word_freq[acc_index]
         acc_index += 1
-    
-    index_upper = acc_index   
-    target_sum_tail = (1-tail_quantile) * total_words    
+    index_upper = acc_index    
         
-    while acc_sum < target_sum_tail and word_freq[acc_index] > min_occurence: # finds index of tail quantile
+    while acc_sum < target_sum_tail : # finds index of tail quantile
         acc_sum += word_freq[acc_index]
         acc_index += 1
     lower_bound_count = word_freq[acc_index] 
@@ -121,6 +119,6 @@ def count_sort(tkns: list[str]) -> pd.DataFrame:
 def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     """Run the preprocessing pipeline."""
     total_freq = adding_total_freq(df)
-    no_head_no_tail =(cut_tail_and_head(total_freq, 5, 0.20, 0.01))
+    no_head_no_tail =(cut_tail_and_head(total_freq, 0.50, 0.05))
     print("--Preprocessing completed--")
     return no_head_no_tail 

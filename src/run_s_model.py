@@ -27,12 +27,14 @@ df = df.applymap(lambda x: [0,0] if x is np.nan else x)
 #build model
 def build_model(df: pd.DataFrame):
     preprocessed_df = nr.preprocess(df)
-    simple_model = sm.build_model(preprocessed_df, 5000, True)
+    simple_model = sm.build_model(preprocessed_df, 50000, True)
     return simple_model
 
 
 csv_file_path = pl.Path(os.path.abspath('')).parent.resolve() / "data_files/news_sample.csv"
 article_df = pd.read_csv(csv_file_path)
+
+
 
 sm.infer(article_df, build_model(df))
 
