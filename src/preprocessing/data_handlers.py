@@ -31,6 +31,12 @@ class DataHandler(ABC):
         """Extract relevant data from source row."""
         pass
 
+    def check_split(self, i: int, id_: int) -> None:
+        if self._splits[i, 0] != int(id_): # Sanity check on id numbers
+            raise ValueError(f"ID's {(self._splits[i, 0], int(id_))} don't match")
+        elif self._splits[i, 1] in {1, self._val_set}: # Discern which set
+            raise NotInTrainingException
+        
     @classmethod
     @abstractmethod
     def process_batch(cls, data): # TYPING TODO
@@ -87,10 +93,7 @@ class WordsCollector(DataHandler):
 
     def extract(self, row: list[str], i: int) -> news_info:
         """Extract type and content from row"""
-        if self._splits[i, 0] != int(row[1]): # Sanity check on id numbers
-            raise ValueError(f"ID's {(self._splits[i, 0], int(row[1]))} don't match")
-        elif self._splits[i, 1] in {1, self._val_set}: # Discern which set
-            raise NotInTrainingException
+        self.check_split(i, row[1])
         return row[3], row[5]
     
     @classmethod
@@ -157,11 +160,7 @@ class CorpusSummarizer(DataHandler):
 
     def extract(self, row: list[str], i: int) -> tuple[str, ...]:
         """Extract all relevant entries from row."""
-        if self._splits[i, 0] != int(row[1]): # Sanity check on id numbers
-            raise ValueError(f"ID's {(self._splits[i, 0], int(row[1]))} don't match")
-        elif self._splits[i, 1] in {1, self._val_set}: # Discern which set
-            raise NotInTrainingException
-        
+        self.check_split(i, row[1])
         type_ = row[3]
         if type_ is None or type_ in excl_types:
             self._n_excl += 1
