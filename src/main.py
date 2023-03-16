@@ -19,6 +19,7 @@ def init_argparse() -> ap.ArgumentParser:
 if __name__ == "__main__":
     """Run entire pipeline from import to preprocessing to analysis."""
 
+    t0_total = time.time()
     t0 = time.time()
 
     parser = init_argparse()
@@ -81,3 +82,5 @@ if __name__ == "__main__":
         df = json_to_pd()
         print("runtime:", time.time() - t0)
         t0 = time.time()
+
+    print("\n Total runtime:", time.time() - t0_total)

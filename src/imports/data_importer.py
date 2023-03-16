@@ -118,7 +118,7 @@ def reduce_corpus(
             reducer = CorpusReducer(writer)
             n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, reducer)
     print_row_counts(
-        n_incl, n_excl, n_ignored, n_skipped, f"Reduced corpus was written to {to_path}"
+        n_incl, n_excl, n_ignored, n_skipped, f"Reduced corpus was written to {to_path}/"
     )
 
 def split_data(from_file: pl.Path, to_path: pl.Path) -> None:
@@ -148,13 +148,15 @@ def extract_words(
     """
     print("\n Extracting words...")
     to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
-    collector = WordsCollector(to_path / "included_words.json", val_set, splits)
+    collector = WordsCollector(
+        to_path / f"included_words_valset{val_set}.json", val_set, splits
+    )
     with open(from_file, encoding="utf8") as ff:
         reader = csv.reader(ff)
         next(reader) # skip header
         n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, collector)
     print_row_counts(
-        n_incl, n_excl, n_ignored, n_skipped, f"JSON was written to {to_path}"
+        n_incl, n_excl, n_ignored, n_skipped, f"JSON was written to {to_path}/"
     )
 
 def summarize_articles(
@@ -173,11 +175,11 @@ def summarize_articles(
     with open(from_file, encoding="utf8") as ff:
         reader = csv.reader(ff)
         next(reader) # Skip headers (as they are not equal to output headers)
-        with open(to_path / "summarized_corpus.csv", 'w', encoding="utf8") as tf:
+        with open(to_path / f"summarized_corpus_valset{val_set}.csv", 'w', encoding="utf8") as tf:
             writer = csv.writer(tf)
             writer.writerow(out_cols) # Write headers
             summarizer = CorpusSummarizer(writer, val_set, splits)
             n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, summarizer)
     print_row_counts(
-        n_incl, n_excl, n_ignored, n_skipped, f"Summarized corpus was written to {to_path}"
+        n_incl, n_excl, n_ignored, n_skipped, f"Summarized corpus was written to {to_path}/"
     )
