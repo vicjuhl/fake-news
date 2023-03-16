@@ -25,9 +25,9 @@ def json_to_pd(file_path : str = "data_files/words/included_words10k.json") -> p
         lambda row: [row['real'][0] + row['fake'][0], row['real'][1] + row['fake'][1]], axis=1
         ) # adding freq entry column
     
-    def sort_by_second_elm(lst): # helper function for sorting by second element in lst
+    def get_second_elm(lst): # helper function for sorting by second element in lst
         return lst[1]
 
-    df = df.sort_values(by='freq', key=lambda x: -x.map(sort_by_second_elm)) # sort by total frequency
+    df = df.sort_values(by='freq', key=lambda x: -x.map(get_second_elm)) # sort by total frequency
     
     return df

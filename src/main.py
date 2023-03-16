@@ -11,7 +11,7 @@ from imports.json_to_pandas import json_to_pd
 def init_argparse() -> ap.ArgumentParser:
     parser = ap.ArgumentParser()
     parser.add_argument("-n", "--nrows", type=int, default=1000)
-    parser.add_argument("-f", "--filename", type=str, default="reduced_corpus10k.csv")
+    parser.add_argument("-f", "--filename", type=str, default="reduced_corpus.csv")
     parser.add_argument("-p", "--processes", nargs="*", type=str)
     parser.add_argument("-v", "--validation_set_num", type=int)
     return parser

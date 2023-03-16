@@ -163,8 +163,8 @@ def remove_stop_words_json(
     to_path: pl.Path,
 ) -> None:
     """Read json file, convert to df and stem words, then dump to json."""
-    df = json_to_pd(from_file) 
-    df = cut_tail_and_head (df, 100, 0.1, 0.1)  # default set args, min_occurence: int,  head_quantile: float, tail_quantile: float
+    df = json_to_pd(from_file)  # json sorted by word freq 
+    df = cut_tail_and_head (df, 100, 0.1, 0.1) 
     json_data = df.to_json(to_path, orient='index', indent=4) # dump to json
     
 def summarize_articles(
