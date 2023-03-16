@@ -35,7 +35,7 @@ class DataHandler(ABC):
         """Raise errors if id's don't match on lookup or row not in training set."""
         if self._splits[i, 0] != int(id_): # Sanity check on id numbers
             raise ValueError(f"ID's {(self._splits[i, 0], int(id_))} don't match")
-        elif self._splits[i, 1] in {1, self._val_set}: # Discern which set
+        elif self._splits[i, 1] in {1, self._val_set}: # If in val or test set
             raise NotInTrainingException
         
     @classmethod
@@ -168,6 +168,9 @@ class CorpusSummarizer(DataHandler):
             return () # Nothing added to buffer
         else:
             self._n_incl += 1
+            split_num = self._splits[i, 1]
+            # Add split number as the last entry for later writing
+            row.append(str(split_num))
             return tuple(row)
 
     @classmethod
@@ -196,6 +199,8 @@ class CorpusSummarizer(DataHandler):
             # Median token length
             median_len = stat.median(tkns_lens)
             out_row.append(median_len)
+            # Split number
+            out_row.append(in_row[-1])
             return_lst.append(out_row)
         return return_lst
 

@@ -33,7 +33,8 @@ out_cols = [
     "shortened",
     "content_len",
     "mean_word_len",
-    "median_word_len"
+    "median_word_len",
+    "split",
 ]
 
 # Label types to disregard

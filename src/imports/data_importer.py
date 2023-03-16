@@ -89,7 +89,7 @@ def process_lines(
                 n_ignored += 1
             # Or skip row if either type or content cannot be read
             except Exception as e:
-                print(e)
+                print(f"Row {i} skipped with {type(e)}:", e)
                 n_skipped += 1
             # Break when target rows reached
             if i >= n_rows:
