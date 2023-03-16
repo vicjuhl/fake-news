@@ -3,9 +3,10 @@ import pandas as pd
 from cleantext import clean # type: ignore
 import numpy as np
 import math 
-from utils.functions import stem 
+from preprocessing.noise_removal import preprocess_string 
 from collections import Counter
 import unicodedata
+
 
 def frequency_adjustment(df:pd.DataFrame) -> pd.DataFrame:
     '''adjusts wordfrequency of all words depending on their labeled'''
@@ -15,7 +16,7 @@ def frequency_adjustment(df:pd.DataFrame) -> pd.DataFrame:
         local_words = df[col].apply(lambda x: x[1]).sum()
         word_ratio = total_words / local_words # ratio multipled on each word under current label.
         df[col] = df[col].apply(lambda x: (x[0],x[1]*word_ratio)) #apply adjustment to all words
-    print('executing function: frequency_adjustment on input with total article count {total_num_articles}')
+    print('executing function: frequency_adjustment on wordsut with total article count {total_num_articles}')
     return df
 
 
@@ -77,44 +78,25 @@ def build_model(df: pd.DataFrame, article_count: int, make_csv: bool) -> pd.Data
     return final_model
 
 
-
-# inference functions
-
-def binary_classifier(inp: list[(str,int)], df: pd.DataFrame) -> str:
-
-    if any(len(item) != 2 for item in inp):
-        raise ValueError("Input data should be a list of tuples with two elements each")
+def binary_classifier(words: dict[str, int], df: pd.DataFrame) -> str:
     acc_weight = 0
     acc_score = 0
-    for word, freq in inp:
+    for word, freq in words.items():
         if word in df.index:
             row = df.loc[str(word)]
             acc_weight += freq * row['idf_weight']
             acc_score +=  row['fakeness_score'] * freq * row['idf_weight']
-
     return 'fake' if (acc_score / acc_weight) < 0 else 'reliable'
 
 
-
-def preproccess_for_inference(article : str) -> list[(str,int)]:
-    words = article.split()
-    words = [stem(word) for word in words]
-    counts = Counter(words)
-    counts = [(word, count) for word, count in counts.items()]
-
-    #print(counts)
-    return Counter(counts)
-    
-
-
 def infer(input_df: pd.DataFrame, model_df: pd.DataFrame): 
-    
+    """test and validates simple model"""
     print("execute function: infer")
-    def classifyArticle(inp: str) -> bool:
-        words = preproccess_for_inference(inp)
-        return binary_classifier(words, model_df )
+    def classify_article(inp: str) -> str:
+        words = preprocess_string(inp)
+        return binary_classifier(words, model_df)
     
-    input_df["prediction"] = input_df["content"].apply(classifyArticle)
+    input_df["prediction"] = input_df["content"].apply(classify_article)
     
     mask = (input_df['type'] == 'fake') | (input_df['type'] == 'reliable')
     results_df = input_df[mask]

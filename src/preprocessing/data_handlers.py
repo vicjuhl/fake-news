@@ -7,9 +7,9 @@ import statistics as stat
 import numpy as np
 
 from utils.types import news_info, words_info, words_dict, NotInTrainingException # type: ignore
-from utils.functions import add_tuples, stem # type: ignore
+from utils.functions import add_tuples # type: ignore
 from utils.mappings import transfered_cols, excl_types, incl_cols # type: ignore
-from preprocessing.noise_removal import clean_str, tokenize_str # type: ignore
+from preprocessing.noise_removal import clean_str, tokenize_str, stem # type: ignore
 
 
 class DataHandler(ABC):

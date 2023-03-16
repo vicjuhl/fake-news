@@ -33,9 +33,6 @@ def build_model(df: pd.DataFrame):
 
 csv_file_path = pl.Path(os.path.abspath('')).parent.resolve() / "data_files/news_sample.csv"
 article_df = pd.read_csv(csv_file_path)
-
-
-
 sm.infer(article_df, build_model(df))
 
         

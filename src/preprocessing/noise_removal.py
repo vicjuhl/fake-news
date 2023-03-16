@@ -1,8 +1,11 @@
+from nltk import PorterStemmer # type: ignore
 import pandas as pd
 from cleantext import clean # type: ignore
 import numpy as np
 import math 
 import utils.functions as f # type: ignore
+
+ps = PorterStemmer()
 
 def adding_total_freq(df: pd.DataFrame) -> pd.DataFrame:
     '''Adds a total frequency collumn to the dataframe'''
@@ -70,18 +73,6 @@ def cut_tail_and_head(
           "at minimum occurence level: ",lower_bound_count
     )
     return cut_df
-  
-def clean_text(df: pd.DataFrame) -> pd.DataFrame:
-    """Clean text for various anomalies for "content" in df."""
-    df.content = df.content.apply(lambda x: clean(x,
-        lower=True,
-        normalize_whitespace=True,
-        replace_with_url=True,
-        replace_with_email=True,
-        replace_with_number=True,
-        no_punct=True,
-    ))
-    return df
 
 def clean_str(text: str) -> str:
     """Clean text for various anomalies."""
@@ -101,21 +92,23 @@ def tokenize_str(text: str) -> list[str]:
     """Generate list of tokens form string."""
     return text.split()
 
-def tokenize(df: pd.DataFrame) -> list[str]:
-    """Generate list of tokens from dataframe."""
-    tkns: list[list[str]] = [c.split(" ") for c in df["content"]]
-    tkns_combined = [tkn for section in tkns for tkn in section]
-    return tkns_combined
+def stem(tkn: str) -> str:
+    """Stem token."""
+    return ps.stem(tkn)
 
-def count_sort(tkns: list[str]) -> pd.DataFrame:
+def count_words(tkns: list[str]) -> dict[str, int]:
     """Creat dataframe with tokens as rows and frequency as values."""
     counts: dict[str, int] = dict()
     for tkn in tkns:
         counts[tkn] = counts.get(tkn, 0) + 1
-    df = pd.DataFrame.from_dict(counts, orient="index", columns=["freq"])
-    df.sort_values(by=["freq"][1], ascending=False, inplace=True)
-    return df
+    return counts
 
+def preprocess_string (text: str) -> dict[str, int]:
+    clean_text = clean_str(text) 
+    tokens = tokenize_str(clean_text)
+    stemmed_words = [stem(word) for word in tokens]
+    count_dict = count_words(stemmed_words)
+    return count_dict
 
 def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     """Run the preprocessing pipeline."""
