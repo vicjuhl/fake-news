@@ -4,7 +4,7 @@ import argparse as ap
 import numpy as np
 
 from imports.data_importer import (
-    extract_words, reduce_corpus, summarize_articles, split_data # type: ignore
+    extract_words, reduce_corpus, summarize_articles, split_data, remove_stop_words_json  # type: ignore
 )
 from imports.json_to_pandas import json_to_pd
 
@@ -69,8 +69,8 @@ if __name__ == "__main__":
         
     if "stem_json" in args.processes:
         remove_stop_words_json(
-            data_path / 'included_words10k.json',
-            data_path / 'stop_words_removed.json',
+            data_path / f'words/included_words_valset{val_set}.json',
+            data_path / f'words/stop_words_removed_valset{val_set}.json',
         )
         
         
