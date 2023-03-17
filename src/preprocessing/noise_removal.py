@@ -103,11 +103,21 @@ def count_words(tkns: list[str]) -> dict[str, int]:
         counts[tkn] = counts.get(tkn, 0) + 1
     return counts
 
-def preprocess_string (text: str) -> dict[str, int]:
+def preprocess_string(text: str) -> dict[str, int]:
+    """Convert a string to a bag of words."""
     clean_text = clean_str(text) 
     tokens = tokenize_str(clean_text)
     stemmed_words = [stem(word) for word in tokens]
     count_dict = count_words(stemmed_words)
+    return count_dict
+
+def preprocess_without_stopwords(text: str, incl_words: set[str]) -> dict[str, int]:
+    """Convert a string to a bag of words without specified stopwords."""
+    cleaned = clean_str(text) 
+    tokenized = tokenize_str(cleaned)
+    stemmed = [stem(word) for word in tokenized]
+    filtered = filter(lambda word: word in incl_words, stemmed)
+    count_dict = count_words(filtered)
     return count_dict
 
 def preprocess(df: pd.DataFrame) -> pd.DataFrame:

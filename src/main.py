@@ -77,6 +77,7 @@ if __name__ == "__main__":
     if "csv" in args.processes:
         summarize_articles(
             data_path / "corpus" / args.filename,
+            data_path / "words" / f"stop_words_removed_valset{val_set}.json",
             data_path / "processed_csv/",
             args.nrows,
             val_set,
