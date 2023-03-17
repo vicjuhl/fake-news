@@ -57,18 +57,15 @@ def cut_tail_and_head(
     words_left = len(cut_df["freq"])
     words_removed = uniquewords - words_left 
 
-    print("executing function: cut_tail_and_head.", "with quantiles: ", 
-          head_quantile, " and ", tail_quantile, "i.e", 
-          str((head_quantile+tail_quantile)*100)
-          + "%" + " of total wordcount removed"
-    )
-    print("unique words before cleaning: ", uniquewords,  "unique words after: ",
-          words_left , "unique words removed: " , words_removed
-    )
-    print("unique words removed from head: ",index_upper,
-          " unique words removed from tail: ", uniquewords - index_lower,
-          "at minimum occurence level: ",lower_bound_count
-    )
+    print(f"Executing function: cut_tail_and_head with quantiles: {head_quantile} and {tail_quantile}")
+    print(f"{(head_quantile+tail_quantile)*100}% of unique words removed (APPROX!).")
+    print(f"{(words_removed/uniquewords)*100}% of unique words removed.")
+    print("unique words before cleaning: ", uniquewords)
+    print("unique words after: ", words_left)
+    print("unique words removed: ", words_removed)
+    print("\tunique words removed from head: ",index_upper)
+    print(f"\tunique words removed from tail: {uniquewords - index_lower}")
+    print(f"\tat minimum occurence level: {lower_bound_count}")
     return cut_df
 
 def clean_str(text: str) -> str:
