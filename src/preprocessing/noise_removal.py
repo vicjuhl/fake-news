@@ -1,8 +1,6 @@
 from nltk import PorterStemmer # type: ignore
 import pandas as pd
 from cleantext import clean # type: ignore
-import numpy as np
-import math 
 import utils.functions as f # type: ignore
 import re
 
@@ -59,7 +57,7 @@ def cut_tail_and_head(
     words_left = len(cut_df["freq"])
     words_removed = uniquewords - words_left 
 
-    print("execute function: cut_tail_and_head.", "with quantiles: ", 
+    print("executing function: cut_tail_and_head.", "with quantiles: ", 
           head_quantile, " and ", tail_quantile, "i.e", 
           str((head_quantile+tail_quantile)*100)
           + "%" + " of total wordcount removed"
@@ -75,18 +73,20 @@ def cut_tail_and_head(
 
 def clean_str(text: str) -> str:
     """Clean text for various anomalies."""
-    return clean(
+    Cleaned= clean(
         text,
         fix_unicode=True,
         to_ascii=True,
         lower=True,
+        no_line_breaks=True,
         normalize_whitespace=True,
         replace_with_url="<URL>",
         replace_with_email="<EMAIL>",
         replace_with_number="<NUM>",
         replace_with_currency_symbol="<CUR>",
         no_punct=True,
-    ).replace("\n", " ").replace(r"\\u\S{4}\\u\S{4}", " ") #removes nonascii
+    )
+    return re.sub("[^\x00-\x7F]+"," ", Cleaned) #removes all nonascii
 
 def tokenize_str(text: str) -> list[str]:
     """Generate list of tokens form string."""
