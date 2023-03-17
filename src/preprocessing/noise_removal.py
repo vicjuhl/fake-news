@@ -1,9 +1,8 @@
 import pandas as pd
 from cleantext import clean # type: ignore
 
-
 def cut_tail_and_head(
-    df : pd.DataFrame,
+    df: pd.DataFrame,
     min_occurence: int,
     head_quantile: float,
     tail_quantile: float
@@ -11,57 +10,57 @@ def cut_tail_and_head(
     '''Cut the head and tail of the dataframe,
     where the head is the most frequent words and the tail the least frequent words. '''
 
-    total_words = df["freq"].sum()   
+    # finding total words by summing total frequencies for each word
+    total_words = df['freq'].apply(lambda x: x[1]).sum() 
     acc_index = 0
     acc_sum = 0
-    index_upper = 0 
-    index_lower = 0 
-    
+    index_upper = 0
+    index_lower = 0
+
     target_sum_head = head_quantile * total_words
-    while acc_sum < target_sum_head: # finds index of head quantile   
-        acc_sum += df["freq"][acc_index]
+    while acc_sum < target_sum_head: # finds index of head quantile
+        acc_sum += df["freq"][acc_index][1] # extract absolute frequency for each word summed
         acc_index += 1
-    
-    upper_bound_count = df["freq"][acc_index]
-    
-    while df["freq"][acc_index] == upper_bound_count: # continues until frequency changes
+    upper_bound_count = df["freq"][acc_index][1]
+
+    while df["freq"][acc_index][1] == upper_bound_count: # continues until frequency changes
+        acc_sum += df["freq"][acc_index][1]
         acc_index += 1
-    
-    index_upper = acc_index   
-    target_sum_tail = (1-tail_quantile) * total_words    
         
-    while acc_sum < target_sum_tail and df["freq"][acc_index] > min_occurence: # finds index of tail quantile
-        acc_sum += df["freq"][acc_index]
+    index_upper = acc_index
+    target_sum_tail = (1-tail_quantile) * total_words
+
+    # finds index of tail quantile
+    while acc_sum < target_sum_tail and df["freq"][acc_index][1] > min_occurence: 
+        acc_sum += df["freq"][acc_index][1]
         acc_index += 1
 
-    lower_bound_count = df["freq"][acc_index] 
-    
-    while df["freq"][acc_index] == lower_bound_count: # continues until frequency changes
+    lower_bound_count = df["freq"][acc_index][1]
+    while df["freq"][acc_index][1] == lower_bound_count: # continues until frequency changes
         acc_index += 1
 
     index_lower = acc_index
-    
     cut = df[index_upper: index_lower]  # remove tail and head from the dataframe
-    
-    #stats
-    uniquewords = len(df["freq"]) 
-    words_left = len(cut["freq"])
-    words_removed = uniquewords - words_left 
 
-    print("Head and tail cutoff.", "with quantiles: ", 
-          head_quantile, " and ", tail_quantile, "i.e", 
+    # stats
+    uniquewords = len(df["freq"])
+    words_left = len(cut["freq"])
+    words_removed = uniquewords - words_left
+
+    print("Head and tail cutoff.", "with quantiles: ",
+          head_quantile, " and ", tail_quantile, "i.e",
           str((head_quantile+tail_quantile)*100)
           + "%" + " of total wordcount removed"
     )
     print("unique words before cleaning: ", uniquewords,  "unique words after: ",
           words_left , "unique words removed: " , words_removed
     )
-    print("unique words removed from head: ",index_upper, 
+    print("unique words removed from head: ",index_upper,
           " unique words removed from tail: ", uniquewords - index_lower,
           "at minimum occurence level: ",lower_bound_count
     )
     return cut
-  
+
 
 def clean_text(df: pd.DataFrame) -> pd.DataFrame:
     """Clean text for various anomalies for "content" in df."""
