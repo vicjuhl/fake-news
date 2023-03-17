@@ -27,9 +27,9 @@ def cut_tail_and_head(
     total_words = word_freq.sum()   
     acc_index = 0
     acc_sum = 0
-    index_upper = 0 
-    index_lower = 0 
-    
+    index_upper = 0
+    index_lower = 0
+
     target_sum_head = head_quantile * total_words
     target_sum_tail = (1 - tail_quantile) * total_words   
     while acc_sum < target_sum_head: # finds index of head quantile   
@@ -66,7 +66,7 @@ def cut_tail_and_head(
     print("unique words before cleaning: ", uniquewords,  "unique words after: ",
           words_left , "unique words removed: " , words_removed
     )
-    print("unique words removed from head: ",index_upper, 
+    print("unique words removed from head: ",index_upper,
           " unique words removed from tail: ", uniquewords - index_lower,
           "at minimum occurence level: ",lower_bound_count
     )
