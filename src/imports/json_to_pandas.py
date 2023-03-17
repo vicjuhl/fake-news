@@ -19,7 +19,7 @@ def json_to_pd(file_path : str = "data_files/words/included_words10k.json") -> p
 
     # filtering for fake and reliable and replacing NaN with [0,0]
     df = df.filter(items=['fake', 'reliable'], axis=1)
-    df = df.rename(columns={'reliable':'real'})
+    #df = df.rename(columns={'reliable':'real'})
     df = df.applymap(lambda x: [0,0] if x is np.nan else x)
     df['freq'] = df.apply(
         lambda row: [row['real'][0] + row['fake'][0], row['real'][1] + row['fake'][1]], axis=1
