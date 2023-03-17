@@ -17,7 +17,7 @@ def json_to_pd(file_path : str = "data_files/words/included_words.json") -> pd.D
 
     # filtering for fake and reliable and replacing NaN with [0,0]
     df = df.filter(items=['fake', 'reliable'], axis=1)
-    df = df.rename(columns={'reliable':'real'})
+    #df = df.rename(columns={'reliable':'real'})
     df = df.applymap(lambda x: [0,0] if x is np.nan else x)
 
     return df

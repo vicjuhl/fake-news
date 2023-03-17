@@ -4,6 +4,7 @@ from cleantext import clean # type: ignore
 import numpy as np
 import math 
 import utils.functions as f # type: ignore
+import re
 
 ps = PorterStemmer()
 
@@ -85,7 +86,7 @@ def clean_str(text: str) -> str:
         replace_with_number="<NUM>",
         replace_with_currency_symbol="<CUR>",
         no_punct=True,
-    ).replace("\n", "")
+    ).replace("\n", " ").replace(r"\\u\S{4}\\u\S{4}", " ") #removes nonascii
 
 def tokenize_str(text: str) -> list[str]:
     """Generate list of tokens form string."""
