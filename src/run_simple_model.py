@@ -18,7 +18,7 @@ df_words = pd.DataFrame.from_dict(
     for word in json_dict.keys()},
     orient='index')
 
-# filtering for fake and reliable and replacing NaN with [0,0]
+# filtering for fake and reliable and replacing NaN with (0,0)
 df_words = df_words.filter(items=['fake', 'reliable'], axis=1)
 df_words = df_words.stack().unstack(fill_value=(0, 0))
 
