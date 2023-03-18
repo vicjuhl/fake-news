@@ -6,7 +6,7 @@ from sklearn.linear_model import PassiveAggressiveClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.model_selection import train_test_split
 
-
+df = pd.read_csv('data_files\processed_csv\summarized_corpus_valset2_full.csv')
 
 # define model if not already existing
 try:
