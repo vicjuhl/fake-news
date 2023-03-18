@@ -1,10 +1,11 @@
-import os
 import pandas as pd
 from cleantext import clean # type: ignore
 import numpy as np
 import math 
-from preprocessing.noise_removal import preprocess_string 
 import unicodedata
+import os
+import sys
+from preprocessing.noise_removal import preprocess_string
 
 def frequency_adjustment(df:pd.DataFrame) -> pd.DataFrame:
     '''Adjust wordfrequency of all words depending on their label.'''
@@ -33,7 +34,7 @@ def logistic_Classification_weight(df:pd.DataFrame) -> pd.DataFrame:
         df.loc[i, 'fakeness_score'] = 2 / (1 + math.exp(-x)) - 1
     return df
 
-def create_model(df: pd.DataFrame) -> pd.DataFrame:
+def create_model(df: pd.DataFrame, name) -> pd.DataFrame:
     '''Construct model with weights and scores'''
     print(df)
     new_df= pd.DataFrame()
@@ -41,17 +42,13 @@ def create_model(df: pd.DataFrame) -> pd.DataFrame:
     new_df["fakeness_score"] = df["fakeness_score"]
     return new_df
 
-def save_to_csv(df: pd.DataFrame):
-    """Save the model to csvfile in Models-csv folder."""
-    dir = "models-csv"
+def save_to_csv(df: pd.DataFrame, to_path):
+    """Save the model to csvfile in simple_model_csv folder."""
+    dir = "simple_model_csv"
     if not os.path.exists(dir):
         os.makedirs(dir)
-        
-    model_amount = len(os.listdir(dir)) #used for model naming
-    Outputfilepath = os.path.join(dir, "Model{}.csv".format(model_amount+1))
-    Outputfile = open (Outputfilepath, "w+")
+    Outputfile = open (to_path, "w+")
     df.to_csv(Outputfile)
-    print("Model saved to csv as: " + "Model" + str(model_amount+1))
     
 def model_processing(df: pd.DataFrame, article_count: int, make_csv: bool) -> pd.DataFrame:
     """Uses the functions in the module to build a dataframe with weights and scores for words."""
@@ -79,30 +76,16 @@ def binary_classifier(words: dict[str, int], df: pd.DataFrame) -> str:
     # the following division produces an average (no effect on binary classification)   
     return 'fake' if acc_score / acc_weight < 0 else 'reliable' 
 
-def infer(input_df: pd.DataFrame, model_df: pd.DataFrame): 
-    """Test and evaluate simple model."""
-    print("execute function: infer")
-    def classify_article(inp: str) -> str:
-        words = preprocess_string(inp)
-        return binary_classifier(words, model_df)
+def classify_article(input_df: pd.DataFrame, model_df: pd.DataFrame) -> list[str]:
+    """Classifies all articles in the input dataframe, and returns a list of predictions."""
+    predictions = []
+    column = input_df['shortened'].apply(lambda x: preprocess_string(x))
+    column.apply(lambda x: predictions.append(binary_classifier(x, model_df)))       
+    print(len(predictions) , len(input_df['shortened']))
     
-    mask = (input_df['type'] == 'fake') | (input_df['type'] == 'reliable')
-    results_df = input_df[mask]
-
-    results_df["prediction"] = results_df["content"].apply(classify_article)
+    return predictions
     
-    results_df['correctness'] = (results_df["type"] == results_df["prediction"])
-    results_df = results_df.loc[:, ['type', 'prediction', 'correctness']]
-    acc = sum(results_df["correctness"])
-   
-    accuracy = acc/len(results_df)
-    print(results_df)
-    print("with accuracy",accuracy)
 
-    return results_df, accuracy
-
-
-    
 
 
     
