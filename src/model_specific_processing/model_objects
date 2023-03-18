@@ -14,3 +14,17 @@ simple_model.infer(df)
 simple_model.evaluate(df)
 
 print(models_dict)
+
+
+
+
+PS C:\Users\Hans Peter\OneDrive - University of Copenhagen\ku\data science\fake-news\src\model_specific_processing> python model_objects
+Since the GPL-licensed package `unidecode` is not installed, using Python's `unicodedata` package which yields worse results.
+Traceback (most recent call last):
+  File "C:\Users\Hans Peter\OneDrive - University of Copenhagen\ku\data science\fake-news\src\model_specific_processing\model_objects", line 2, in <module>
+    from obj_simple_model import simple_model
+  File "C:\Users\Hans Peter\OneDrive - University of Copenhagen\ku\data science\fake-news\src\model_specific_processing\obj_simple_model.py", line 1, in <module>
+    import simple_model as sm
+  File "C:\Users\Hans Peter\OneDrive - University of Copenhagen\ku\data science\fake-news\src\model_specific_processing\simple_model.py", line 8, in <module>
+    from ..preprocessing.noise_removal import preprocess_string
+ImportError: attempted relative import with no known parent package

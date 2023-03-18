@@ -4,8 +4,9 @@ import pickle
 import pathlib as pl
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score
 import time 
-from abstract_class import abstract_model
+from abstract_class import abstract_model, base_model
 import csv 
+import unicode
 
 class simple_model(abstract_model):
     '''Simple model'''
@@ -44,33 +45,33 @@ class simple_model(abstract_model):
         self.model = None # wiping the model from the object, to save memory
         print(f'model dumped to {self._path}')
         
-    def infer(self, df: pd.DataFrame) -> pd.DataFrame:
+    def infer(self, test_df: pd.DataFrame) -> pd.DataFrame:
         '''Makes predictions on a dataframe'''
         t0 = time.time()
         path = pl.Path(f'{self._path}')
         try:
             model = pd.read_csv(self._path)
             # adding predictions as a column
-            df[f'preds_from_{self.name}'] = sm.classify_article(df, self._model, )
+            test_df[f'preds_from_{self.name}'] = sm.classify_article(df, self._model, )
             return df
         except FileNotFoundError:
             print('cannot make inference without a trained model') 
             
         print(f'time to inference {time.time() - t0} seconds')
         
-    def evaluate(self, df: pd.DataFrame) -> None:
+    def evaluate(self, test_df: pd.DataFrame) -> None:
         '''Evaluates the model on a dataframe'''
         try:
-            preds = df[f'preds_from_{self.name}']
+            preds = test_df[f'preds_from_{self.name}']
         except KeyError:
             print('cannot evaluate without predictions')        
         
         print("here are the stats for the model:")
-        print(f'Accuracy: {accuracy_score(df["type"], preds)}') # type is the column with labels
-        print(f'Precision: {precision_score(df["type"], preds, average="weighted")}')
-        print(f'Recall: {recall_score(df["type"], preds, average="weighted")}')
-        print(f'F1: {f1_score(df["type"], preds, average="weighted")}')
-        print(f'Confusion matrix: {confusion_matrix(df["type"], preds)}')
+        print(f'Accuracy: {accuracy_score(test_df["type"], preds)}') # type is the column with labels
+        print(f'Precision: {precision_score(test_df["type"], preds, average="weighted")}')
+        print(f'Recall: {recall_score(test_df["type"], preds, average="weighted")}')
+        print(f'F1: {f1_score(test_df["type"], preds, average="weighted")}')
+        print(f'Confusion matrix: {confusion_matrix(test_df["type"], preds)}')
         
         
     

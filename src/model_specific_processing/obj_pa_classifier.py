@@ -71,6 +71,5 @@ class pa_classifier(abstract_model):
         print(f'Recall: {recall_score(df["type"], preds, average="weighted")}')
         print(f'F1: {f1_score(df["type"], preds, average="weighted")}')
         print(f'Confusion matrix: {confusion_matrix(df["type"], preds)}')
-        
-        
+               
            
