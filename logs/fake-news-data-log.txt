@@ -1,0 +1,8 @@
+Initial filtering (reduce_raw)
+
+8529067 rows read, 
+    2807981 were included 
+    5721086 were excluded 
+153 were skipped 
+Reduces news corpus was written to /Users/victor/Documents/Uddannelse/Repos/fake-news/data_files/corpus
+runtime: 413.12682914733887

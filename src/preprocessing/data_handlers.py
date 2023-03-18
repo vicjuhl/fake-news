@@ -4,11 +4,12 @@ import _csv
 from abc import ABC, abstractmethod
 from typing import Any
 import statistics as stat
+import numpy as np
 
-from utils.types import news_info, words_info, words_dict # type: ignore
-from utils.functions import add_tuples, stem # type: ignore
+from utils.types import news_info, words_info, words_dict, NotInTrainingException # type: ignore
+from utils.functions import add_tuples # type: ignore
 from utils.mappings import transfered_cols, excl_types, incl_cols # type: ignore
-from preprocessing.noise_removal import clean_str, tokenize_str # type: ignore
+from preprocessing.noise_removal import clean_str, tokenize_str, stem # type: ignore
 
 
 class DataHandler(ABC):
@@ -26,10 +27,17 @@ class DataHandler(ABC):
         return self._n_excl
     
     @abstractmethod
-    def extract(self, row: list[str]):
+    def extract(self, row: list[str], i: int):
         """Extract relevant data from source row."""
         pass
 
+    def check_split(self, i: int, id_: int) -> None:
+        """Raise errors if id's don't match on lookup or row not in training set."""
+        if self._splits[i, 0] != int(id_): # Sanity check on id numbers
+            raise ValueError(f"ID's {(self._splits[i, 0], int(id_))} don't match")
+        elif self._splits[i, 1] in {1, self._val_set}: # If in val or test set
+            raise NotInTrainingException
+        
     @classmethod
     @abstractmethod
     def process_batch(cls, data): # TYPING TODO
@@ -46,35 +54,47 @@ class DataHandler(ABC):
         """Do final actions if needed."""
         pass
 
+class CorpusReducer(DataHandler):
+    def __init__(self, writer: '_csv._writer') -> None:
+        super().__init__()
+        self.writer = writer
+    
+    def extract(self, row: list[str], _) -> tuple[str, ...]:
+        """Extract all entries from row."""
+        type_ = row[3]
+        if type_ is None or type_ in excl_types:
+            self._n_excl += 1
+            return () # Nothing added to buffer
+        else:
+            self._n_incl += 1
+            # Make sure that every field has data
+            return tuple([row[i] for i in range(17)])
+        
+    @classmethod
+    def process_batch(cls, data: list[tuple[str, ...]]) -> list[Any]:
+        return data
+        
+    def write(self, row: list[list[str]]) -> None:
+        """Write rows."""
+        self.writer.writerows(row)
 
-class WordsDicts(DataHandler):
+    def finalize(self):
+        """Do nothing."""
+        pass
+
+class WordsCollector(DataHandler):
     """Two dictionaries with included and excluded words, respectively."""
-    def __init__(self, to_path: pl.Path, incl_name: str, excl_name: str) -> None:
+    def __init__(self, to_path: pl.Path, val_set: int, splits: np.ndarray) -> None:
         """Create empty dicts, store file paths and define destination paths."""
         super().__init__()
-        
-        self._incl: words_dict = {}
-        self._excl: words_dict = {}
-        self._incl_stem: words_dict = {}
-        self._excl_stem: words_dict = {}
+        self._words: words_dict = {}
+        self._to_path = to_path
+        self._val_set = val_set
+        self._splits = splits
 
-        self._incl_path = to_path / f"{incl_name}.json"
-        self._excl_path = to_path / f"{excl_name}.json"
-    
-    @property
-    def all_dicts(self) -> list[words_dict]:
-        return [self._incl, self._excl]
-    
-    @property
-    def all_paths(self) -> list[pl.Path]:
-        return [self._incl_path, self._excl_path]
-    
-    @property
-    def all_pairs(self) -> list[tuple[pl.Path, words_dict]]:
-        return [(path, dct) for path, dct in zip(self.all_paths, self.all_dicts)]
-
-    def extract(self, row: list[str]) -> news_info:
+    def extract(self, row: list[str], i: int) -> news_info:
         """Extract type and content from row"""
+        self.check_split(i, row[1])
         return row[3], row[5]
     
     @classmethod
@@ -89,70 +109,68 @@ class WordsDicts(DataHandler):
             counted_in_article: set[str] = set()
             # Decide where to add word based on type
             if type_ is None or type_ in excl_types:
-                out_dict = self._excl
                 self._n_excl += 1
             else:
-                out_dict = self._incl
                 self._n_incl += 1
             # Add to relevant dictionary
             for word in words:
                 # Add word if it is new
-                out_dict[word] = out_dict.get(word, {})
+                self._words[word] = self._words.get(word, {})
                 # Add type if it is new
-                out_dict[word][type_] = out_dict[word].get(type_, (0, 0))
-                out_dict[word][type_] = add_tuples(
-                    out_dict[word][type_],
+                self._words[word][type_] = self._words[word].get(type_, (0, 0))
+                self._words[word][type_] = add_tuples(
+                    self._words[word][type_],
                     (1 if not word in counted_in_article else 0, 1)
                 )
                 counted_in_article.add(word)
 
-    def stem_dicts(self) -> None:
+    def stem_dict(self) -> None:
         """Stem dicts and combine each into new dict."""
          # Loop through both dicts
-        for dct in self.all_dicts:
-            old_dct = dct.copy()
-            dct.clear()
-            # Loop through words
-            for tkn in old_dct.keys():
-                stemmed_tkn = stem(tkn)
-                dct[stemmed_tkn] = dct.get(stemmed_tkn, old_dct[tkn])
-                # Loop through frequencies for word
-                for type_, freqs in old_dct[tkn].items():
-                    dct[stemmed_tkn][type_] = dct[stemmed_tkn].get(type_, (0, 0))
-                    current_pair = dct[stemmed_tkn][type_]
-                    current_pair = add_tuples(current_pair, freqs)
+        old_dct = self._words.copy()
+        self._words.clear()
+        # Loop through words
+        for tkn in old_dct.keys():
+            stemmed_tkn = stem(tkn)
+            self._words[stemmed_tkn] = self._words.get(stemmed_tkn, old_dct[tkn])
+            # Loop through frequencies for word
+            for type_, freqs in old_dct[tkn].items():
+                self._words[stemmed_tkn][type_] = self._words[stemmed_tkn].get(type_, (0, 0))
+                current_pair = self._words[stemmed_tkn][type_]
+                current_pair = add_tuples(current_pair, freqs)
 
     def export_json(self) -> None:
         """Dump both dicts as json files."""
-        [self.dump_json(*pair) for pair in self.all_pairs]
-    
-    @classmethod
-    def dump_json(cls, file_path: pl.Path, out_dict: dict) -> None:
-        """Dump dictionary to json."""
-        json_words = json.dumps(out_dict, indent=4)
-        with open(file_path, "w") as outfile:
+        json_words = json.dumps(self._words, indent=4)
+        with open(self._to_path, "w") as outfile:
             outfile.write(json_words)
 
     def finalize(self):
         """Stem, export as JSON and return counts for included and excluded words."""
-        self.stem_dicts()
+        self.stem_dict()
         self.export_json()
 
 
-class CsvWriter(DataHandler):
+class CorpusSummarizer(DataHandler):
     """Class which manages preprocessing and exporting of data on article level."""
-    def __init__(self, writer: '_csv._writer') -> None:
+    def __init__(self, writer: '_csv._writer', val_set: int, splits: np.ndarray) -> None:
         super().__init__()
         self.writer = writer
+        self._val_set = val_set
+        self._splits = splits
 
-    def extract(self, row: list[str]) -> tuple[str, ...]:
+    def extract(self, row: list[str], i: int) -> tuple[str, ...]:
         """Extract all relevant entries from row."""
+        self.check_split(i, row[1])
         type_ = row[3]
         if type_ is None or type_ in excl_types:
             self._n_excl += 1
-            return ()
+            return () # Nothing added to buffer
         else:
             self._n_incl += 1
+            split_num = self._splits[i, 1]
+            # Add split number as the last entry for later writing
+            row.append(str(split_num))
             return tuple(row)
 
     @classmethod
@@ -167,6 +185,10 @@ class CsvWriter(DataHandler):
                 out_row.append(in_row[col_index])
             # Add values of calculated columns
             content = in_row[5]
+            # Shortened article
+            cutoff = content.find(" ", 600) # returns -1 if no find, else index of ' '
+            short_content = content if cutoff == -1 else content[:cutoff]
+            out_row.append(short_content)
             # Length of content
             out_row.append(len(content))
             # Mean token length
@@ -177,10 +199,12 @@ class CsvWriter(DataHandler):
             # Median token length
             median_len = stat.median(tkns_lens)
             out_row.append(median_len)
+            # Split number
+            out_row.append(in_row[-1])
             return_lst.append(out_row)
         return return_lst
 
-    def write(self, row: list[list[str]]) -> None:
+    def write(self, row: list[tuple[str, ...]]) -> None:
         """Write rows."""
         self.writer.writerows(row)
 
