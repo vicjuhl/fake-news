@@ -20,7 +20,7 @@ df_words = pd.DataFrame.from_dict(
 
 # filtering for fake and reliable and replacing NaN with [0,0]
 df_words = df_words.filter(items=['fake', 'reliable'], axis=1)
-df_words = df_words.fillna([0,0])
+df_words = df_words.stack().unstack(fill_value=(0, 0))
 
 # test data
 csv_file_path = pl.Path(os.path.abspath('')).parent.resolve() / "data_files/news_sample.csv"
