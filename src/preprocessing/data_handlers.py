@@ -9,7 +9,7 @@ import numpy as np
 from utils.types import news_info, words_info, words_dict, NotInTrainingException # type: ignore
 from utils.functions import add_tuples # type: ignore
 from utils.mappings import transfered_cols, excl_types, incl_cols # type: ignore
-from preprocessing.noise_removal import clean_str, tokenize_str, stem # type: ignore
+from preprocessing.noise_removal import clean_str, tokenize_str, stem, preprocess_without_stopwords # type: ignore
 
 
 class DataHandler(ABC):
@@ -71,8 +71,9 @@ class CorpusReducer(DataHandler):
             return tuple([row[i] for i in range(17)])
         
     @classmethod
-    def process_batch(cls, data: list[tuple[str, ...]]) -> list[Any]:
-        return data
+    def process_batch(cls, data: tuple[list[tuple[str, ...]], dict]) -> list[Any]:
+        batch, _ =  data
+        return batch
         
     def write(self, row: list[list[str]]) -> None:
         """Write rows."""
@@ -98,9 +99,10 @@ class WordsCollector(DataHandler):
         return row[3], row[5]
     
     @classmethod
-    def process_batch(cls, data: list[news_info]) -> list[words_info]:
+    def process_batch(cls, data: tuple[list[news_info], dict]) -> list[words_info]:
         """Clean text and split into list of type/bag of words pairs."""
-        return [(t, tokenize_str(clean_str(c))) for t, c in data]
+        batch, _ = data
+        return [(t, tokenize_str(clean_str(c))) for t, c in batch]
     
     def write(self, articles: list[words_info]):
         """Add article as bag of words counts to relevant dictionary."""
@@ -153,7 +155,12 @@ class WordsCollector(DataHandler):
 
 class CorpusSummarizer(DataHandler):
     """Class which manages preprocessing and exporting of data on article level."""
-    def __init__(self, writer: '_csv._writer', val_set: int, splits: np.ndarray) -> None:
+    def __init__(
+        self,
+        writer: '_csv._writer',
+        val_set: int,
+        splits: np.ndarray,
+    ) -> None:
         super().__init__()
         self.writer = writer
         self._val_set = val_set
@@ -174,10 +181,14 @@ class CorpusSummarizer(DataHandler):
             return tuple(row)
 
     @classmethod
-    def process_batch(cls, data: list[tuple[str, ...]]) -> list[Any]:
+    def process_batch(cls, data: tuple[list[tuple[str, ...]], dict]) -> list[Any]:
         """Transfer specified columns without processing, process others."""
+        # Unpack and prepare
+        batch, kwargs = data
+        incl_words = kwargs["incl_words"]
         return_lst = []
-        for in_row in data:
+        # Iterate through batch
+        for in_row in batch:
             out_row = []
             for col_name in transfered_cols:
                 # Add values of transfered cols without processing
@@ -185,6 +196,8 @@ class CorpusSummarizer(DataHandler):
                 out_row.append(in_row[col_index])
             # Add values of calculated columns
             content = in_row[5]
+            # Bag of words
+            out_row.append(preprocess_without_stopwords(content, incl_words))
             # Shortened article
             cutoff = content.find(" ", 600) # returns -1 if no find, else index of ' '
             short_content = content if cutoff == -1 else content[:cutoff]

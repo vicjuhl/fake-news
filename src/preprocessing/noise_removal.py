@@ -57,18 +57,15 @@ def cut_tail_and_head(
     words_left = len(cut_df["freq"])
     words_removed = uniquewords - words_left 
 
-    print("executing function: cut_tail_and_head.", "with quantiles: ", 
-          head_quantile, " and ", tail_quantile, "i.e", 
-          str((head_quantile+tail_quantile)*100)
-          + "%" + " of total wordcount removed"
-    )
-    print("unique words before cleaning: ", uniquewords,  "unique words after: ",
-          words_left , "unique words removed: " , words_removed
-    )
-    print("unique words removed from head: ",index_upper,
-          " unique words removed from tail: ", uniquewords - index_lower,
-          "at minimum occurence level: ",lower_bound_count
-    )
+    print(f"Executing function: cut_tail_and_head with quantiles: {head_quantile} and {tail_quantile}")
+    print(f"{(head_quantile+tail_quantile)*100}% of unique words removed (APPROX!).")
+    print(f"{(words_removed/uniquewords)*100}% of unique words removed.")
+    print("unique words before cleaning: ", uniquewords)
+    print("unique words after: ", words_left)
+    print("unique words removed: ", words_removed)
+    print("\tunique words removed from head: ",index_upper)
+    print(f"\tunique words removed from tail: {uniquewords - index_lower}")
+    print(f"\tat minimum occurence level: {lower_bound_count}")
     return cut_df
 
 def clean_str(text: str) -> str:
@@ -103,11 +100,21 @@ def count_words(tkns: list[str]) -> dict[str, int]:
         counts[tkn] = counts.get(tkn, 0) + 1
     return counts
 
-def preprocess_string (text: str) -> dict[str, int]:
+def preprocess_string(text: str) -> dict[str, int]:
+    """Convert a string to a bag of words."""
     clean_text = clean_str(text) 
     tokens = tokenize_str(clean_text)
     stemmed_words = [stem(word) for word in tokens]
     count_dict = count_words(stemmed_words)
+    return count_dict
+
+def preprocess_without_stopwords(text: str, incl_words: set[str]) -> dict[str, int]:
+    """Convert a string to a bag of words without specified stopwords."""
+    cleaned = clean_str(text) 
+    tokenized = tokenize_str(cleaned)
+    stemmed = [stem(word) for word in tokenized]
+    filtered = filter(lambda word: word in incl_words, stemmed)
+    count_dict = count_words(filtered)
     return count_dict
 
 def preprocess(df: pd.DataFrame) -> pd.DataFrame:

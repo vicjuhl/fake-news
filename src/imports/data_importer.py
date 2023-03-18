@@ -27,10 +27,12 @@ def process_buffer(
     out_obj: DataHandler,
     buffer: list[list[Union[words_info, tuple[str, ...]]]],
     n_procs: int,
+    **kwargs,
 ) -> list[Union[words_info, tuple[str, ...]]]:
     """Multiprocess article buffer, return list of type/bag of words pairs."""
     with Pool(n_procs) as p:
-        data_results = p.map_async(out_obj.process_batch, buffer)
+        data_input = [(batch, kwargs) for batch in buffer]
+        data_results = p.map_async(out_obj.process_batch, data_input)
         data_lists = data_results.get()
         # Concattenate list of lists of words to just list of word_info
         return [article for batch in data_lists for article in batch]
@@ -49,6 +51,7 @@ def process_lines(
     n_rows: int,
     reader: '_csv._reader',
     out_obj: DataHandler,
+    **kwargs,
 ) -> tuple[int, int, int, int]:
     """Read raw csv file line by line, clean words, count occurrences and dump to json.
     
@@ -76,8 +79,9 @@ def process_lines(
             if i % 100000 == 0:
                 print("Lines read:", i, "...")
             # Parallel process data if all batches are full
-            if n_read % buffer_sz == 0:
-                out_obj.write(process_buffer(out_obj, buffer, n_procs))
+            if n_read % buffer_sz == 0 and n_read > 0:
+                processed = process_buffer(out_obj, buffer, n_procs, **kwargs)
+                out_obj.write(processed)
                 buffer = create_clear_buffer(n_procs)
             # Read and save line
             try:
@@ -101,7 +105,7 @@ def process_lines(
         except: # No row to read (or other error)
             running = False
     # Flush what remains in the buffer
-    out_obj.write(process_buffer(out_obj, buffer, n_procs))
+    out_obj.write(process_buffer(out_obj, buffer, n_procs, **kwargs))
     # Export as json
     out_obj.finalize()
     return out_obj.n_incl, out_obj.n_excl, n_ignored, n_skipped
@@ -161,14 +165,18 @@ def extract_words(
 def remove_stop_words_json(
     from_file: pl.Path,
     to_path: pl.Path,
+    head_q: float,
+    tail_q: float,
 ) -> None:
     """Read json file, convert to df and stem words, then dump to json."""
+    print("\n Removing stopwords...")
     df = json_to_pd(from_file)  # json sorted by word freq 
-    df = cut_tail_and_head (df, 0.1, 0.1) 
+    df = cut_tail_and_head (df, head_q, tail_q) 
     df.to_json(to_path, orient='index', indent=4) # dump to json
     
 def summarize_articles(
     from_file: pl.Path,
+    words_file: pl.Path,
     to_path: pl.Path,
     n_rows: int,
     val_set: int,
@@ -179,6 +187,10 @@ def summarize_articles(
     Return tuple of n_included, n_excluded, n_skipped.
     """
     print("\n Summarizing articles...")
+    # Import included words and convert to set of words
+    with open(words_file) as wf:
+        words = set(json.load(wf).keys())
+    
     to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
     with open(from_file, encoding="utf8") as ff:
         reader = csv.reader(ff)
@@ -187,5 +199,5 @@ def summarize_articles(
             writer = csv.writer(tf)
             writer.writerow(out_cols) # Write headers
             summarizer = CorpusSummarizer(writer, val_set, splits)
-            n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, summarizer)
+            n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, summarizer, incl_words=words)
     print_row_counts(n_incl, n_excl, n_ignored, n_skipped, f"Summarized corpus was written to {to_path}/")

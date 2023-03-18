@@ -22,7 +22,7 @@ def json_to_pd(file_path : str = "data_files/words/included_words10k.json") -> p
     #df = df.rename(columns={'reliable':'real'})
     df = df.applymap(lambda x: [0,0] if x is np.nan else x)
     df['freq'] = df.apply(
-        lambda row: [row['real'][0] + row['fake'][0], row['real'][1] + row['fake'][1]], axis=1
+        lambda row: [row['reliable'][0] + row['fake'][0], row['reliable'][1] + row['fake'][1]], axis=1
         ) # adding freq entry column
     
     def get_second_elm(lst): # helper function for sorting by second element in lst

@@ -30,6 +30,7 @@ out_cols = [
     "tags",
     "summary",
     # Derived
+    "words",
     "shortened",
     "content_len",
     "mean_word_len",
