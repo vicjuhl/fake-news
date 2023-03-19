@@ -31,11 +31,11 @@ class DataHandler(ABC):
         """Extract relevant data from source row."""
         pass
 
-    def check_split(self, i: int, id_: int) -> None:
+    def check_split(self, i: int, id_: int, splits: np.ndarray, val_set: int) -> None:
         """Raise errors if id's don't match on lookup or row not in training set."""
-        if self._splits[i, 0] != int(id_): # Sanity check on id numbers
-            raise ValueError(f"ID's {(self._splits[i, 0], int(id_))} don't match")
-        elif self._splits[i, 1] in {1, self._val_set}: # If in val or test set
+        if splits[i, 0] != id_: # Sanity check on id numbers
+            raise ValueError(f"ID's {(splits[i, 0], int(id_))} don't match")
+        elif splits[i, 1] in {1, val_set}: # If in val or test set
             raise NotInTrainingException
         
     @classmethod
@@ -95,7 +95,7 @@ class WordsCollector(DataHandler):
 
     def extract(self, row: list[str], i: int) -> news_info:
         """Extract type and content from row"""
-        self.check_split(i, row[1])
+        self.check_split(i, int(row[1]), self._splits, self._val_set)
         return row[3], row[5]
     
     @classmethod
@@ -168,7 +168,7 @@ class CorpusSummarizer(DataHandler):
 
     def extract(self, row: list[str], i: int) -> tuple[str, ...]:
         """Extract all relevant entries from row."""
-        self.check_split(i, row[1])
+        self.check_split(i, int(row[1]), self._splits, self._val_set)
         type_ = row[3]
         if type_ is None or type_ in excl_types:
             self._n_excl += 1

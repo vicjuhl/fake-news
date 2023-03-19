@@ -1,8 +1,6 @@
 import pathlib as pl
 import numpy as np
 import pandas as pd
-import json
-from utils.functions import add_tuples
 
 
 def json_to_pd(file_path : str = "data_files/words/included_words10k.json") -> pd.DataFrame:

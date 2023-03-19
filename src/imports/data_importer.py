@@ -8,13 +8,13 @@ import _csv # for type annotation
 import json
 from typing import Union
 from multiprocessing import Pool, cpu_count
-from preprocessing.noise_removal import cut_tail_and_head
+from preprocessing.noise_removal import cut_tail_and_head # type: ignore
 from preprocessing.noise_removal import clean_str # type: ignore
 from utils.types import news_info, words_info, NotInTrainingException # type: ignore
 from utils.mappings import out_cols # type: ignore
 from preprocessing.data_handlers import DataHandler, WordsCollector, CorpusSummarizer, CorpusReducer # type: ignore
-from imports.prints import print_row_counts
-from imports.json_to_pandas import json_to_pd
+from imports.prints import print_row_counts # type: ignore
+from imports.json_to_pandas import json_to_pd # type: ignore
 
 def create_clear_buffer(n_procs: int) -> list[list[news_info]]:
     """Create buffer list with n_procs empty lists."""
@@ -201,3 +201,13 @@ def summarize_articles(
             summarizer = CorpusSummarizer(writer, val_set, splits)
             n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, summarizer, incl_words=words)
     print_row_counts(n_incl, n_excl, n_ignored, n_skipped, f"Summarized corpus was written to {to_path}/")
+
+def import_val_set(from_path: pl.Path, split_num: int, splits: np.ndarray) -> pd.DataFrame:
+    """Import validation set as pandas dataframe."""
+    iter_csv = pd.read_csv(
+        from_path / f"summarized_corpus_valset{split_num}.csv",
+        iterator=True,
+        chunksize=1000
+    )
+    df = pd.concat([chunk[chunk['split'] == split_num] for chunk in iter_csv])
+    return df
