@@ -202,12 +202,10 @@ def summarize_articles(
             n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, summarizer, incl_words=words)
     print_row_counts(n_incl, n_excl, n_ignored, n_skipped, f"Summarized corpus was written to {to_path}/")
 
-def import_val_set(from_path: pl.Path, split_num: int, splits: np.ndarray) -> pd.DataFrame:
+def import_val_set(from_file: pl.Path, split_num: int, splits: np.ndarray) -> pd.DataFrame:
     """Import validation set as pandas dataframe."""
-    iter_csv = pd.read_csv(
-        from_path / f"summarized_corpus_valset{split_num}.csv",
-        iterator=True,
-        chunksize=1000
-    )
-    df = pd.concat([chunk[chunk['split'] == split_num] for chunk in iter_csv])
-    return df
+    df = pd.read_csv(from_file, usecols = ["id", "type", "content"])
+    df_splits = pd.DataFrame(splits, columns=["id", "split"])
+    df_w_splits = pd.merge(df, df_splits, on="id")
+    df_val_set = df_w_splits[df_w_splits["split"] == split_num]
+    return df_val_set
