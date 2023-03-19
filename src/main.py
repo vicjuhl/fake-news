@@ -13,6 +13,7 @@ def init_argparse() -> ap.ArgumentParser:
     parser.add_argument("-n", "--nrows", type=int, default=1000)
     parser.add_argument("-f", "--filename", type=str, default="reduced_corpus.csv")
     parser.add_argument("-p", "--processes", nargs="*", type=str)
+    parser.add_argument("-q", "--quantiles", nargs=2, type=float)
     parser.add_argument("-v", "--validation_set_num", type=int)
     return parser
 
@@ -71,12 +72,15 @@ if __name__ == "__main__":
         remove_stop_words_json(
             data_path / f'words/included_words_valset{val_set}.json',
             data_path / f'words/stop_words_removed_valset{val_set}.json',
+            *args.quantiles,
         )
-        
+        print("runtime:", time.time() - t0)
+        t0 = time.time()
         
     if "csv" in args.processes:
         summarize_articles(
             data_path / "corpus" / args.filename,
+            data_path / "words" / f"stop_words_removed_valset{val_set}.json",
             data_path / "processed_csv/",
             args.nrows,
             val_set,
