@@ -3,6 +3,7 @@ import pickle
 import pathlib as pl
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score
 import time
+import os
 
 from model_specific_processing.simple_model import frequency_adjustment, tf_idf, logistic_Classification_weight, create_model, save_to_csv, model_processing, classify_article, binary_classifier 
 from model_specific_processing.abstract_class import abstract_model, base_model
@@ -37,14 +38,20 @@ class Simple_Model(abstract_model):
         print(f'time to training {time.time() - t0} seconds')
         self._model = model # might not be smart to save a df in object
         
-    default_path = '../models/simple_model_csv'
+    default_path = '\model_files\simple_model_csv'
+    
     
     def dump(self, to_path:str = default_path) -> None:
         '''Dumps the model to a csv file'''
-        self._path = pl.Path(f'../{to_path}/{self._val_set}{self.name}.csv')
-        save_to_csv(self._model, self._path)
-        self.model = None # wiping the model from the object, to save memory
-        print(f'model dumped to {self._path}')
+        self._path = os.path.join(to_path, f'{self._val_set}{self.name}.csv')
+        try:
+            self._model.to_csv(self._path, index=True)
+            print(f"Model saved to {self._path}")
+        except OSError:
+            # create the directory if it doesn't exist
+            os.makedirs(to_path, exist_ok=True)
+            self._model.to_csv(self._path, index=True)
+            print(f"Model saved to {self._path}")
         
     def infer(self, test_df: pd.DataFrame) -> pd.DataFrame:
         '''Makes predictions on a dataframe'''
@@ -52,6 +59,7 @@ class Simple_Model(abstract_model):
         path = pl.Path(f'{self._path}')
         try:
             model = pd.read_csv(self._path)
+            model = model[:1000] # first rows
             # adding predictions as a column
             test_df[f'preds_from_{self.name}'] = classify_article(test_df, self._model, )
             return test_df

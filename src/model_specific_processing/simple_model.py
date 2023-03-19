@@ -34,9 +34,8 @@ def logistic_Classification_weight(df:pd.DataFrame) -> pd.DataFrame:
         df.loc[i, 'fakeness_score'] = 2 / (1 + math.exp(-x)) - 1
     return df
 
-def create_model(df: pd.DataFrame, name) -> pd.DataFrame:
+def create_model(df: pd.DataFrame) -> pd.DataFrame:
     '''Construct model with weights and scores'''
-    print(df)
     new_df= pd.DataFrame()
     new_df["idf_weight"] = df["idf_weight"]
     new_df["fakeness_score"] = df["fakeness_score"]
@@ -44,9 +43,8 @@ def create_model(df: pd.DataFrame, name) -> pd.DataFrame:
 
 def save_to_csv(df: pd.DataFrame, to_path):
     """Save the model to csvfile in simple_model_csv folder."""
-    dir = "simple_model_csv"
-    if not os.path.exists(dir):
-        os.makedirs(dir)
+    #if not os.path.exists(dir):
+    #os.makedirs(dir)
     Outputfile = open (to_path, "w+")
     df.to_csv(Outputfile)
     
