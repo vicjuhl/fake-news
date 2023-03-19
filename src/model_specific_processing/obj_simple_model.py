@@ -59,7 +59,6 @@ class Simple_Model(abstract_model):
         path = pl.Path(f'{self._path}')
         try:
             model = pd.read_csv(self._path)
-            model = model[:1000] # first rows
             # adding predictions as a column
             test_df[f'preds_from_{self.name}'] = classify_article(test_df, self._model, )
             return test_df
