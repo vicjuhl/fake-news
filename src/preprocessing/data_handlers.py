@@ -150,7 +150,7 @@ class WordsCollector(DataHandler):
     def finalize(self):
         """Stem, export as JSON and return counts for included and excluded words."""
         self.stem_dict()
-        data = {"nArticles":  self.n_incl, "words": self._words } #extract article count
+        data = {"nArticles": self.n_incl, "words": self._words} #extract article count
         self.export_json(data)
 
 
