@@ -58,18 +58,3 @@ class pa_classifier(abstract_model):
         
         print(f'time to inference {time.time() - t0} seconds')
         
-    def evaluate(self, df: pd.DataFrame) -> None: # assuming predictions are in a column called 'preds..''
-        '''Evaluates the model on a dataframe'''
-        try:
-            preds = df[f'preds_from_{self.name}']
-        except KeyError:
-            print('cannot evaluate without predictions')
-        
-        print("here are the stats for the model:")
-        print(f'Accuracy: {accuracy_score(df["type"], preds)}') # type is the column with labels
-        print(f'Precision: {precision_score(df["type"], preds, average="weighted")}')
-        print(f'Recall: {recall_score(df["type"], preds, average="weighted")}')
-        print(f'F1: {f1_score(df["type"], preds, average="weighted")}')
-        print(f'Confusion matrix: {confusion_matrix(df["type"], preds)}')
-               
-           

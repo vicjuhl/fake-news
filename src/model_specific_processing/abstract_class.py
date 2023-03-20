@@ -29,9 +29,20 @@ class abstract_model(ABC):
     def infer(self, df: pd.DataFrame) -> pd.DataFrame:
         pass
     
-    @abstractmethod
-    def evaluate(self, df: pd.DataFrame) -> None:
-        pass
+    def evaluate(self, test_df: pd.DataFrame) -> None:
+        '''Evaluates the model on a dataframe'''
+        try:
+            preds = test_df[f'preds_from_{self.name}']
+        except KeyError:
+            print('cannot evaluate without predictions')        
+        
+        print("here are the stats for the model:")
+        print(f'Accuracy: {accuracy_score(test_df["type"], preds)}') # type is the column with labels
+        print(f'Precision: {precision_score(test_df["type"], preds, average="weighted")}')
+        print(f'Recall: {recall_score(test_df["type"], preds, average="weighted")}')
+        print(f'F1: {f1_score(test_df["type"], preds, average="weighted")}')
+        print(f'Confusion matrix: {confusion_matrix(test_df["type"], preds)}') 
+        
 class base_model(abstract_model):
     '''Base model, with evaluation standard'''
     def __init__(self, val_set: int, name:str ) -> None:
