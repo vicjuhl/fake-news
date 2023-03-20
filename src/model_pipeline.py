@@ -2,14 +2,9 @@ import pathlib as pl
 import argparse as ap
 import pandas as pd
 import time
-from base_model import BaseModel as bm
-from obj_simple_model import SimpleModel
+from model_specific_processing.base_model import BaseModel as bm
+from model_specific_processing.obj_simple_model import SimpleModel
 from imports.json_to_pandas import json_to_pd
-# run model pipeline
-
-import os
-import pickle
-from typing import Dict
 
 MODELS: dict = {
     'simple': SimpleModel
@@ -19,32 +14,25 @@ TRAININGSETS = {
     'simple': 'bag_of_words',
 }
 
-METHODS = {
-    'data_prep': bm.data_prep,
-    'train': bm.train,
-    'dump_model': bm.dump_model,
-    'infer': bm.infer,
-    'evaluate': bm.evaluate,
-}
 
 def init_argparse() -> ap.ArgumentParser:
     """Initialize the argument parser."""
     parser = ap.ArgumentParser(description='Run a model')
-    parser.add_argument('-m', '--models', choices=MODELS.keys(), help='')
+    parser.add_argument('-m', '--models', nargs="*", type=str, help='Specify list of models')
     # parser.add_argument('--datasets', choices=DATASETS.keys(), help='Dataset to use')
-    parser.add_argument('-md', '--methods', choices=METHODS.keys(), help='Method to run')
+    parser.add_argument('-md', '--methods', nargs="*", help='Method to run')
     parser.add_argument("-v", "--val_set", type=int)
     return parser
 
 if __name__ == '__main__':
     # Initialize the argument parser
     parser = init_argparse()
-    args = parser.parse_args()   
+    args = parser.parse_args()
     
-    if args.models not in MODELS:
-        raise ValueError(f'Model {args.model} not found')
-    else:
-        model_classes = [MODELS[model] for model in args.models]
+    model_classes = [MODELS[model] for model in args.models]
+    # if args.models not in MODELS:
+    #     raise ValueError(f'Model {args.model} not found')
+    # else:
     
     data_path = pl.Path(__file__).parent.parent.resolve() / "data_files/"
     # Check if the specified dataset exists
@@ -59,14 +47,19 @@ if __name__ == '__main__':
         # if "articles" in data_kinds:
         #     data_sets["articles"] =
     
-    methods = [METHODS[method] for method in args.method]
-    
     for model in model_classes:
-        model_inst = model(data_sets, args.val_set)
-        for method in methods:
+        print("\n", model.__name__)
+        model_inst = model(data_sets, args.val_set, model_path)
+        METHODS = {
+            'train': model_inst.train,
+            'dump_model': model_inst.dump_model,
+            'infer': model_inst.infer,
+            'evaluate': model_inst.evaluate,
+        }
+        for method_name in args.methods:
             t0 = time.time()
-            print("Running method", method.__name__, "for model", model.__name__)
-            model.method()
+            print(f"\nRunning method", method_name)
+            METHODS[method_name]()
             print("Runtime", time.time() - t0)
             
 

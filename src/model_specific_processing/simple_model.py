@@ -1,10 +1,6 @@
 import pandas as pd
-from cleantext import clean # type: ignore
 import numpy as np
-import math 
-import unicodedata
-import os
-import sys
+import math
 from preprocessing.noise_removal import preprocess_string
 
 def frequency_adjustment(df:pd.DataFrame) -> pd.DataFrame:
@@ -41,23 +37,6 @@ def create_model(df: pd.DataFrame) -> pd.DataFrame:
     new_df["fakeness_score"] = df["fakeness_score"]
     return new_df
 
-def save_to_csv(df: pd.DataFrame, to_path):
-    """Save the model to csvfile in simple_model_csv folder."""
-    #if not os.path.exists(dir):
-    #os.makedirs(dir)
-    Outputfile = open (to_path, "w+")
-    df.to_csv(Outputfile)
-    
-def model_processing(df: pd.DataFrame, article_count: int, make_csv: bool) -> pd.DataFrame:
-    """Uses the functions in the module to build a dataframe with weights and scores for words."""
-    freq_adj = frequency_adjustment(df)
-    idf = tf_idf(freq_adj, article_count)
-    log_class = logistic_Classification_weight(idf)
-    final_model = create_model(log_class)
-    if make_csv: 
-        save_to_csv(log_class)
-    return final_model
-
 def binary_classifier(words: dict[str, int], df: pd.DataFrame) -> str:
     """Given a dict of words and their freq, and dataframe for simpel model, it makes a binary prediction."""
     acc_weight = 0.1
@@ -74,12 +53,12 @@ def binary_classifier(words: dict[str, int], df: pd.DataFrame) -> str:
     # the following division produces an average (no effect on binary classification)   
     return 'fake' if acc_score / acc_weight < 0 else 'reliable' 
 
-def classify_article(input_df: pd.DataFrame, model_df: pd.DataFrame) -> list[str]:
+def classify_article(val_df: pd.DataFrame, model_df: pd.DataFrame) -> list[str]:
     """Classifies all articles in the input dataframe, and returns a list of predictions."""
     predictions = []
-    column = input_df['shortened'].apply(lambda x: preprocess_string(x))
+    column = val_df['shortened'].apply(lambda x: preprocess_string(x))
     column.apply(lambda x: predictions.append(binary_classifier(x, model_df)))       
-    print(len(predictions) , len(input_df['shortened']))
+    print(len(predictions) , len(val_df['shortened']))
     
     return predictions
     
