@@ -4,8 +4,8 @@ import pandas as pd
 import pathlib as pl
 import json
 
-from preprocessing import noise_removal as nr
-from model_specific_processing import simple_model as sm
+from preprocessing import noise_removal as nr # type: ignore
+from model_specific_processing import simple_model as sm # type: ignore
 
 # file reference for dataframe
 json_file_path = pl.Path(os.path.abspath('')).parent.resolve() / "data_files/100k/included_words_100k.json"
