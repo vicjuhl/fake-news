@@ -7,18 +7,14 @@ from sklearn.linear_model import PassiveAggressiveClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split
 import time
-from abstract_class import abstract_model
+from base_model import BaseModel
 
-class pa_classifier(abstract_model):
+class pa_classifier(BaseModel):
     '''PassiveAggressiveClassifier model'''
-    def __init__(self, val_set: int, name:str) -> None:
-        super().__init__( val_set)
+    def __init__(self, val_set, name, data_path, model_path) -> None:
+        super().__init__(val_set, name, data_path, model_path)
         self._model = PassiveAggressiveClassifier(max_iter=50)
-        self._model_dumped = False
         self._vectorizer = TfidfVectorizer(stop_words='english', max_df=0.7)
-        self._path = None # path to model
-        self.name = name
-        self._val_set = val_set
         
     def data_prep(self, **kwargs) -> pd.DataFrame:
         '''Prepares the data for training'''
@@ -57,4 +53,5 @@ class pa_classifier(abstract_model):
             print('cannot make inference without a trained model')    
         
         print(f'time to inference {time.time() - t0} seconds')
+        
         

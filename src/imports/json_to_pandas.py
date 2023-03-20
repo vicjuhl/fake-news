@@ -5,14 +5,16 @@ import json
 from utils.functions import add_tuples
 
 
-def json_to_pd(file_path : str = "data_files/words/included_words10k.json") -> pd.DataFrame:
+def json_to_pd(val_set: int, file_name: str = "stop_words_removed") -> pd.DataFrame:
     """Take a json file location as argument and convert it to a pandas dataframe.
      The dataframe is filtered to only show the columns: word, fake, real.
      
      - Argument: File location is relative to the fake-news folder"""
 
     # file reference for dataframe
-    json_file_path = pl.Path(__file__).resolve().parent.parent.parent / file_path
+    json_file_path = (
+        pl.Path(__file__).resolve().parent.parent.parent / "data_files/words" / f"{file_name}_valset{val_set}.json"
+    )
 
     # creating dataframe by reading json file directly
     df = pd.read_json(json_file_path, orient="index")
