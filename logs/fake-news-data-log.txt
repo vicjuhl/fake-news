@@ -1,8 +1,53 @@
-Initial filtering (reduce_raw)
+19. marts:
 
-8529067 rows read, 
-    2807981 were included 
-    5721086 were excluded 
-153 were skipped 
-Reduces news corpus was written to /Users/victor/Documents/Uddannelse/Repos/fake-news/data_files/corpus
-runtime: 413.12682914733887
+ Reducing corpus...
+Lines read: 100000 ...
+.
+.
+.
+Row 116574 skipped with <class 'IndexError'>: list index out of range
+8529067 rows read successfully:
+	8529067 rows were used:
+		2807981 were included.
+		5721086 were excluded.
+	0 were ignored because they belong to test or validation set.
+153 rows were skipped due to reading error.
+Reduced corpus was written to /Users/victor/Documents/Uddannelse/Repos/fake-news/data_files/corpus/
+runtime: 457.26345586776733
+
+ Splitting corpus...
+runtime: 32.62857723236084
+
+ Extracting words...
+2807955 rows read successfully:
+	2246363 rows were used:
+		2246363 were included.
+		0 were excluded.
+	561592 were ignored because they belong to test or validation set.
+0 rows were skipped due to reading error.
+JSON was written to /Users/victor/Documents/Uddannelse/Repos/fake-news/data_files/words/
+runtime: 1339.8513119220734
+
+ Removing stopwords...
+Executing function: cut_tail_and_head with quantiles: 0.5 and 0.03
+53.0% of unique words removed (APPROX!).
+99.21423060262157% of unique words removed.
+unique words before cleaning:  3428105
+unique words after:  26937
+unique words removed:  3401168
+	unique words removed from head:  77
+	unique words removed from tail: 3401091
+	at minimum occurence level: 632
+runtime: 30.196810007095337
+
+ Summarizing articles...
+2807955 rows read successfully:
+	2246363 rows were used:
+		2246363 were included.
+		0 were excluded.
+	561592 were ignored because they belong to test or validation set.
+0 rows were skipped due to reading error.
+Summarized corpus was written to /Users/victor/Documents/Uddannelse/Repos/fake-news/data_files/processed_csv/
+runtime: 2169.1029908657074
+
+ Total runtime: 4029.043238162994
