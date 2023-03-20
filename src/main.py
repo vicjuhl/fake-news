@@ -3,10 +3,10 @@ import time
 import argparse as ap
 import numpy as np
 
-from imports.data_importer import (
-    extract_words, reduce_corpus, summarize_articles, split_data, remove_stop_words_json  # type: ignore
+from imports.data_importer import (# type: ignore
+    extract_words, reduce_corpus, summarize_articles, split_data, remove_stop_words_json, import_val_set  # type: ignore
 )
-from imports.json_to_pandas import json_to_pd
+from imports.json_to_pandas import json_to_pd # type: ignore
 
 def init_argparse() -> ap.ArgumentParser:
     parser = ap.ArgumentParser()
@@ -48,7 +48,7 @@ if __name__ == "__main__":
         print("runtime:", time.time() - t0)
         t0 = time.time()
 
-    if not set(args.processes).isdisjoint({"json", "csv"}):
+    if not set(args.processes).isdisjoint({"json", "csv", "df"}): # REMOVE df FROM SET TODO (SEE BELOW COMMENT)
         # Load splits information if needed
         splits = np.loadtxt(
             data_path / 'corpus/splits.csv',
@@ -90,7 +90,12 @@ if __name__ == "__main__":
         t0 = time.time()
 
     if "df" in args.processes:
-        df = json_to_pd()
+        # THIS PROCESS SHOULD BE MOVED TO MODEL MAIN SCRIPT WHEN READY TODO
+        df = import_val_set(
+            data_path / "corpus" / args.filename,
+            val_set,
+            splits
+        )
         print("runtime:", time.time() - t0)
         t0 = time.time()
 
