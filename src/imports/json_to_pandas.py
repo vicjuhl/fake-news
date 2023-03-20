@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 
 
-def json_to_pd(file_path : str = "data_files/words/included_words10k.json") -> tuple(int,pd.DataFrame):
+def json_to_pd(file_path : str = "data_files/words/included_words10k.json") -> tuple[int,pd.DataFrame]:
     """Take a json file location as argument and convert it to a pandas dataframe.
      The dataframe is filtered to only show the columns: word, fake, real.
      
@@ -14,7 +14,7 @@ def json_to_pd(file_path : str = "data_files/words/included_words10k.json") -> t
 
     # creating dataframe by reading json file directly
     data = pd.read_json(json_file_path)
-    nArticles, df = data.items
+    n_articles, df = data["nArticles"][0], data["words"][0] # unpack data
 
     df.set_index(df[0]) # sets labels as indexes
     # filtering for fake and reliable and replacing NaN with [0,0]
@@ -29,4 +29,4 @@ def json_to_pd(file_path : str = "data_files/words/included_words10k.json") -> t
 
     df = df.sort_values(by='freq', key=lambda x: -x.map(get_second_elm)) # sort by total frequency
     
-    return (nArticles,df)
+    return n_articles,df
