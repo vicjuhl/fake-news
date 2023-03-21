@@ -163,16 +163,16 @@ def extract_words(
     print_row_counts( n_incl, n_excl, n_ignored, n_skipped, f"JSON was written to {to_path}/")
 
 def remove_stop_words_json(
-    from_file: pl.Path,
+    val_set: int,
     to_path: pl.Path,
     head_q: float,
     tail_q: float,
 ) -> None:
     """Read json file, convert to df and stem words, then dump to json."""
     print("\n Removing stopwords...")
-    n_articles, df = json_to_pd(from_file)  # json sorted by word freq 
+    n_articles, df = json_to_pd(val_set, "included_words")  # json sorted by word freq 
     df = cut_tail_and_head (df, head_q, tail_q) 
-    data = {"nArticles": n_articles, "words": df.to_dict()} # pack into new dict
+    data = {"nArticles": n_articles, "words": df.to_dict(orient="index")} # pack into new dict
     json_data = json.dumps(data, indent=4)
     with open(to_path, "w") as outfile:
         outfile.write(json_data)
@@ -205,10 +205,19 @@ def summarize_articles(
             n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, summarizer, incl_words=words)
     print_row_counts(n_incl, n_excl, n_ignored, n_skipped, f"Summarized corpus was written to {to_path}/")
 
-def import_val_set(from_file: pl.Path, split_num: int, splits: np.ndarray) -> pd.DataFrame:
+def import_val_set(from_file: pl.Path, split_num: int, splits: np.ndarray, n_rows: int) -> pd.DataFrame:
     """Import validation set as pandas dataframe."""
-    df = pd.read_csv(from_file, usecols = ["id", "type", "content"])
+    df = pd.read_csv(from_file, usecols = ["id", "type", "content"], nrows = n_rows) # content instead of shortened for full corpus
     df_splits = pd.DataFrame(splits, columns=["id", "split"])
     df_w_splits = pd.merge(df, df_splits, on="id")
     df_val_set = df_w_splits[df_w_splits["split"] == split_num]
     return df_val_set
+
+def get_split(data_path: pl.Path) -> np.ndarray: 
+    splits = np.loadtxt(
+            data_path / 'corpus/splits_full.csv',
+            delimiter=',',
+            skiprows=1,
+            dtype=np.int_
+        )
+    return splits

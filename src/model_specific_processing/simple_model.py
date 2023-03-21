@@ -1,10 +1,7 @@
-import os
 import pandas as pd
-from cleantext import clean # type: ignore
 import numpy as np
-import math 
-from preprocessing.noise_removal import preprocess_string 
-import unicodedata
+import math
+from preprocessing.noise_removal import preprocess_string
 
 def frequency_adjustment(df:pd.DataFrame) -> pd.DataFrame:
     '''Adjust wordfrequency of all words depending on their label.'''
@@ -31,7 +28,6 @@ def logistic_Classification_weight(df:pd.DataFrame) -> pd.DataFrame:
         r = (rows['reliable'])[1]
         x = np.clip((r - f) / max(min(r, f), 1),-100,100) #divided by min of real and fake count but must be atleast 1
         df.loc[i, 'fakeness_score'] = 2 / (1 + math.exp(-x)) - 1
-    print('executing function : logistic_Classification_weight which estimates the fakeness_score of a word')
     return df
 
 def create_model(df: pd.DataFrame) -> pd.DataFrame:
@@ -39,33 +35,7 @@ def create_model(df: pd.DataFrame) -> pd.DataFrame:
     new_df= pd.DataFrame()
     new_df["idf_weight"] = df["idf_weight"]
     new_df["fakeness_score"] = df["fakeness_score"]
-    print('executing function : Create_model that takes ')
-    print(new_df.index[2035])
     return new_df
-
-def save_to_csv(df: pd.DataFrame):
-    """Save the model to csvfile in Models-csv folder."""
-    dir = "models-csv"
-    if not os.path.exists(dir):
-        os.makedirs(dir)
-
-    model_amount = len(os.listdir(dir)) #used for model naming
-    Outputfilepath = os.path.join(dir, "Model{}.csv".format(model_amount+1))
-    Outputfile = open (Outputfilepath, "w+")
-    df.index = [unicodedata.normalize('NFKD', label).encode('ascii', 'ignore').decode('utf-8') for label in df.index]
-
-    df.to_csv(Outputfile, encoding='utf-8', errors='ignore')
-    print("Model saved to csv as: " + "Model" + str(model_amount+1))
-    
-def model_processing(df: pd.DataFrame, article_count: int, make_csv: bool) -> pd.DataFrame:
-    """Uses the functions in the module to build a dataframe with weights and scores for words."""
-    freq_adj = frequency_adjustment(df)
-    idf = tf_idf(freq_adj, article_count)
-    log_class = logistic_Classification_weight(idf)
-    final_model = create_model(log_class)
-    if make_csv: 
-        save_to_csv(log_class)
-    return final_model
 
 def binary_classifier(words: dict[str, int], df: pd.DataFrame) -> str:
     """Given a dict of words and their freq, and dataframe for simpel model, it makes a binary prediction."""
@@ -83,31 +53,12 @@ def binary_classifier(words: dict[str, int], df: pd.DataFrame) -> str:
     # the following division produces an average (no effect on binary classification)   
     return 'fake' if acc_score / acc_weight < 0 else 'reliable' 
 
-def infer(input_df: pd.DataFrame, model_df: pd.DataFrame): 
-    """Test and evaluate simple model."""
-    print("execute function: infer")
-    def classify_article(inp: str) -> str:
-        words = preprocess_string(inp)
-        return binary_classifier(words, model_df)
+def classify_article(val_df: pd.DataFrame, model_df: pd.DataFrame) -> list[str]:
+    """Classifies all articles in the input dataframe, and returns a list of predictions."""
+    predictions = []
+    column = val_df['content'].apply(lambda x: preprocess_string(x))
+    column.apply(lambda x: predictions.append(binary_classifier(x, model_df)))       
+    print(len(predictions) , len(val_df['content']))
     
-    mask = (input_df['type'] == 'fake') | (input_df['type'] == 'reliable')
-    results_df = input_df[mask]
-
-    results_df["prediction"] = results_df["content"].apply(classify_article)
-    
-    results_df['correctness'] = (results_df["type"] == results_df["prediction"])
-    results_df = results_df.loc[:, ['type', 'prediction', 'correctness']]
-    acc = sum(results_df["correctness"])
-   
-    accuracy = acc/len(results_df)
-    print(results_df)
-    print("with accuracy",accuracy)
-
-    return results_df, accuracy
-
-
-    
-
-
-    
+    return predictions
     

@@ -50,4 +50,4 @@ runtime: 30.196810007095337
 Summarized corpus was written to /Users/victor/Documents/Uddannelse/Repos/fake-news/data_files/processed_csv/
 runtime: 2169.1029908657074
 
- Total runtime: 4029.0432381629944
+ Total runtime: 4029.043238162994

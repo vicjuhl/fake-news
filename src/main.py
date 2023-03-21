@@ -4,7 +4,7 @@ import argparse as ap
 import numpy as np
 
 from imports.data_importer import (# type: ignore
-    extract_words, reduce_corpus, summarize_articles, split_data, remove_stop_words_json, import_val_set  # type: ignore
+    extract_words, reduce_corpus, summarize_articles, split_data, remove_stop_words_json, import_val_set, get_split  # type: ignore
 )
 
 def init_argparse() -> ap.ArgumentParser:
@@ -49,12 +49,7 @@ if __name__ == "__main__":
 
     if not set(args.processes).isdisjoint({"json", "csv", "df"}): # REMOVE df FROM SET TODO (SEE BELOW COMMENT)
         # Load splits information if needed
-        splits = np.loadtxt(
-            data_path / 'corpus/splits.csv',
-            delimiter=',',
-            skiprows=1,
-            dtype=np.int_
-        )
+        splits = get_split(data_path)
 
     if "json" in args.processes:
         extract_words(
@@ -69,7 +64,7 @@ if __name__ == "__main__":
         
     if "stem_json" in args.processes:
         remove_stop_words_json(
-            data_path / f'words/included_words_valset{val_set}.json',
+            val_set,
             data_path / f'words/stop_words_removed_valset{val_set}.json',
             *args.quantiles,
         )
