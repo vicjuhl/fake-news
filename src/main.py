@@ -4,7 +4,7 @@ import argparse as ap
 import numpy as np
 
 from imports.data_importer import (# type: ignore
-    extract_words, reduce_corpus, summarize_articles, split_data, remove_stop_words_json, import_val_set  # type: ignore
+    extract_words, reduce_corpus, summarize_articles, split_data, remove_stop_words_json, import_val_set, get_split  # type: ignore
 )
 from imports.json_to_pandas import json_to_pd # type: ignore
 
@@ -50,12 +50,7 @@ if __name__ == "__main__":
 
     if not set(args.processes).isdisjoint({"json", "csv", "df"}): # REMOVE df FROM SET TODO (SEE BELOW COMMENT)
         # Load splits information if needed
-        splits = np.loadtxt(
-            data_path / 'corpus/splits.csv',
-            delimiter=',',
-            skiprows=1,
-            dtype=np.int_
-        )
+        splits = get_split(data_path)
 
     if "json" in args.processes:
         extract_words(

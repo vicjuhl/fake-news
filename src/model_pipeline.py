@@ -4,14 +4,20 @@ import pandas as pd
 import time
 from model_specific_processing.base_model import BaseModel as bm
 from model_specific_processing.obj_simple_model import SimpleModel
+from model_specific_processing.obj_linear_model import linear_model
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, HashingVectorizer
 from imports.json_to_pandas import json_to_pd
+from imports.data_importer import import_val_set, get_split
 
 MODELS: dict = {
-    'simple': SimpleModel
+    'simple': SimpleModel,
+    'linear_model': linear_model, 
+    #'hashing_vectorizer': linear_model(HashingVectorizer)
 }
 
 TRAININGSETS = {
-    'simple': 'bag_of_words',
+    'simple': 'bow_simple',
+    'linear_model': 'bow_articles'
 }
 
 
@@ -22,34 +28,46 @@ def init_argparse() -> ap.ArgumentParser:
     # parser.add_argument('--datasets', choices=DATASETS.keys(), help='Dataset to use')
     parser.add_argument('-md', '--methods', nargs="*", help='Method to run')
     parser.add_argument("-v", "--val_set", type=int)
+    parser.add_argument("-n", "--name", type=int)
+    parser.add_argument("-nt", "--n_train", type=int, default= 1000)
+    parser.add_argument("-nv", "--n_val", type=int , default= 1000)
     return parser
 
 if __name__ == '__main__':
     # Initialize the argument parser
+    t0_total = time.time()
     parser = init_argparse()
     args = parser.parse_args()
     
     model_classes = [MODELS[model] for model in args.models]
-    # if args.models not in MODELS:
-    #     raise ValueError(f'Model {args.model} not found')
-    # else:
     
     data_path = pl.Path(__file__).parent.parent.resolve() / "data_files/"
-    # Check if the specified dataset exists
-    model_path = data_path = pl.Path(__file__).parent.parent.resolve() / "model_files/"
-    # [DATASETS[dataset] for dataset in args.datasets]
-    
+    model_path = pl.Path(__file__).parent.parent.resolve() / "model_files/"
+      
     data_kinds = set([TRAININGSETS[model] for model in args.models])
-    data_sets: dict[str, pd.DataFrame] = {}
+    training_sets: dict[str, pd.DataFrame] = {}
     if "train" in args.methods:
-        if "bag_of_words" in data_kinds:
-            data_sets["bag_of_words"] = json_to_pd(args.val_set)
-        # if "articles" in data_kinds:
-        #     data_sets["articles"] =
+        if "bow_simple" in data_kinds:
+            training_sets["bow_simple"] = json_to_pd(args.val_set)
+        if "bow_articles" in data_kinds:
+            training_sets["bow_articles"] = pd.read_csv(
+                data_path / 'corpus/reduced_corpus.csv',
+                nrows=args.n_train
+            )
+    
+    if "infer" in args.methods:
+        val_data = import_val_set(
+            data_path / 'corpus/reduced_corpus.csv',
+            args.val_set,
+            get_split(data_path), 
+            n_rows = args.n_val # number of rows
+        )
     
     for model in model_classes:
+        t0_model = time.time()
         print("\n", model.__name__)
-        model_inst = model(data_sets, args.val_set, model_path)
+        model_inst = model(training_sets, args.val_set, model_path)
+
         METHODS = {
             'train': model_inst.train,
             'dump_model': model_inst.dump_model,
@@ -59,11 +77,17 @@ if __name__ == '__main__':
         for method_name in args.methods:
             t0 = time.time()
             print(f"\nRunning method", method_name)
-            METHODS[method_name]()
-            print("Runtime", time.time() - t0)
-            
-
-
+            if method_name == "infer":
+                METHODS[method_name](val_data)
+            elif method_name == "evaluate":
+                METHODS[method_name]()
+                print(val_data.head(2))
+            else:       
+                METHODS[method_name]()
+            print("Runtime", time.time() - t0)        
+        del model_inst
+        print("Total model runtime", time.time() - t0_model)
+    print("Total runtime", time.time() - t0_total)
     
   
     

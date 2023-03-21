@@ -56,14 +56,9 @@ def binary_classifier(words: dict[str, int], df: pd.DataFrame) -> str:
 def classify_article(val_df: pd.DataFrame, model_df: pd.DataFrame) -> list[str]:
     """Classifies all articles in the input dataframe, and returns a list of predictions."""
     predictions = []
-    column = val_df['shortened'].apply(lambda x: preprocess_string(x))
+    column = val_df['content'].apply(lambda x: preprocess_string(x))
     column.apply(lambda x: predictions.append(binary_classifier(x, model_df)))       
-    print(len(predictions) , len(val_df['shortened']))
+    print(len(predictions) , len(val_df['content']))
     
     return predictions
     
-
-
-
-    
-    s

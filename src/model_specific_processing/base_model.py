@@ -15,17 +15,13 @@ class BaseModel(ABC):
         self._training_sets = training_sets
         self._val_set = val_set
         self._preds: Optional[pd.DataFrame] = None
-      
-    # @abstractmethod
-    # def data_prep(**kwargs) -> pd.DataFrame: # should it exist?
-    #     pass  
     
     @abstractmethod
     def train(self, **kwargs) -> None:
         pass
     
     @abstractmethod
-    def dump_model(self, to_path:str) -> None:
+    def dump_model(self) -> None:
         pass
     
     @abstractmethod
@@ -33,25 +29,28 @@ class BaseModel(ABC):
         pass
     
     # @abstractmethod
-    # def dump_inference(self, to_path:str, df : pd.DataFrame) -> None:
+    # def dump_inference(self, to_path:str, df : pd.DataFrame) -> None: TODO
     #     pass
     
     
-    def evaluate(self, test_df: pd.DataFrame) -> None:
+    def evaluate(self) -> None:
         '''Evaluates the model on a dataframe'''
+        
+        
         try:
-            preds = test_df[f'preds_from_{self.name}']
+            preds = self._preds[f'preds_from_{self._name}']
+            print(f'the prediction column: preds_from_{self._name}')
         except KeyError:
             print('cannot evaluate without predictions')        
         
         print("here are the stats for the model:")
-        print(f'Accuracy: {accuracy_score(test_df["type"], preds)}') # type is the column with labels
-        print(f'Precision: {precision_score(test_df["type"], preds, average="weighted")}')
-        print(f'Recall: {recall_score(test_df["type"], preds, average="weighted")}')
-        print(f'F1: {f1_score(test_df["type"], preds, average="weighted")}')
-        print(f'Confusion matrix: {confusion_matrix(test_df["type"], preds)}') 
+        print(f'Accuracy: {accuracy_score(self._preds["type"], preds)}') # type is the column with labels
+        print(f'Precision: {precision_score(self._preds["type"], preds, average="weighted")}')
+        print(f'Recall: {recall_score(self._preds["type"], preds, average="weighted")}')
+        print(f'F1: {f1_score(self._preds["type"], preds, average="weighted")}')
+        print(f'Confusion matrix: {confusion_matrix(self._preds["type"], preds)}') 
         
-        cm = confusion_matrix(test_df["type"], preds)
+        cm = confusion_matrix(self._preds["type"], preds)
         tn, fp, fn, tp = cm.ravel()
         print('Confusion matrix:')
         print(f'True positives: {tp}')
