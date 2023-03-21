@@ -9,10 +9,12 @@ class BaseModel(ABC):
         self,
         training_sets: dict,
         val_set: int,
+        name: str,
     ) -> None:  # 1 as default value for val_set
         self._training_sets = training_sets
         self._val_set = val_set
         self._preds: Optional[pd.DataFrame] = None
+        self._name = name
     
     @abstractmethod
     def train(self, **kwargs) -> None:

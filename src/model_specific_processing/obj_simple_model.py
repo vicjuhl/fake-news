@@ -1,15 +1,15 @@
 import pandas as pd
 import pathlib as pl
 from typing import Optional
-from model_specific_processing.simple_model import frequency_adjustment, tf_idf, logistic_Classification_weight, create_model, classify_article
-from model_specific_processing.base_model import BaseModel
+from model_specific_processing.simple_model import frequency_adjustment, tf_idf, logistic_Classification_weight, create_model, classify_article # type: ignore
+from model_specific_processing.base_model import BaseModel # type: ignore
+
 class SimpleModel(BaseModel):
     '''Simple model'''
     def __init__(self, training_sets: dict, val_set: int, model_path: pl.Path) -> None:
-        super().__init__(training_sets, val_set)
+        super().__init__(training_sets, val_set, "simple")
         self._model: Optional[pd.DataFrame] = None # a dataframe
         self._training_sets = training_sets
-        self._name = "simple"
         simple_path = model_path / "simple/"
         self._data_path =  pl.Path(__file__).parent.parent.resolve() / "data_files/"
         simple_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist

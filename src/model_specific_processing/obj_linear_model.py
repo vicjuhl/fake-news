@@ -9,11 +9,10 @@ from model_specific_processing.base_model import BaseModel  # type: ignore
 class LinearModel(BaseModel):
     '''PassiveAggressiveClassifier model'''
     def __init__(self, training_sets: dict, val_set: int, model_path: pl.Path) -> None: # potentially add vectorizer, linear_model as inp
-        super().__init__(training_sets , val_set)
+        super().__init__(training_sets , val_set, "linear_model1")
         self._model = PassiveAggressiveClassifier(max_iter=1000)
         self._vectorizer = CountVectorizer(stop_words='english')
         self._training_sets = training_sets
-        self._name = "linear_model1"
         linear_model_path = model_path / "linear_model/"
         self._data_path =  pl.Path(__file__).parent.parent.resolve() / "data_files/"
         linear_model_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
