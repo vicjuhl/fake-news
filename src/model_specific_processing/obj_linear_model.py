@@ -1,6 +1,7 @@
 import pandas as pd
 import pickle
 import pathlib as pl
+import ast
 from typing import Optional
 from sklearn.feature_extraction.text import CountVectorizer # type: ignore
 from sklearn.linear_model import PassiveAggressiveClassifier # type: ignore
@@ -23,9 +24,9 @@ class LinearModel(BaseModel):
     def train(self) -> None:
         '''Trains a PassiveAggressiveClassifier model on the training data'''
         train_data = self._training_sets["bow_articles"]
-        x_train = train_data['content']
+        x_train = train_data['words'].apply(ast.literal_eval)
         y_train = train_data['type']
-        x_train_vec = self._vectorizer.fit_transform(x_train)
+        x_train_vec = self._vectorizer.fit_transform(x_train.tolist())
         self._model.fit(x_train_vec, y_train)
 
     def dump_model(self) -> None:
