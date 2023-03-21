@@ -64,7 +64,7 @@ if __name__ == "__main__":
         
     if "stem_json" in args.processes:
         remove_stop_words_json(
-            data_path / f'words/included_words_valset{val_set}.json',
+            val_set,
             data_path / f'words/stop_words_removed_valset{val_set}.json',
             *args.quantiles,
         )
