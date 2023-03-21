@@ -8,7 +8,7 @@ class SimpleModel(BaseModel):
     def __init__(self, training_sets: dict, val_set: int, model_path: pl.Path) -> None:
         super().__init__(training_sets, val_set)
         self._model: Optional[pd.DataFrame] = None # a dataframe
-        self.total_num_articles = 3e6 #TODO
+        total_num_articles = 3e6 #TODO
         self._training_sets = training_sets
         self._name = "simple"
         simple_path = model_path / "simple/"
@@ -18,9 +18,9 @@ class SimpleModel(BaseModel):
         
     def train(self) -> None:
         '''Trains a simple_model instance on the training data'''
-        train_data = self._training_sets["bow_simple"]
+        total_num_articles, train_data = self._training_sets["bow_simple"]
         train_data = frequency_adjustment(train_data)
-        train_data = tf_idf(train_data, self.total_num_articles)
+        train_data = tf_idf(train_data, total_num_articles)
         train_data = logistic_Classification_weight(train_data)
         model = create_model(train_data) # creating model dataframe     
         self._model = model # might not be smart to save a df in object TODO

@@ -16,7 +16,7 @@ MODELS: dict = {
 }
 
 TRAININGSETS = {
-    'simple': 'bow_simple',
+    'simple': 'bow_simple', # tuple of int, df
     'linear_model': 'bow_articles'
 }
 
