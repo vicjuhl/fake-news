@@ -1,9 +1,7 @@
 import pandas as pd
 from abc import ABC, abstractmethod 
-from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score
-import time 
-import pathlib as pl
 from typing import Optional
+from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score # type: ignore
 
 class BaseModel(ABC):
     '''Abstract class for models'''
@@ -35,22 +33,24 @@ class BaseModel(ABC):
     
     def evaluate(self) -> None:
         '''Evaluates the model on a dataframe'''
+        _preds = self._preds
+        if _preds is None:
+            print('cannot evaluate without predictions')
+            return
         
-        
-        try:
-            preds = self._preds[f'preds_from_{self._name}']
-            print(f'the prediction column: preds_from_{self._name}')
-        except KeyError:
-            print('cannot evaluate without predictions')        
+        # try:
+        preds = _preds[f'preds_from_{self._name}']
+        print(f'the prediction column: preds_from_{self._name}')
+        # except KeyError:
         
         print("here are the stats for the model:")
-        print(f'Accuracy: {accuracy_score(self._preds["type"], preds)}') # type is the column with labels
-        print(f'Precision: {precision_score(self._preds["type"], preds, average="weighted")}')
-        print(f'Recall: {recall_score(self._preds["type"], preds, average="weighted")}')
-        print(f'F1: {f1_score(self._preds["type"], preds, average="weighted")}')
-        print(f'Confusion matrix: {confusion_matrix(self._preds["type"], preds)}') 
+        print(f'Accuracy: {accuracy_score(_preds["type"], preds)}') # type is the column with labels
+        print(f'Precision: {precision_score(_preds["type"], preds, average="weighted")}')
+        print(f'Recall: {recall_score(_preds["type"], preds, average="weighted")}')
+        print(f'F1: {f1_score(_preds["type"], preds, average="weighted")}')
+        print(f'Confusion matrix: {confusion_matrix(_preds["type"], preds)}') 
         
-        cm = confusion_matrix(self._preds["type"], preds)
+        cm = confusion_matrix(_preds["type"], preds)
         tn, fp, fn, tp = cm.ravel()
         print('Confusion matrix:')
         print(f'True positives: {tp}')

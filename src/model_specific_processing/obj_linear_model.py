@@ -2,13 +2,11 @@ import pandas as pd
 import pickle
 import pathlib as pl
 from typing import Optional
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, HashingVectorizer
-from sklearn.linear_model import PassiveAggressiveClassifier, LogisticRegression, SGDClassifier #Lasso, Ridge
-from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score
-from model_specific_processing.base_model import BaseModel
-from imports.data_importer import import_val_set, get_split
+from sklearn.feature_extraction.text import CountVectorizer # type: ignore
+from sklearn.linear_model import PassiveAggressiveClassifier # type: ignore
+from model_specific_processing.base_model import BaseModel  # type: ignore
 
-class linear_model(BaseModel):
+class LinearModel(BaseModel):
     '''PassiveAggressiveClassifier model'''
     def __init__(self, training_sets: dict, val_set: int, model_path: pl.Path) -> None: # potentially add vectorizer, linear_model as inp
         super().__init__(training_sets , val_set)
@@ -25,16 +23,12 @@ class linear_model(BaseModel):
       
     def train(self) -> None:
         '''Trains a PassiveAggressiveClassifier model on the training data'''
-        train_data = self._training_sets["articles"]
-        try:
-            x_train = train_data['content']
-        except KeyError:
-            x_train = train_data['shortened']
-            
-        x_test = train_data['type']
+        train_data = self._training_sets["bow_articles"]
+        x_train = train_data['content']
+        y_train = train_data['type']
         x_train_vec = self._vectorizer.fit_transform(x_train)
-        self._model.fit(x_train_vec, x_test)
-             
+        self._model.fit(x_train_vec, y_train)
+
     def dump_model(self) -> None:
         '''Dumps the model to a pickle file'''
         with open(self._model_path, 'wb') as f:
@@ -44,15 +38,17 @@ class linear_model(BaseModel):
     def infer(self, df: pd.DataFrame) -> None:
         '''Makes predictions on a dataframe'''
         try:
-            with open(self._model_path, 'rb') as f:
-                model = pickle.load(f) 
-            try:
-                df[f'preds_from_{self._name}'] = model.predict(self._vectorizer.transform(df['shortened'])) # adding predictions as a column
-            except KeyError:
-                df[f'preds_from_{self._name}'] = model.predict(self._vectorizer.transform(df['content'])) # adding predictions as a column
+            if self._model is None:
+                with open(self._model_path, 'rb') as f:
+                    model = pickle.load(f)
+            else:
+                model = self._model
+            df[f'preds_from_{self._name}'] = model.predict(
+                self._vectorizer.transform(df['content'])
+            ) # adding predictions as a column
             self._preds = df
         except FileNotFoundError:
-            print('cannot make inference without a trained model')    
+            print('Cannot make inference without a trained model')    
 
         
         

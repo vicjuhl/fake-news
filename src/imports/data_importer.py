@@ -172,7 +172,7 @@ def remove_stop_words_json(
     print("\n Removing stopwords...")
     n_articles, df = json_to_pd(val_set, "included_words")  # json sorted by word freq 
     df = cut_tail_and_head (df, head_q, tail_q) 
-    data = {"nArticles": n_articles, "words": df.to_dict()} # pack into new dict
+    data = {"nArticles": n_articles, "words": df.to_dict(orient="index")} # pack into new dict
     json_data = json.dumps(data, indent=4)
     with open(to_path, "w") as outfile:
         outfile.write(json_data)

@@ -18,27 +18,14 @@ def json_to_pd(val_set: int, file_name: str ) -> tuple[int,pd.DataFrame]:
         data = json.load(input_file)
         n_articles = data["nArticles"] # unpack data
         words = data["words"]
-
-
-    df = pd.DataFrame.from_dict(words, orient='index') #type: ignore
-    df.set_index(df.columns[0]) # sets labels as indexes
     # filtering for fake and reliable and replacing NaN with [0,0]
-    df = df.filter(items=['fake', 'reliable'], axis=1)
+    df = pd.DataFrame.from_dict(words, orient='index') #type: ignore
     df = df.applymap(lambda x: [0,0] if x is np.nan else x)
-    try:
-        df['freq'] = df.apply(
-            lambda row: [row['reliable'][0] + row['fake'][0], row['reliable'][1] + row['fake'][1]], axis=1
-            ) # adding freq entry column
-    except KeyError:
-        print('realiable not i the column, assume real means reliable')
-        
-        df['freq'] = df.apply(
-            lambda row: [row['real'][0] + row['fake'][0], row['real'][1] + row['fake'][1]], axis=1
-            ) # adding freq entry column    
+    df['freq'] = df.apply(
+        lambda row: [row['reliable'][0] + row['fake'][0], row['reliable'][1] + row['fake'][1]], axis=1
+    ) # adding freq entry column 
     
     def get_second_elm(lst): # helper function for sorting by second element in lst
         return lst[1]
-
     df = df.sort_values(by='freq', key=lambda x: -x.map(get_second_elm)) # sort by total frequency
-
-    return n_articles,df
+    return n_articles, df
