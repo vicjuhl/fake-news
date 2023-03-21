@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import json
 
-def json_to_pd(val_set: int, file_name: str ) -> tuple[int,pd.DataFrame]:
+def json_to_pd(val_set: int, file_name: str) -> tuple[int,pd.DataFrame]:
     """Take a json file location as argument and convert it to a pandas dataframe.
      The dataframe is filtered to only show the columns: word, fake, real.
      

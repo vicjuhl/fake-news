@@ -3,9 +3,11 @@ import pickle
 import pathlib as pl
 import ast
 from typing import Optional
+from sklearn.feature_extraction.text import TfidfVectorizer # type: ignore
 from sklearn.feature_extraction import DictVectorizer # type: ignore
 from sklearn.linear_model import LogisticRegression # type: ignore
 from model_specific_processing.base_model import BaseModel  # type: ignore
+from utils.functions import sentence_to_dict
 
 class LinearModel(BaseModel):
     '''PassiveAggressiveClassifier model'''
@@ -13,6 +15,7 @@ class LinearModel(BaseModel):
         super().__init__(training_sets , val_set, "linear_model1")
         self._model = LogisticRegression(max_iter=1000)
         self._vectorizer = DictVectorizer()
+        self._test_vectorizer = TfidfVectorizer()
         self._training_sets = training_sets
         linear_model_path = model_path / "linear_model/"
         self._data_path =  pl.Path(__file__).parent.parent.resolve() / "data_files/"
@@ -43,8 +46,9 @@ class LinearModel(BaseModel):
                     model = pickle.load(f)
             else:
                 model = self._model
+            df['bow'] = df['content'].apply(lambda x: sentence_to_dict(x)) # convertingt str to dict[str, int]
             df[f'preds_from_{self._name}'] = model.predict(
-                self._vectorizer.transform(df['content'])
+                self._vectorizer.transform(df['bow'])
             ) # adding predictions as a column
             self._preds = df
         except FileNotFoundError:
