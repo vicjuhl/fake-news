@@ -46,7 +46,7 @@ class LinearModel(BaseModel):
                     model = pickle.load(f)
             else:
                 model = self._model
-            df['bow'] = df['content'].apply(lambda x: sentence_to_dict(x)) # convertingt str to dict[str, int]
+            df['bow'] = df['content'].apply(lambda x: sentence_to_dict(x)) # converting str to dict[str, int]
             df[f'preds_from_{self._name}'] = model.predict(
                 self._vectorizer.transform(df['bow'])
             ) # adding predictions as a column
