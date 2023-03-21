@@ -1,9 +1,9 @@
 import pathlib as pl
 import numpy as np
 import pandas as pd
+import json
 
-
-def json_to_pd(file_path : str = "data_files/words/included_words10k.json") -> tuple[int,pd.DataFrame]:
+def json_to_pd(file_path: str) -> tuple[int,pd.DataFrame]:
     """Take a json file location as argument and convert it to a pandas dataframe.
      The dataframe is filtered to only show the columns: word, fake, real.
      
@@ -11,13 +11,14 @@ def json_to_pd(file_path : str = "data_files/words/included_words10k.json") -> t
 
     # file reference for dataframe
     json_file_path = pl.Path(__file__).resolve().parent.parent.parent / file_path
+    with open(json_file_path) as input_file:
+        # creating dataframe by reading json file directly
+        data = json.load(input_file)
+        n_articles = data["nArticles"] # unpack data
+        words = data["words"]
 
-    # creating dataframe by reading json file directly
-    data = pd.read_json(json_file_path)
-    n_articles, dict = data["nArticles"], data["words"] # unpack data
-    df = pd.DataFrame.from_dict(dict) 
-    df.set_index(df[0]) # sets labels as indexes
-
+    df = pd.DataFrame.from_dict(words, orient='index') #type: ignore
+    df.set_index(df.columns[0]) # sets labels as indexes
     # filtering for fake and reliable and replacing NaN with [0,0]
     df = df.filter(items=['fake', 'reliable'], axis=1)
     df = df.applymap(lambda x: [0,0] if x is np.nan else x)
@@ -29,5 +30,5 @@ def json_to_pd(file_path : str = "data_files/words/included_words10k.json") -> t
         return lst[1]
 
     df = df.sort_values(by='freq', key=lambda x: -x.map(get_second_elm)) # sort by total frequency
-    
+
     return n_articles,df
