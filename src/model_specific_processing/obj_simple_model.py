@@ -13,26 +13,11 @@ class SimpleModel(BaseModel):
         params: dict,
         training_sets: dict,
         val_set: int,
-        model_path: pl.Path,
+        models_dir: pl.Path,
         t_session: str,
     ) -> None:
-        super().__init__(params, training_sets, val_set, "simple", t_session)
-        self._model: Optional[pd.DataFrame] = None # a dataframe
-        self._simple_path = model_path / f"simple/simple_{t_session}/"
-        self._simple_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
-        self._model_path = self._simple_path / f"{self._name}.csv"
-        self.dump_metadata()
-
-    def dump_metadata(self) -> None:
-        """Dump json file with session metadata."""
-        metadata = {
-            "valset_used": self._val_set,
-            "session_timestamp": self._t_session,
-            "params": self._params,
-        }
-        json_data = json.dumps(metadata, indent=4)
-        with open(self._simple_path / "metadata.json", "w") as outfile:
-            outfile.write(json_data)
+        super().__init__(params, training_sets, val_set, models_dir, t_session, "simple")
+        self._model: Optional[pd.DataFrame] = None
         
     def train(self) -> None:
         '''Trains a simple_model instance on the training data'''

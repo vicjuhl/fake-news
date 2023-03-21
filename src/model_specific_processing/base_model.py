@@ -2,6 +2,7 @@ import pandas as pd
 from abc import ABC, abstractmethod
 import pathlib as pl
 from typing import Optional
+import json
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score # type: ignore
 
 class BaseModel(ABC):
@@ -11,9 +12,13 @@ class BaseModel(ABC):
         params: dict,
         training_sets: dict,
         val_set: int,
+        models_dir: pl.Path,
+        t_session: str,
         name: str,
-        t_session: str
     ) -> None:  # 1 as default value for val_set
+        self._session_dir = models_dir / f"{name}/{name}_{t_session}/"
+        self._session_dir.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
+        self._model_path = self._session_dir / f"{name}_model.csv"
         self._params = params
         self._training_sets = training_sets
         self._val_set = val_set
@@ -21,6 +26,18 @@ class BaseModel(ABC):
         self._t_session = t_session
         self._data_path =  pl.Path(__file__).parent.parent.resolve() / "data_files/"
         self._preds: Optional[pd.DataFrame] = None
+        self.dump_metadata()
+
+    def dump_metadata(self) -> None:
+        """Dump json file with session metadata."""
+        metadata = {
+            "valset_used": self._val_set,
+            "session_timestamp": self._t_session,
+            "params": self._params,
+        }
+        json_data = json.dumps(metadata, indent=4)
+        with open(self._session_dir / "metadata.json", "w") as outfile:
+            outfile.write(json_data)
     
     @abstractmethod
     def train(self, **kwargs) -> None:
