@@ -26,7 +26,11 @@ class SimpleModel(BaseModel):
         
     def dump_model(self) -> None:
         '''Dumps the model to a csv file'''
-        self._model.to_csv(self._model_path, index=False) 
+        model = self._model
+        if model is not None:
+            model.to_csv(self._model_path, index=False) 
+        else:
+            print("ERROR: model could not be dumped")
         print(f"Model saved to {self._model_path}")
         
     def infer(self, test_df) -> None:
