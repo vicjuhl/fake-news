@@ -7,9 +7,9 @@ import statistics as stat
 import numpy as np
 
 from utils.types import news_info, words_info, words_dict, NotInTrainingException # type: ignore
-from utils.functions import add_tuples, stem # type: ignore
+from utils.functions import add_tuples # type: ignore
 from utils.mappings import transfered_cols, excl_types, incl_cols # type: ignore
-from preprocessing.noise_removal import clean_str, tokenize_str # type: ignore
+from preprocessing.noise_removal import clean_str, tokenize_str, stem, preprocess_without_stopwords # type: ignore
 
 
 class DataHandler(ABC):
@@ -31,11 +31,11 @@ class DataHandler(ABC):
         """Extract relevant data from source row."""
         pass
 
-    def check_split(self, i: int, id_: int) -> None:
+    def check_split(self, i: int, id_: int, splits: np.ndarray, val_set: int) -> None:
         """Raise errors if id's don't match on lookup or row not in training set."""
-        if self._splits[i, 0] != int(id_): # Sanity check on id numbers
-            raise ValueError(f"ID's {(self._splits[i, 0], int(id_))} don't match")
-        elif self._splits[i, 1] in {1, self._val_set}: # If in val or test set
+        if splits[i, 0] != id_: # Sanity check on id numbers
+            raise ValueError(f"ID's {(splits[i, 0], int(id_))} don't match")
+        elif splits[i, 1] in {1, val_set}: # If in val or test set
             raise NotInTrainingException
         
     @classmethod
@@ -71,8 +71,9 @@ class CorpusReducer(DataHandler):
             return tuple([row[i] for i in range(17)])
         
     @classmethod
-    def process_batch(cls, data: list[tuple[str, ...]]) -> list[Any]:
-        return data
+    def process_batch(cls, data: tuple[list[tuple[str, ...]], dict]) -> list[Any]:
+        batch, _ =  data
+        return batch
         
     def write(self, row: list[list[str]]) -> None:
         """Write rows."""
@@ -94,13 +95,14 @@ class WordsCollector(DataHandler):
 
     def extract(self, row: list[str], i: int) -> news_info:
         """Extract type and content from row"""
-        self.check_split(i, row[1])
+        self.check_split(i, int(row[1]), self._splits, self._val_set)
         return row[3], row[5]
     
     @classmethod
-    def process_batch(cls, data: list[news_info]) -> list[words_info]:
+    def process_batch(cls, data: tuple[list[news_info], dict]) -> list[words_info]:
         """Clean text and split into list of type/bag of words pairs."""
-        return [(t, tokenize_str(clean_str(c))) for t, c in data]
+        batch, _ = data
+        return [(t, tokenize_str(clean_str(c))) for t, c in batch]
     
     def write(self, articles: list[words_info]):
         """Add article as bag of words counts to relevant dictionary."""
@@ -139,21 +141,27 @@ class WordsCollector(DataHandler):
                 current_pair = self._words[stemmed_tkn][type_]
                 current_pair = add_tuples(current_pair, freqs)
 
-    def export_json(self) -> None:
+    def export_json(self, data) -> None:
         """Dump both dicts as json files."""
-        json_words = json.dumps(self._words, indent=4)
+        json_words = json.dumps(data, indent=4)
         with open(self._to_path, "w") as outfile:
             outfile.write(json_words)
 
     def finalize(self):
         """Stem, export as JSON and return counts for included and excluded words."""
         self.stem_dict()
-        self.export_json()
+        data = {"nArticles": self.n_incl, "words": self._words} #extract article count
+        self.export_json(data)
 
 
 class CorpusSummarizer(DataHandler):
     """Class which manages preprocessing and exporting of data on article level."""
-    def __init__(self, writer: '_csv._writer', val_set: int, splits: np.ndarray) -> None:
+    def __init__(
+        self,
+        writer: '_csv._writer',
+        val_set: int,
+        splits: np.ndarray,
+    ) -> None:
         super().__init__()
         self.writer = writer
         self._val_set = val_set
@@ -161,7 +169,7 @@ class CorpusSummarizer(DataHandler):
 
     def extract(self, row: list[str], i: int) -> tuple[str, ...]:
         """Extract all relevant entries from row."""
-        self.check_split(i, row[1])
+        self.check_split(i, int(row[1]), self._splits, self._val_set)
         type_ = row[3]
         if type_ is None or type_ in excl_types:
             self._n_excl += 1
@@ -174,10 +182,14 @@ class CorpusSummarizer(DataHandler):
             return tuple(row)
 
     @classmethod
-    def process_batch(cls, data: list[tuple[str, ...]]) -> list[Any]:
+    def process_batch(cls, data: tuple[list[tuple[str, ...]], dict]) -> list[Any]:
         """Transfer specified columns without processing, process others."""
+        # Unpack and prepare
+        batch, kwargs = data
+        incl_words = kwargs["incl_words"]
         return_lst = []
-        for in_row in data:
+        # Iterate through batch
+        for in_row in batch:
             out_row = []
             for col_name in transfered_cols:
                 # Add values of transfered cols without processing
@@ -185,6 +197,8 @@ class CorpusSummarizer(DataHandler):
                 out_row.append(in_row[col_index])
             # Add values of calculated columns
             content = in_row[5]
+            # Bag of words
+            out_row.append(preprocess_without_stopwords(content, incl_words))
             # Shortened article
             cutoff = content.find(" ", 600) # returns -1 if no find, else index of ' '
             short_content = content if cutoff == -1 else content[:cutoff]

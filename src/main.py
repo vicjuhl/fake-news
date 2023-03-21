@@ -3,16 +3,16 @@ import time
 import argparse as ap
 import numpy as np
 
-from imports.data_importer import (
-    extract_words, reduce_corpus, summarize_articles, split_data # type: ignore
+from imports.data_importer import (# type: ignore
+    extract_words, reduce_corpus, summarize_articles, split_data, remove_stop_words_json, import_val_set, get_split  # type: ignore
 )
-from imports.json_to_pandas import json_to_pd
 
 def init_argparse() -> ap.ArgumentParser:
     parser = ap.ArgumentParser()
     parser.add_argument("-n", "--nrows", type=int, default=1000)
     parser.add_argument("-f", "--filename", type=str, default="reduced_corpus.csv")
     parser.add_argument("-p", "--processes", nargs="*", type=str)
+    parser.add_argument("-q", "--quantiles", nargs=2, type=float)
     parser.add_argument("-v", "--validation_set_num", type=int)
     return parser
 
@@ -47,14 +47,9 @@ if __name__ == "__main__":
         print("runtime:", time.time() - t0)
         t0 = time.time()
 
-    if not set(args.processes).isdisjoint({"json", "csv"}):
+    if not set(args.processes).isdisjoint({"json", "csv", "df"}): # REMOVE df FROM SET TODO (SEE BELOW COMMENT)
         # Load splits information if needed
-        splits = np.loadtxt(
-            data_path / 'corpus/splits.csv',
-            delimiter=',',
-            skiprows=1,
-            dtype=np.int_
-        )
+        splits = get_split(data_path)
 
     if "json" in args.processes:
         extract_words(
@@ -67,9 +62,19 @@ if __name__ == "__main__":
         print("runtime:", time.time() - t0)
         t0 = time.time()
         
+    if "stem_json" in args.processes:
+        remove_stop_words_json(
+            val_set,
+            data_path / f'words/stop_words_removed_valset{val_set}.json',
+            *args.quantiles,
+        )
+        print("runtime:", time.time() - t0)
+        t0 = time.time()
+        
     if "csv" in args.processes:
         summarize_articles(
             data_path / "corpus" / args.filename,
+            data_path / "words" / f"stop_words_removed_valset{val_set}.json",
             data_path / "processed_csv/",
             args.nrows,
             val_set,
@@ -79,7 +84,12 @@ if __name__ == "__main__":
         t0 = time.time()
 
     if "df" in args.processes:
-        df = json_to_pd()
+        # THIS PROCESS SHOULD BE MOVED TO MODEL MAIN SCRIPT WHEN READY TODO
+        df = import_val_set(
+            data_path / "corpus" / args.filename,
+            val_set,
+            splits
+        )
         print("runtime:", time.time() - t0)
         t0 = time.time()
 
