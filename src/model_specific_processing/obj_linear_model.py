@@ -1,17 +1,18 @@
 import pandas as pd
 import pickle
 import pathlib as pl
+import ast
 from typing import Optional
-from sklearn.feature_extraction.text import CountVectorizer # type: ignore
-from sklearn.linear_model import PassiveAggressiveClassifier # type: ignore
+from sklearn.feature_extraction import DictVectorizer # type: ignore
+from sklearn.linear_model import LogisticRegression # type: ignore
 from model_specific_processing.base_model import BaseModel  # type: ignore
 
 class LinearModel(BaseModel):
     '''PassiveAggressiveClassifier model'''
     def __init__(self, training_sets: dict, val_set: int, model_path: pl.Path) -> None: # potentially add vectorizer, linear_model as inp
         super().__init__(training_sets , val_set, "linear_model1")
-        self._model = PassiveAggressiveClassifier(max_iter=1000)
-        self._vectorizer = CountVectorizer(stop_words='english')
+        self._model = LogisticRegression(max_iter=1000)
+        self._vectorizer = DictVectorizer()
         self._training_sets = training_sets
         linear_model_path = model_path / "linear_model/"
         self._data_path =  pl.Path(__file__).parent.parent.resolve() / "data_files/"
@@ -23,9 +24,9 @@ class LinearModel(BaseModel):
     def train(self) -> None:
         '''Trains a PassiveAggressiveClassifier model on the training data'''
         train_data = self._training_sets["bow_articles"]
-        x_train = train_data['content']
+        train_data['words_dict'] = train_data['words'].apply(ast.literal_eval) # converting str dict to dict
         y_train = train_data['type']
-        x_train_vec = self._vectorizer.fit_transform(x_train)
+        x_train_vec = self._vectorizer.fit_transform(train_data['words_dict'].to_list())
         self._model.fit(x_train_vec, y_train)
 
     def dump_model(self) -> None:
