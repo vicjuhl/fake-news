@@ -1,5 +1,6 @@
 import pandas as pd
-from abc import ABC, abstractmethod 
+from abc import ABC, abstractmethod
+import pathlib as pl
 from typing import Optional
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score # type: ignore
 
@@ -7,14 +8,19 @@ class BaseModel(ABC):
     '''Abstract class for models'''
     def __init__(
         self,
+        params: dict,
         training_sets: dict,
         val_set: int,
         name: str,
+        t_session: str
     ) -> None:  # 1 as default value for val_set
+        self._params = params
         self._training_sets = training_sets
         self._val_set = val_set
-        self._preds: Optional[pd.DataFrame] = None
         self._name = name
+        self._t_session = t_session
+        self._data_path =  pl.Path(__file__).parent.parent.resolve() / "data_files/"
+        self._preds: Optional[pd.DataFrame] = None
     
     @abstractmethod
     def train(self, **kwargs) -> None:

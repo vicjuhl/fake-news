@@ -1,7 +1,7 @@
 import pathlib as pl
 import argparse as ap
 import pandas as pd
-import time
+from time import time, localtime, strftime
 from model_specific_processing.obj_simple_model import SimpleModel # type: ignore
 from model_specific_processing.obj_linear_model import LinearModel # type: ignore
 from imports.json_to_pandas import json_to_pd # type: ignore
@@ -31,7 +31,8 @@ def init_argparse() -> ap.ArgumentParser:
 
 if __name__ == '__main__':
     # Initialize the argument parser
-    t0_total = time.time()
+    t0_total = time()
+    t_session = strftime('%Y-%m-%d_%H-%M-%S', localtime(t0_total))
     parser = init_argparse()
     args = parser.parse_args()
     
@@ -60,9 +61,9 @@ if __name__ == '__main__':
         )
     
     for model in model_classes:
-        t0_model = time.time()
+        t0_model = time()
         print("\n", model.__name__)
-        model_inst = model(training_sets, args.val_set, model_path)
+        model_inst = model({}, training_sets, args.val_set, model_path, t_session)
 
         METHODS = {
             'train': model_inst.train,
@@ -71,13 +72,13 @@ if __name__ == '__main__':
             'evaluate': model_inst.evaluate,
         }
         for method_name in args.methods:
-            t0 = time.time()
+            t0 = time()
             print(f"\nRunning method", method_name)
             if method_name == "infer":
                 METHODS[method_name](val_data)
             else:
                 METHODS[method_name]()
-            print("Runtime", time.time() - t0)        
+            print("Runtime", time() - t0)        
         del model_inst
-        print("Total model runtime", time.time() - t0_model)
-    print("Total runtime", time.time() - t0_total)
+        print("Total model runtime", time() - t0_model)
+    print("Total runtime", time() - t0_total)
