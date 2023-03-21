@@ -28,7 +28,7 @@ class SimpleModel(BaseModel):
         '''Dumps the model to a csv file'''
         model = self._model
         if model is not None:
-            model.to_csv(self._model_path, index=False) 
+            model.to_csv(self._model_path, index=True) 
         else:
             print("ERROR: model could not be dumped")
         print(f"Model saved to {self._model_path}")
@@ -36,7 +36,7 @@ class SimpleModel(BaseModel):
     def infer(self, test_df) -> None:
         '''Makes predictions on a dataframe'''
         if self._model is None:
-            self._model = pd.read_csv(self._model_path) 
+            self._model = pd.read_csv(self._model_path, index_col=0) 
         test_df[f'preds_from_{self._name}'] = classify_article(test_df , self._model)         
         self._preds = test_df
         

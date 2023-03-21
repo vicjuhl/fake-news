@@ -3,8 +3,14 @@ import time
 import argparse as ap
 import numpy as np
 
-from imports.data_importer import (# type: ignore
-    extract_words, reduce_corpus, summarize_articles, split_data, remove_stop_words_json, import_val_set, get_split  # type: ignore
+from imports.data_importer import ( # type: ignore
+    extract_words,
+    reduce_corpus,
+    summarize_articles,
+    split_data,
+    remove_stop_words_json,
+    import_val_set,
+    get_split
 )
 
 def init_argparse() -> ap.ArgumentParser:
