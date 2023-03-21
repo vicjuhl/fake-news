@@ -173,7 +173,9 @@ def remove_stop_words_json(
     n_articles, df = json_to_pd(from_file)  # json sorted by word freq 
     df = cut_tail_and_head (df, head_q, tail_q) 
     data = {"nArticles": n_articles, "words": df} # pack into new dataframe 
-    json.dump(data, to_path, indent=4)
+    output_file = open(to_path, "w+")
+    json.dump(data, output_file, indent=4) #dumps to json
+    output_file.close()
 
 def summarize_articles(
     from_file: pl.Path,

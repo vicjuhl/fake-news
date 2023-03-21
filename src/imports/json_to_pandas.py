@@ -14,9 +14,10 @@ def json_to_pd(file_path : str = "data_files/words/included_words10k.json") -> t
 
     # creating dataframe by reading json file directly
     data = pd.read_json(json_file_path)
-    n_articles, df = data["nArticles"][0], data["words"][0] # unpack data
-
+    n_articles, dict = data["nArticles"], data["words"] # unpack data
+    df = pd.DataFrame.from_dict(dict) 
     df.set_index(df[0]) # sets labels as indexes
+
     # filtering for fake and reliable and replacing NaN with [0,0]
     df = df.filter(items=['fake', 'reliable'], axis=1)
     df = df.applymap(lambda x: [0,0] if x is np.nan else x)
