@@ -16,7 +16,7 @@ class SimpleModel(BaseModel):
         models_dir: pl.Path,
         t_session: str,
     ) -> None:
-        super().__init__(params, training_sets, val_set, models_dir, t_session, "simple")
+        super().__init__(params, training_sets, val_set, models_dir, t_session, "simple", "csv")
         self._model: Optional[pd.DataFrame] = None
         
     def train(self) -> None:

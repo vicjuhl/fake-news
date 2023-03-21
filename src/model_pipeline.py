@@ -18,12 +18,19 @@ TRAININGSETS = {
     'linear': 'bow_articles'
 }
 
+METHODNAMES = [
+    'train',
+    'dump_model',
+    'infer',
+    'evaluate',
+]
+
 def init_argparse() -> ap.ArgumentParser:
     """Initialize the argument parser."""
     parser = ap.ArgumentParser(description='Run a model')
-    parser.add_argument('-md', '--models', nargs="*", type=str, help='Specify list of models')
+    parser.add_argument('-md', '--models', nargs="*", choices=MODELS.keys(), type=str, help='Specify list of models')
     # parser.add_argument('--datasets', choices=DATASETS.keys(), help='Dataset to use')
-    parser.add_argument('-mt', '--methods', nargs="*", help='Method to run')
+    parser.add_argument('-mt', '--methods', nargs="*", choices=METHODNAMES, help='Method to run')
     parser.add_argument("-v", "--val_set", type=int)
     parser.add_argument("-nt", "--n_train", type=int, default=1000)
     parser.add_argument("-nv", "--n_val", type=int , default=1000)
@@ -35,6 +42,7 @@ if __name__ == '__main__':
     t_session = strftime('%Y-%m-%d_%H-%M-%S', localtime(t0_total))
     parser = init_argparse()
     args = parser.parse_args()
+    shared_params = {"n_train": args.n_train, "n_val": args.n_val}
     
     model_classes = [MODELS[model] for model in args.models]
     
@@ -63,7 +71,8 @@ if __name__ == '__main__':
     for model in model_classes:
         t0_model = time()
         print("\n", model.__name__)
-        model_inst = model({}, training_sets, args.val_set, model_path, t_session)
+        params = shared_params.copy()
+        model_inst = model(params, training_sets, args.val_set, model_path, t_session)
 
         METHODS = {
             'train': model_inst.train,
