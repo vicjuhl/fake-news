@@ -6,7 +6,6 @@ import numpy as np
 from imports.data_importer import (# type: ignore
     extract_words, reduce_corpus, summarize_articles, split_data, remove_stop_words_json, import_val_set, get_split  # type: ignore
 )
-from imports.json_to_pandas import json_to_pd # type: ignore
 
 def init_argparse() -> ap.ArgumentParser:
     parser = ap.ArgumentParser()

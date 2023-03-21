@@ -48,7 +48,7 @@ if __name__ == '__main__':
     training_sets: dict[str, pd.DataFrame] = {}
     if "train" in args.methods:
         if "bow_simple" in data_kinds:
-            training_sets["bow_simple"] = json_to_pd(args.val_set)
+            training_sets["bow_simple"] = json_to_pd(args.val_set, 'stop_words_removed')
         if "bow_articles" in data_kinds:
             training_sets["bow_articles"] = pd.read_csv(
                 data_path / 'corpus/reduced_corpus.csv',

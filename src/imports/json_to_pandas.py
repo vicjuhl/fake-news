@@ -1,9 +1,9 @@
 import pathlib as pl
 import numpy as np
 import pandas as pd
+import json
 
-
-def json_to_pd(val_set: int, file_name: str = "stop_words_removed") -> pd.DataFrame:
+def json_to_pd(val_set: int, file_name: str ) -> tuple[int,pd.DataFrame]:
     """Take a json file location as argument and convert it to a pandas dataframe.
      The dataframe is filtered to only show the columns: word, fake, real.
      
@@ -13,18 +13,17 @@ def json_to_pd(val_set: int, file_name: str = "stop_words_removed") -> pd.DataFr
     json_file_path = (
         pl.Path(__file__).resolve().parent.parent.parent / "data_files/words" / f"{file_name}_valset{val_set}.json"
     )
+    with open(json_file_path) as input_file:
+        # creating dataframe by reading json file directly
+        data = json.load(input_file)
+        n_articles = data["nArticles"] # unpack data
+        words = data["words"]
 
-    # creating dataframe by reading json file directly
-    df = pd.read_json(json_file_path, orient="index")
-    try:
-        df.rename(columns={'real': 'reliable'}, inplace=True)
-    except KeyError:
-        print('realiable not i the column, assume real means reliable')
-        # if real is not in the column, assume reliable PATCH SHOULD BE REMOVED LATER
 
+    df = pd.DataFrame.from_dict(words, orient='index') #type: ignore
+    df.set_index(df.columns[0]) # sets labels as indexes
     # filtering for fake and reliable and replacing NaN with [0,0]
     df = df.filter(items=['fake', 'reliable'], axis=1)
-    
     df = df.applymap(lambda x: [0,0] if x is np.nan else x)
     try:
         df['freq'] = df.apply(
@@ -41,5 +40,5 @@ def json_to_pd(val_set: int, file_name: str = "stop_words_removed") -> pd.DataFr
         return lst[1]
 
     df = df.sort_values(by='freq', key=lambda x: -x.map(get_second_elm)) # sort by total frequency
-    
-    return df
+
+    return n_articles,df

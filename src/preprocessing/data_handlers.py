@@ -141,16 +141,17 @@ class WordsCollector(DataHandler):
                 current_pair = self._words[stemmed_tkn][type_]
                 current_pair = add_tuples(current_pair, freqs)
 
-    def export_json(self) -> None:
+    def export_json(self, data) -> None:
         """Dump both dicts as json files."""
-        json_words = json.dumps(self._words, indent=4)
+        json_words = json.dumps(data, indent=4)
         with open(self._to_path, "w") as outfile:
             outfile.write(json_words)
 
     def finalize(self):
         """Stem, export as JSON and return counts for included and excluded words."""
         self.stem_dict()
-        self.export_json()
+        data = {"nArticles": self.n_incl, "words": self._words} #extract article count
+        self.export_json(data)
 
 
 class CorpusSummarizer(DataHandler):

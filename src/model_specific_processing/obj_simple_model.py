@@ -8,7 +8,6 @@ class SimpleModel(BaseModel):
     def __init__(self, training_sets: dict, val_set: int, model_path: pl.Path) -> None:
         super().__init__(training_sets, val_set)
         self._model: Optional[pd.DataFrame] = None # a dataframe
-        total_num_articles = 3e6 #TODO
         self._training_sets = training_sets
         self._name = "simple"
         simple_path = model_path / "simple/"
