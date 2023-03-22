@@ -3,7 +3,8 @@ from abc import ABC, abstractmethod
 import pathlib as pl
 from typing import Optional
 import json
-from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score # type: ignore
+from sklearn.metrics import f1_score, balanced_accuracy_score # type: ignore
+import matplotlib.pyplot as plt
 
 class BaseModel(ABC):
     '''Abstract class for models'''
@@ -65,20 +66,77 @@ class BaseModel(ABC):
         
         # try:
         preds = _preds[f'preds_from_{self._name}']
+        labels = _preds['type']
         print(f'the prediction column: preds_from_{self._name}')
         # except KeyError:
         
+        #counts results
+        true_fake = 0
+        false_fake = 0
+        true_reliable = 0
+        false_reliable = 0
+        for pred, lab in zip(preds, labels):
+            if pred == "fake":
+                if lab == "fake":
+                    true_fake +=1
+                else:
+                    false_fake +=1
+            else: #ie. pred == reliable
+                if lab == "reliable":
+                    true_reliable +=1
+                else:
+                    false_reliable +=1
+        total_preds = true_fake + true_reliable + false_fake + false_reliable
+
+        #stats
+        accuracy = (true_fake + true_reliable)/total_preds
+        balanced_accuracy = balanced_accuracy_score(labels, preds)
+        #precison for both fake and reliable
+        fake_precision =true_fake/(true_fake + false_fake)
+        reliable_precision =true_reliable/(true_reliable + false_reliable)
+        #recall
+        fake_recall =true_fake/(true_fake + false_reliable)
+        reliable_recall =true_reliable/(true_reliable + false_fake)
+
+
+        # Confusion matrix
+        confusion_matrix = [[round(true_fake/total_preds, 2), round(false_fake/total_preds, 2)], [round(false_reliable/total_preds, 2), round(true_reliable/total_preds, 2)]]
+
+        # Create a figure and axes object
+        fig, ax = plt.subplots()
+
+        # Create the table using matshow
+        table = ax.matshow(confusion_matrix, cmap ='Blues')
+
+        # Set the x and y tick labels
+        ax.set_xticklabels(['', 'Fake', 'Reliable'])
+        ax.set_yticklabels(['', 'Fake', 'Reliable'])
+
+        # Add labels for the values in the table
+        for i in range(2):
+            for j in range(2):
+                ax.text(j, i, str(confusion_matrix[i][j]), va='center', ha='center')
+
+        # Add a title
+        ax.set_title('Confusion Matrix')
+
+        # Save the figure to a file
+        fig.savefig('my_figure.png')
+        plt.show()
+
+
         print("here are the stats for the model:")
-        print(f'Accuracy: {accuracy_score(_preds["type"], preds)}') # type is the column with labels
-        print(f'Precision: {precision_score(_preds["type"], preds, average="weighted")}')
-        print(f'Recall: {recall_score(_preds["type"], preds, average="weighted")}')
+        print(f'Accuracy: {accuracy}')
+        print(f'Balanced Accuracy: {balanced_accuracy}')
+        print(f'Fake Precision: {fake_precision}')
+        print(f'Fake Recall: {fake_recall}')
+        print(f'Reliable Precision: {reliable_precision}')
+        print(f'Reliable Recall: {reliable_recall}')
         print(f'F1: {f1_score(_preds["type"], preds, average="weighted")}')
-        print(f'Confusion matrix: {confusion_matrix(_preds["type"], preds)}') 
+        print(f'Confusion matrix: {confusion_matrix}') 
         
-        cm = confusion_matrix(_preds["type"], preds)
-        tn, fp, fn, tp = cm.ravel()
-        print('Confusion matrix:')
-        print(f'True positives: {tp}')
-        print(f'True negatives: {tn}')
-        print(f'False positives: {fp}')
-        print(f'False negatives: {fn}')
+
+        
+
+
+
