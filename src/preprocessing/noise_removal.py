@@ -83,11 +83,8 @@ def clean_str(text: str) -> str:
         no_digits=True,
         no_currency_symbols=True,
         no_punct=True,
+        no_emoji=True,
         normalize_whitespace=True,
-        replace_with_url="<URL>",
-        replace_with_email="<EMAIL>",
-        replace_with_number="<NUM>",
-        replace_with_currency_symbol="<CUR>",
     )
     return re.sub("[^\x00-\x7F]+"," ", Cleaned) #removes all nonascii
 
