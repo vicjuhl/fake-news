@@ -89,14 +89,4 @@ if __name__ == "__main__":
         print("runtime:", time.time() - t0)
         t0 = time.time()
 
-    if "df" in args.processes:
-        # THIS PROCESS SHOULD BE MOVED TO MODEL MAIN SCRIPT WHEN READY TODO
-        df = import_val_set(
-            data_path / "corpus" / args.filename,
-            val_set,
-            splits
-        )
-        print("runtime:", time.time() - t0)
-        t0 = time.time()
-
     print("\n Total runtime:", time.time() - t0_total)
