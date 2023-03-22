@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import math
-from preprocessing.noise_removal import preprocess_string
+from preprocessing.noise_removal import preprocess_string # type: ignore
 
 def frequency_adjustment(df:pd.DataFrame) -> pd.DataFrame:
     '''Adjust wordfrequency of all words depending on their label.'''
@@ -16,9 +16,9 @@ def frequency_adjustment(df:pd.DataFrame) -> pd.DataFrame:
 
 def tf_idf(df:pd.DataFrame, total_num_articles: int) -> pd.DataFrame:
     '''Total document frequency estimation.'''
+    print('excecuting function: tf_idf, applied term frequency adjustment weights')
     for i, row in df.iterrows():
         df.loc[i,"idf_weight"] = np.log(total_num_articles/((row['freq'])[0] + 1.001))
-    print('excecuting function: tf_idf, applied term frequency adjustment weights')
     return df #returns dataframe with weight collumn added.
 
 def logistic_Classification_weight(df:pd.DataFrame) -> pd.DataFrame:
@@ -41,7 +41,6 @@ def binary_classifier(words: dict[str, int], df: pd.DataFrame) -> str:
     """Given a dict of words and their freq, and dataframe for simpel model, it makes a binary prediction."""
     acc_weight = 0.1
     acc_score = 0
-    df = df.reset_index().drop_duplicates(subset='index', keep='first').set_index('index') # drops all duplicates
 
     for word, freq in words.items(): 
         if word in df.index:

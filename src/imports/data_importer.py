@@ -192,7 +192,7 @@ def summarize_articles(
     print("\n Summarizing articles...")
     # Import included words and convert to set of words
     with open(words_file) as wf:
-        words = set(json.load(wf).keys())
+        words = set(json.load(wf)["words"].keys())
     
     to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
     with open(from_file, encoding="utf8") as ff:
