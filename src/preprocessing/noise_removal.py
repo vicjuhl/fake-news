@@ -113,7 +113,7 @@ def preprocess_without_stopwords(text: str, incl_words: set[str]) -> dict[str, i
     cleaned = clean_str(text) 
     tokenized = tokenize_str(cleaned)
     stemmed = [stem(word) for word in tokenized]
-    filtered = [word for word in filter(lambda word: word in incl_words, stemmed)]
+    filtered = list(filter(lambda word: word in incl_words, stemmed))
     count_dict = count_words(filtered)
     return count_dict
 

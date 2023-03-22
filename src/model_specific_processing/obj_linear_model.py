@@ -8,7 +8,6 @@ from sklearn.feature_extraction import DictVectorizer # type: ignore
 from sklearn.linear_model import LogisticRegression # type: ignore
 from model_specific_processing.base_model import BaseModel  # type: ignore
 from utils.functions import sentence_to_dict # type: ignore
-# Import other function TODO
 
 class LinearModel(BaseModel):
     '''PassiveAggressiveClassifier model'''
