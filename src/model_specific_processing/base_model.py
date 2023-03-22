@@ -19,7 +19,7 @@ class BaseModel(ABC):
     ) -> None:  # 1 as default value for val_set
         self._session_dir = models_dir / f"{name}/{name}_{t_session}/"
         self._session_dir.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
-        self._model_path = self._session_dir / f"{name}_model.{file_type}"
+        self._model_path = self._session_dir / f"model.{file_type}"
         self._params = params
         self._training_sets = training_sets
         self._val_set = val_set
@@ -37,7 +37,7 @@ class BaseModel(ABC):
             "params": self._params,
         }
         json_data = json.dumps(metadata, indent=4)
-        with open(self._session_dir / f"{self._name}_metadata.json", "w") as outfile:
+        with open(self._session_dir / f"metadata.json", "w") as outfile:
             outfile.write(json_data)
     
     @abstractmethod

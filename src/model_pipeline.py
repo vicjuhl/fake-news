@@ -2,6 +2,8 @@ import pathlib as pl
 import argparse as ap
 import pandas as pd
 from time import time, localtime, strftime
+import json
+
 from model_specific_processing.obj_simple_model import SimpleModel # type: ignore
 from model_specific_processing.obj_linear_model import LinearModel # type: ignore
 from imports.json_to_pandas import json_to_pd # type: ignore
@@ -9,8 +11,7 @@ from imports.data_importer import import_val_set, get_split # type: ignore
 
 MODELS: dict = {
     'simple': SimpleModel,
-    'linear': LinearModel, 
-    #'hashing_vectorizer': linear_model(HashingVectorizer)
+    'linear': LinearModel,
 }
 
 TRAININGSETS = {
@@ -34,23 +35,26 @@ def init_argparse() -> ap.ArgumentParser:
     parser.add_argument("-v", "--val_set", type=int)
     parser.add_argument("-nt", "--n_train", type=int, default=1000)
     parser.add_argument("-nv", "--n_val", type=int , default=1000)
+    parser.add_argument("-hp", "--hyper_params", type=str , default=json.dumps({}))
     return parser
 
 if __name__ == '__main__':
-    # Initialize the argument parser
+    # Time
     t0_total = time()
     t_session = strftime('%Y-%m-%d_%H-%M-%S', localtime(t0_total))
+    # Parsing
     parser = init_argparse()
     args = parser.parse_args()
+    # Hyperparameters
+    all_params = json.loads(args.hyper_params)
     shared_params = {"n_train": args.n_train, "n_val": args.n_val}
-    
-    model_classes = [MODELS[model] for model in args.models]
-    
+    # Paths
     data_path = pl.Path(__file__).parent.parent.resolve() / "data_files/"
     model_path = pl.Path(__file__).parent.parent.resolve() / "model_files/"
-      
+    # Training data
     data_kinds = set([TRAININGSETS[model] for model in args.models])
     training_sets: dict[str, pd.DataFrame] = {}
+    
     if "train" in args.methods:
         if "bow_simple" in data_kinds:
             training_sets["bow_simple"] = json_to_pd(args.val_set, 'stop_words_removed')
@@ -68,12 +72,18 @@ if __name__ == '__main__':
             n_rows = args.n_val # number of rows
         )
     
-    for model in model_classes:
+    for model_name in args.models:
         t0_model = time()
-        print("\n", model.__name__)
+        model_class = MODELS[model_name]
+        print("\n", model_class.__name__)
+        # Use shared params
         params = shared_params.copy()
-        model_inst = model(params, training_sets, args.val_set, model_path, t_session)
-
+        # Add model specialized params
+        for key, val in all_params[model_name].items():
+            params[key] = val
+        # Instantiate model
+        model_inst = model_class(params, training_sets, args.val_set, model_path, t_session)
+        # Run methods
         METHODS = {
             'train': model_inst.train,
             'dump_model': model_inst.dump_model,
