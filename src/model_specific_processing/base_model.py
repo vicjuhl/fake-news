@@ -99,8 +99,7 @@ class BaseModel(ABC):
         # Confusion matrix
         confusion_matrix = [[round(true_fake/total_preds, 2), round(false_fake/total_preds, 2)], [round(false_reliable/total_preds, 2), round(true_reliable/total_preds, 2)]]
 
-        #makes dict with stats
-        
+        #makes dict out off stats
         eval_dict = { 
             "nPredictions": total_preds,
             "F1 Score": f1,
@@ -112,7 +111,8 @@ class BaseModel(ABC):
             "Reliable Recall": reliable_recall,
             "Confusion Matrix": confusion_matrix,
         } 
-
+        print(eval_dict)
+        
         #dump stats to json
         json_eval = json.dumps(eval_dict, indent=4)
         with open(self._evaluation_dir, "w") as outfile:
