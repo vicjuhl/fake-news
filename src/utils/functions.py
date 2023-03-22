@@ -17,14 +17,3 @@ def df_type_to_binary(df: pd.DataFrame) -> pd.DataFrame:
     df['type_binary'] = df['type'].apply(lambda x: to_binary(x))
     return df
 
-
-def sentence_to_dict(sentence: str) -> dict[str, int]:
-    """Converts a sentence to a dictionary where the keys are the words and the values are the frequencies."""
-    words = sentence.split()
-    word_dict = {}
-    for word in words:
-        if word in word_dict:
-            word_dict[word] += 1
-        else:
-            word_dict[word] = 0
-    return word_dict
