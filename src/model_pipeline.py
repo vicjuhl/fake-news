@@ -79,6 +79,7 @@ if __name__ == '__main__':
         # Use shared params
         params = shared_params.copy()
         # Add model specialized params
+        all_params[model_name] = all_params.get(model_name, {})
         for key, val in all_params[model_name].items():
             params[key] = val
         # Instantiate model
