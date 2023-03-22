@@ -1,10 +1,6 @@
 19. marts:
 
  Reducing corpus...
-Lines read: 100000 ...
-.
-.
-.
 Row 116574 skipped with <class 'IndexError'>: list index out of range
 8529067 rows read successfully:
 	8529067 rows were used:
@@ -15,8 +11,10 @@ Row 116574 skipped with <class 'IndexError'>: list index out of range
 Reduced corpus was written to /Users/victor/Documents/Uddannelse/Repos/fake-news/data_files/corpus/
 runtime: 457.26345586776733
 
- Splitting corpus...
-runtime: 32.62857723236084
+
+22. marts:
+Splitting corpus...
+runtime: 24.753042936325073
 
  Extracting words...
 2807955 rows read successfully:
@@ -26,19 +24,19 @@ runtime: 32.62857723236084
 	561592 were ignored because they belong to test or validation set.
 0 rows were skipped due to reading error.
 JSON was written to /Users/victor/Documents/Uddannelse/Repos/fake-news/data_files/words/
-runtime: 1339.8513119220734
+runtime: 1337.3673808574677
 
  Removing stopwords...
-Executing function: cut_tail_and_head with quantiles: 0.5 and 0.03
-53.0% of unique words removed (APPROX!).
-99.21423060262157% of unique words removed.
+Executing function: cut_tail_and_head with quantiles: 0.5 and 0.04
+54.0% of unique words removed (APPROX!).
+99.4881720367375% of unique words removed.
 unique words before cleaning:  3428105
-unique words after:  26937
-unique words removed:  3401168
+unique words after:  17546
+unique words removed:  3410559
 	unique words removed from head:  77
-	unique words removed from tail: 3401091
-	at minimum occurence level: 632
-runtime: 30.196810007095337
+	unique words removed from tail: 3410482
+	at minimum occurence level: 1298
+runtime: 26.9963219165802
 
  Summarizing articles...
 2807955 rows read successfully:
@@ -48,6 +46,6 @@ runtime: 30.196810007095337
 	561592 were ignored because they belong to test or validation set.
 0 rows were skipped due to reading error.
 Summarized corpus was written to /Users/victor/Documents/Uddannelse/Repos/fake-news/data_files/processed_csv/
-runtime: 2169.1029908657074
+runtime: 2054.1452379226685
 
- Total runtime: 4029.043238162994
+ Total runtime: 3443.2620599269867
