@@ -158,12 +158,14 @@ class CorpusSummarizer(DataHandler):
     """Class which manages preprocessing and exporting of data on article level."""
     def __init__(
         self,
-        writer: '_csv._writer',
+        summ_writer: '_csv._writer',
+        short_writer: '_csv._writer',
         val_set: int,
         splits: np.ndarray,
     ) -> None:
         super().__init__()
-        self.writer = writer
+        self.summ_writer = summ_writer
+        self.short_writer = short_writer
         self._val_set = val_set
         self._splits = splits
 
@@ -199,10 +201,6 @@ class CorpusSummarizer(DataHandler):
             content = in_row[5]
             # Bag of words
             out_row.append(preprocess_without_stopwords(content, incl_words))
-            # Shortened article
-            cutoff = content.find(" ", 600) # returns -1 if no find, else index of ' '
-            short_content = content if cutoff == -1 else content[:cutoff]
-            out_row.append(short_content)
             # Length of content
             out_row.append(len(content))
             # Mean token length
@@ -215,12 +213,18 @@ class CorpusSummarizer(DataHandler):
             out_row.append(median_len)
             # Split number
             out_row.append(in_row[-1])
+            # Shortened article MUST BE LAST ELEMENT ([-1])
+            cutoff = content.find(" ", 600) # returns -1 if no find, else index of ' '
+            short_content = content if cutoff == -1 else content[:cutoff]
+            out_row.append(short_content)
+            # Append to return list
             return_lst.append(out_row)
         return return_lst
 
-    def write(self, row: list[tuple[str, ...]]) -> None:
+    def write(self, rows: list[tuple[str, ...]]) -> None:
         """Write rows."""
-        self.writer.writerows(row)
+        self.summ_writer.writerows([row[:-1] for row in rows])
+        self.short_writer.writerows([[row[0], row[2], row[-1]] for row in rows])
 
     def finalize(self):
         """Do nothing."""

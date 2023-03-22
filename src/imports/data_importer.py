@@ -198,12 +198,15 @@ def summarize_articles(
     with open(from_file, encoding="utf8") as ff:
         reader = csv.reader(ff)
         next(reader) # Skip headers (as they are not equal to output headers)
-        with open(to_path / f"summarized_corpus_valset{val_set}.csv", 'w', encoding="utf8") as tf:
-            writer = csv.writer(tf)
-            writer.writerow(out_cols) # Write headers
-            summarizer = CorpusSummarizer(writer, val_set, splits)
-            n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, summarizer, incl_words=words)
-    print_row_counts(n_incl, n_excl, n_ignored, n_skipped, f"Summarized corpus was written to {to_path}/")
+        with open(to_path / f"summarized_corpus_valset{val_set}.csv", 'w', encoding="utf8") as summ:
+            with open(to_path / f"shortened_corpus_valset{val_set}.csv", "w", encoding="utf8") as short:
+                summ_writer = csv.writer(summ)
+                short_writer = csv.writer(short)
+                summ_writer.writerow(out_cols) # Write headers
+                short_writer.writerow(["id", "type", "shortened"]) # Write headers
+                summarizer = CorpusSummarizer(summ_writer, short_writer, val_set, splits)
+                n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, summarizer, incl_words=words)
+    print_row_counts(n_incl, n_excl, n_ignored, n_skipped, f"Summarized corpus was written to files in {to_path}/")
 
 def import_val_set(from_file: pl.Path, split_num: int, splits: np.ndarray, n_rows: int) -> pd.DataFrame:
     """Import validation set as pandas dataframe."""
