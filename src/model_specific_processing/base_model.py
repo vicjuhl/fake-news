@@ -19,7 +19,9 @@ class BaseModel(ABC):
         file_type: str,
     ) -> None:  # 1 as default value for val_set
         self._session_dir = models_dir / f"{name}/{name}_{t_session}/"
-        self._session_dir.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
+        self._evaluation_dir = self._session_dir / "evaluation/"
+        # Create dest folder with sub-folders if it does not exist.
+        self._evaluation_dir.mkdir(parents=True, exist_ok=True)
         self._model_path = self._session_dir / f"model.{file_type}"
         self._params = params
         self._training_sets = training_sets
