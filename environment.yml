@@ -17,3 +17,4 @@ dependencies:
       - clean-text==0.6.0 
       - nltk==3.8.1
       - wandb==0.13.10
+      - matplotlib==3.7.1 
