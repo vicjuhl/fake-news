@@ -1,7 +1,9 @@
 import pathlib as pl
 import argparse as ap
 import pandas as pd
-import time
+from time import time, localtime, strftime
+import json
+
 from model_specific_processing.obj_simple_model import SimpleModel # type: ignore
 from model_specific_processing.obj_linear_model import LinearModel # type: ignore
 from imports.json_to_pandas import json_to_pd # type: ignore
@@ -9,8 +11,7 @@ from imports.data_importer import import_val_set, get_split # type: ignore
 
 MODELS: dict = {
     'simple': SimpleModel,
-    'linear': LinearModel, 
-    #'hashing_vectorizer': linear_model(HashingVectorizer)
+    'linear': LinearModel,
 }
 
 TRAININGSETS = {
@@ -18,30 +19,42 @@ TRAININGSETS = {
     'linear': 'bow_articles'
 }
 
+METHODNAMES = [
+    'train',
+    'dump_model',
+    'infer',
+    'evaluate',
+]
+
 def init_argparse() -> ap.ArgumentParser:
     """Initialize the argument parser."""
     parser = ap.ArgumentParser(description='Run a model')
-    parser.add_argument('-md', '--models', nargs="*", type=str, help='Specify list of models')
+    parser.add_argument('-md', '--models', nargs="*", choices=MODELS.keys(), type=str, help='Specify list of models')
     # parser.add_argument('--datasets', choices=DATASETS.keys(), help='Dataset to use')
-    parser.add_argument('-mt', '--methods', nargs="*", help='Method to run')
+    parser.add_argument('-mt', '--methods', nargs="*", choices=METHODNAMES, help='Method to run')
     parser.add_argument("-v", "--val_set", type=int)
     parser.add_argument("-nt", "--n_train", type=int, default=1000)
     parser.add_argument("-nv", "--n_val", type=int , default=1000)
+    parser.add_argument("-hp", "--hyper_params", type=str , default=json.dumps({}))
     return parser
 
 if __name__ == '__main__':
-    # Initialize the argument parser
-    t0_total = time.time()
+    # Time
+    t0_total = time()
+    t_session = strftime('%Y-%m-%d_%H-%M-%S', localtime(t0_total))
+    # Parsing
     parser = init_argparse()
     args = parser.parse_args()
-    
-    model_classes = [MODELS[model] for model in args.models]
-    
+    # Hyperparameters
+    all_params = json.loads(args.hyper_params)
+    shared_params = {"n_train": args.n_train, "n_val": args.n_val}
+    # Paths
     data_path = pl.Path(__file__).parent.parent.resolve() / "data_files/"
     model_path = pl.Path(__file__).parent.parent.resolve() / "model_files/"
-      
+    # Training data
     data_kinds = set([TRAININGSETS[model] for model in args.models])
     training_sets: dict[str, pd.DataFrame] = {}
+    
     if "train" in args.methods:
         if "bow_simple" in data_kinds:
             training_sets["bow_simple"] = json_to_pd(args.val_set, 'stop_words_removed')
@@ -59,11 +72,19 @@ if __name__ == '__main__':
             n_rows = args.n_val # number of rows
         )
     
-    for model in model_classes:
-        t0_model = time.time()
-        print("\n", model.__name__)
-        model_inst = model(training_sets, args.val_set, model_path)
-
+    for model_name in args.models:
+        t0_model = time()
+        model_class = MODELS[model_name]
+        print("\n", model_class.__name__)
+        # Use shared params
+        params = shared_params.copy()
+        # Add model specialized params
+        all_params[model_name] = all_params.get(model_name, {})
+        for key, val in all_params[model_name].items():
+            params[key] = val
+        # Instantiate model
+        model_inst = model_class(params, training_sets, args.val_set, model_path, t_session)
+        # Run methods
         METHODS = {
             'train': model_inst.train,
             'dump_model': model_inst.dump_model,
@@ -71,13 +92,13 @@ if __name__ == '__main__':
             'evaluate': model_inst.evaluate,
         }
         for method_name in args.methods:
-            t0 = time.time()
+            t0 = time()
             print(f"\nRunning method", method_name)
             if method_name == "infer":
                 METHODS[method_name](val_data)
             else:
                 METHODS[method_name]()
-            print("Runtime", time.time() - t0)        
+            print("Runtime", time() - t0)        
         del model_inst
-        print("Total model runtime", time.time() - t0_model)
-    print("Total runtime", time.time() - t0_total)
+        print("Total model runtime", time() - t0_model)
+    print("Total runtime", time() - t0_total)

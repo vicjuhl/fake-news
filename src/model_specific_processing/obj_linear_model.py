@@ -2,27 +2,24 @@ import pandas as pd
 import pickle
 import pathlib as pl
 import ast
-from typing import Optional
-from sklearn.feature_extraction.text import TfidfVectorizer # type: ignore
 from sklearn.feature_extraction import DictVectorizer # type: ignore
 from sklearn.linear_model import LogisticRegression # type: ignore
-from model_specific_processing.base_model import BaseModel  # type: ignore
-from utils.functions import sentence_to_dict
+from model_specific_processing.base_model import BaseModel # type: ignore
+from preprocessing.noise_removal import preprocess_string # type: ignore
 
 class LinearModel(BaseModel):
     '''PassiveAggressiveClassifier model'''
-    def __init__(self, training_sets: dict, val_set: int, model_path: pl.Path) -> None: # potentially add vectorizer, linear_model as inp
-        super().__init__(training_sets , val_set, "linear_model1")
+    def __init__(
+        self,
+        params: dict,
+        training_sets: dict,
+        val_set: int,
+        models_dir: pl.Path,
+        t_session: str,
+    ) -> None:
+        super().__init__(params, training_sets, val_set, models_dir, t_session, "linear", "pkl")
         self._model = LogisticRegression(max_iter=1000)
         self._vectorizer = DictVectorizer()
-        self._test_vectorizer = TfidfVectorizer()
-        self._training_sets = training_sets
-        linear_model_path = model_path / "linear_model/"
-        self._data_path =  pl.Path(__file__).parent.parent.resolve() / "data_files/"
-        linear_model_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
-        self._model_path = linear_model_path / f"{self._name}_valset{self._val_set}.pkl"
-        self._preds : Optional[pd.DataFrame] = None
-        
       
     def train(self) -> None:
         '''Trains a PassiveAggressiveClassifier model on the training data'''
@@ -46,7 +43,7 @@ class LinearModel(BaseModel):
                     model = pickle.load(f)
             else:
                 model = self._model
-            df['bow'] = df['content'].apply(lambda x: sentence_to_dict(x)) # converting str to dict[str, int]
+            df['bow'] = df['content'].apply(lambda x: preprocess_string(x)) # convertingt str to dict[str, int]
             df[f'preds_from_{self._name}'] = model.predict(
                 self._vectorizer.transform(df['bow'])
             ) # adding predictions as a column

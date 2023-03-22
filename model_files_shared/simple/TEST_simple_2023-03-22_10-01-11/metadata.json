@@ -1,0 +1,9 @@
+{
+    "valset_used": 2,
+    "session_timestamp": "2023-03-22_10-01-11",
+    "params": {
+        "n_train": 1000,
+        "n_val": 1000,
+        "abc": 2
+    }
+}
