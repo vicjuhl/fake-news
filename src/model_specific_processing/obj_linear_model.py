@@ -2,12 +2,10 @@ import pandas as pd
 import pickle
 import pathlib as pl
 import ast
-from typing import Optional
-from sklearn.feature_extraction.text import TfidfVectorizer # type: ignore
 from sklearn.feature_extraction import DictVectorizer # type: ignore
 from sklearn.linear_model import LogisticRegression # type: ignore
-from model_specific_processing.base_model import BaseModel  # type: ignore
-from utils.functions import sentence_to_dict # type: ignore
+from model_specific_processing.base_model import BaseModel # type: ignore
+from preprocessing.noise_removal import preprocess_string # type: ignore
 
 class LinearModel(BaseModel):
     '''PassiveAggressiveClassifier model'''
@@ -45,7 +43,7 @@ class LinearModel(BaseModel):
                     model = pickle.load(f)
             else:
                 model = self._model
-            df['bow'] = df['content'].apply(lambda x: sentence_to_dict(x)) # converting str to dict[str, int]
+            df['bow'] = df['content'].apply(lambda x: preprocess_string(x)) # convertingt str to dict[str, int]
             df[f'preds_from_{self._name}'] = model.predict(
                 self._vectorizer.transform(df['bow'])
             ) # adding predictions as a column
