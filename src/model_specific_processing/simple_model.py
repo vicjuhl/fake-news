@@ -7,10 +7,11 @@ def frequency_adjustment(df:pd.DataFrame) -> pd.DataFrame:
     '''Adjust wordfrequency of all words depending on their label.'''
     word_freq = df["freq"].apply(lambda x: x[1])
     total_words = word_freq.sum()
-    for col in df.columns[1:]: # skip first collumn (contains total frequency)
-        local_words = df[col].apply(lambda x: x[1]).sum()
-        word_ratio = total_words / local_words # ratio multiplied on each words freq, under the current label.
-        df[col] = df[col].apply(lambda x: (x[0], x[1] * word_ratio)) #apply adjustment to all words
+    for col in df.columns:
+        if col is not df["freq"]:
+            local_words = df[col].apply(lambda x: x[1]).sum()
+            word_ratio = total_words / local_words # ratio multiplied on each words freq, under the current label.
+            df[col] = df[col].apply(lambda x: (x[0], x[1] * word_ratio)) #apply adjustment to all words
     print('executing function: frequency_adjustment on wordsut with total article count')
     return df
 
