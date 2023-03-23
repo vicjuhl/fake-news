@@ -1,3 +1,4 @@
+import pathlib as pl
 import pandas as pd
 from abc import ABC, abstractmethod 
 from typing import Optional
@@ -15,6 +16,9 @@ class BaseModel(ABC):
         self._val_set = val_set
         self._preds: Optional[pd.DataFrame] = None
         self._name = name
+        model_path = pl.Path(__file__).parent.parent.parent.resolve() / "model_files/"
+        self._metamodel_csv_path = model_path / 'metamodel_files/mmdataset.csv'
+        self._metamodel_csv_infer_path = model_path / 'metamodel_files/mmdataset.csv'
     
     @abstractmethod
     def train(self, **kwargs) -> None:
@@ -28,10 +32,41 @@ class BaseModel(ABC):
     def infer(self, df: pd.DataFrame) -> pd.DataFrame:
         pass
     
-    # @abstractmethod
-    # def dump_inference(self, to_path:str, df : pd.DataFrame) -> None: TODO
-    #     pass
-    
+    def dump_preds(self):
+        print('generating training data for metamodel, dumping predictions')
+        try:
+            # load existing metamodel CSV file into a DataFrame
+            mm_df = pd.read_csv(self._metamodel_csv_path)
+        except ValueError:
+            print('no metamodel csv found, creating one')
+            # create new DataFrame with 'type' column only
+            mm_df = pd.DataFrame()
+            mm_df['type'] = self._preds['type']
+        
+        try:
+            print(self._preds[f'preds_from_{self._name}'])
+            
+            # add new predictions as a new column to existing DataFrame
+            mm_df[f'preds_from_{self._name}'] = self._preds[f'preds_from_{self._name}']
+        except KeyError:
+            print(f'no predictions to dump for {self._name}')
+        
+        # save updated DataFrame to metamodel CSV file
+        mm_df.to_csv(self._metamodel_csv_path, index= False, mode="w+")     
+        
+    def dump_inference(self):
+        try:
+            mm_test = pd.read_csv(self._metamodel_csv_infer_path)
+        except ValueError:
+            print('no metamodel csv found, creating one')
+            # create new DataFrame with 'type' column only
+            mm_test = pd.DataFrame()
+        try:
+            mm_test[f'preds_from_{self._name}'] = self._preds[f'preds_from_{self._name}']
+        except AttributeError: 
+            print('no inference to dump')
+
+        mm_test.to_csv(self._metamodel_csv_infer_path,  index= False, mode="w+")
     
     def evaluate(self) -> None:
         '''Evaluates the model on a dataframe'''

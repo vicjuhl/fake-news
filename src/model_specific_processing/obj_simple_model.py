@@ -9,6 +9,7 @@ class SimpleModel(BaseModel):
     def __init__(self, training_sets: dict, val_set: int, model_path: pl.Path) -> None:
         super().__init__(training_sets, val_set, "simple")
         self._model: Optional[pd.DataFrame] = None # a dataframe
+        self._name = "simplemodal" 
         self._training_sets = training_sets
         simple_path = model_path / "simple/"
         self._data_path =  pl.Path(__file__).parent.parent.resolve() / "data_files/"
