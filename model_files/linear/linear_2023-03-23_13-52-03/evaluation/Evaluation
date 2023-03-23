@@ -1,0 +1,20 @@
+{
+    "nPredictions": 108,
+    "F1 Score": 0.9091699261190785,
+    "Accuracy": 0.9166666666666666,
+    "Balanced Accuracy": 0.8125,
+    "Precision": 0.9032258064516129,
+    "NPV": 1.0,
+    "Recall": 1.0,
+    "TNR": 0.625,
+    "Confusion Matrix": [
+        [
+            0.78,
+            0.08
+        ],
+        [
+            0.0,
+            0.14
+        ]
+    ]
+}

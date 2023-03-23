@@ -49,7 +49,8 @@ def binary_classifier(words: dict[str, int], df: pd.DataFrame) -> str:
             acc_score +=  row['fakeness_score'] * freq * row['idf_weight']
             if not isinstance(acc_score,float):
                 raise ValueError
-    # the following division produces an average (no effect on binary classification)   
+    # the following division produces an average (no effect on binary classification)  
+    print (acc_score) 
     return 'fake' if acc_score / acc_weight < 0 else 'reliable' 
 
 def classify_article(val_df: pd.DataFrame, model_df: pd.DataFrame) -> list[str]:
