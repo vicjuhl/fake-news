@@ -6,12 +6,15 @@ import json
 
 from model_specific_processing.obj_simple_model import SimpleModel # type: ignore
 from model_specific_processing.obj_linear_model import LinearModel # type: ignore
+from model_specific_processing.obj_naive_bayes_models import MultinomialNaiveBayesModel, ComplementNaiveBayesModel  # type: ignore
 from imports.json_to_pandas import json_to_pd # type: ignore
 from imports.data_importer import import_val_set, get_split # type: ignore
 
 MODELS: dict = {
     'simple': SimpleModel,
     'linear': LinearModel,
+    'multi_naive_bayes': MultinomialNaiveBayesModel,    
+    'compl_naive_bayes': ComplementNaiveBayesModel,
 }
 
 TRAININGSETS = {
