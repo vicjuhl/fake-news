@@ -84,7 +84,6 @@ class BaseModel(ABC):
                     tn +=1
                 else:
                     fn +=1
-
         #stats
         total_preds = tp + tn + fp + fn
         accuracy = (tp + tn)/total_preds
@@ -94,8 +93,6 @@ class BaseModel(ABC):
         npv = tn/(tn + fn) #reverse precision
         recall =tp/(tp + fn)
         tnr =tn/(tn + fp) #reverse recall
-
-
         confusion_matrix = [[round(tp/total_preds, 2), round(fp/total_preds, 2)], [round(fn/total_preds, 2), round(tn/total_preds, 2)]]
 
         #makes dict out off stats
@@ -114,7 +111,7 @@ class BaseModel(ABC):
         
         #dump stats to json
         json_eval = json.dumps(eval_dict, indent=4)
-        with open(self._evaluation_dir, "w") as outfile:
+        with open(self._evaluation_dir / "eval.json", "w") as outfile:
             outfile.write(json_eval)
 
         # Confusion matrix plot 
