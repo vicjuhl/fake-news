@@ -131,7 +131,7 @@ class BaseModel(ABC):
         ax.set_title('Confusion Matrix')
 
         #dump to png
-        fig.savefig((self._evaluation_dir / 'figure.png'))
+        fig.savefig((self._evaluation_dir / 'ConfusionMatrix.png'))
 
         
 
