@@ -68,36 +68,35 @@ class BaseModel(ABC):
         preds = _preds[f'preds_from_{self._name}'] #predictions
         labels = _preds['type'] #correct anwsers
         
-        #counts results
-        true_fake = 0
-        false_fake = 0
-        true_reliable = 0
-        false_reliable = 0
+        #counts results, assuming fake is the positve case 
+        tp = 0  # true and fake
+        fp = 0  # false and fake
+        tn = 0  # true and reliable
+        fn = 0  # false and reliable
         for pred, lab in zip(preds, labels):
             if pred == "fake":
                 if lab == "fake":
-                    true_fake +=1
+                    tp +=1
                 else:
-                    false_fake +=1
+                    fp +=1
             else: #ie. pred == reliable
                 if lab == "reliable":
-                    true_reliable +=1
+                    tn +=1
                 else:
-                    false_reliable +=1
-        total_preds = true_fake + true_reliable + false_fake + false_reliable
+                    fn +=1
 
         #stats
-        accuracy = (true_fake + true_reliable)/total_preds
+        total_preds = tp + tn + fp + fn
+        accuracy = (tp + tn)/total_preds
         balanced_accuracy = balanced_accuracy_score(labels, preds)
         f1 = f1_score(labels, preds, average="weighted")
-        #precison for both fake and reliable
-        fake_precision =true_fake/(true_fake + false_fake)
-        reliable_precision =true_reliable/(true_reliable + false_reliable)
-        #recall
-        fake_recall =true_fake/(true_fake + false_reliable)
-        reliable_recall =true_reliable/(true_reliable + false_fake)
-        # Confusion matrix
-        confusion_matrix = [[round(true_fake/total_preds, 2), round(false_fake/total_preds, 2)], [round(false_reliable/total_preds, 2), round(true_reliable/total_preds, 2)]]
+        precision =tp/(tp + fp)
+        npv = tn/(tn + fn) #reverse precision
+        recall =tp/(tp + fn)
+        tnr =tn/(tn + fp) #reverse recall
+
+
+        confusion_matrix = [[round(tp/total_preds, 2), round(fp/total_preds, 2)], [round(fn/total_preds, 2), round(tn/total_preds, 2)]]
 
         #makes dict out off stats
         eval_dict = { 
@@ -105,10 +104,10 @@ class BaseModel(ABC):
             "F1 Score": f1,
             "Accuracy": accuracy,
             "Balanced Accuracy": balanced_accuracy,
-            "Fake Precision": fake_precision,
-            "Fake Recall": fake_recall,
-            "Reliable Precision": reliable_precision,
-            "Reliable Recall": reliable_recall,
+            "Precision": precision,
+            "NPV": npv,
+            "Recall": recall,
+            "TNR": tnr,
             "Confusion Matrix": confusion_matrix,
         } 
         print(eval_dict)
