@@ -13,13 +13,15 @@ from imports.data_importer import import_val_set, get_split # type: ignore
 MODELS: dict = {
     'simple': SimpleModel,
     'linear': LinearModel,
-    'multi_naive_bayes': MultinomialNaiveBayesModel,    
-    'compl_naive_bayes': ComplementNaiveBayesModel,
+    'multi_nb': MultinomialNaiveBayesModel,    
+    'compl_nb': ComplementNaiveBayesModel,
 }
 
 TRAININGSETS = {
     'simple': 'bow_simple', # tuple of int, df
-    'linear': 'bow_articles'
+    'linear': 'bow_articles',
+    'multi_nb': 'bow_articles',    
+    'compl_nb': 'bow_articles',
 }
 
 METHODNAMES = [
