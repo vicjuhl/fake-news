@@ -4,9 +4,11 @@ from abc import ABC, abstractmethod
 import pathlib as pl
 from typing import Optional
 import json
+import os
 from sklearn.metrics import f1_score, balanced_accuracy_score # type: ignore
 #import matplotlib.pyplot as plt
 
+from utils.functions import del_csv 
 class BaseModel(ABC):
     '''Abstract class for models'''
     def __init__(
@@ -19,6 +21,7 @@ class BaseModel(ABC):
         name: str,
         file_type: str,
     ) -> None:  # 1 as default value for val_set
+        models_dir
         self._session_dir = models_dir / f"{name}/{name}_{t_session}/"
         self._evaluation_dir = self._session_dir / "evaluation/"
         # Create dest folder with sub-folders if it does not exist.
@@ -32,6 +35,10 @@ class BaseModel(ABC):
         self._data_path =  pl.Path(__file__).parent.parent.resolve() / "data_files/"
         self._preds: Optional[pd.DataFrame] = None
         self.dump_metadata()
+        self._metamodel_path = models_dir / "metamodel"
+        self._metamodel_path.mkdir(parents=True, exist_ok=True)
+        self._metamodel_train_path =  self._metamodel_path / "metamodel_preds.csv"
+        self._metamodel_inference_path =  self._metamodel_path / "mm_inference.csv"
 
     def dump_metadata(self) -> None:
         """Dump json file with session metadata."""
@@ -57,40 +64,49 @@ class BaseModel(ABC):
         pass
     
     def dump_preds(self):
+        '''Dumps predictions to a csv for metamodel to train on'''
         print('generating training data for metamodel, dumping predictions')
+        
+        if not os.path.exists(self._metamodel_train_path): # if csv does not exist create it
+            pd.DataFrame().to_csv(self._metamodel_train_path, index=False)        
+        
         try:
             # load existing metamodel CSV file into a DataFrame
-            mm_df = pd.read_csv(self._metamodel_csv_path)
-        except ValueError:
+            mm_df = pd.read_csv(self._metamodel_train_path)
+            del_csv(self._metamodel_train_path) # delete csv file
+            
+        except pd.errors.EmptyDataError:
             print('no metamodel csv found, creating one')
-            # create new DataFrame with 'type' column only
             mm_df = pd.DataFrame()
             mm_df['type'] = self._preds['type']
         
         try:
-            print(self._preds[f'preds_from_{self._name}'])
-            
             # add new predictions as a new column to existing DataFrame
             mm_df[f'preds_from_{self._name}'] = self._preds[f'preds_from_{self._name}']
         except KeyError:
             print(f'no predictions to dump for {self._name}')
         
         # save updated DataFrame to metamodel CSV file
-        mm_df.to_csv(self._metamodel_csv_path, index= False, mode="w+")     
+        mm_df.to_csv(self._metamodel_train_path, index= False, mode="w+")     
         
     def dump_inference(self):
+        '''Dumps predictions to a csv for metamodel inference'''
+        if not os.path.exists(self._metamodel_train_path): # if csv does not exist create it
+            pd.DataFrame().to_csv(self._metamodel_inference_path, index=False)   
+        
         try:
-            mm_test = pd.read_csv(self._metamodel_csv_infer_path)
-        except ValueError:
+            mm_test = pd.read_csv(self._metamodel_inference_path)
+            del_csv(self._metamodel_inference_path) # delete csv file
+        except pd.errors.EmptyDataError:
             print('no metamodel csv found, creating one')
             # create new DataFrame with 'type' column only
             mm_test = pd.DataFrame()
         try:
             mm_test[f'preds_from_{self._name}'] = self._preds[f'preds_from_{self._name}']
-        except AttributeError: 
+        except pd.errors.EmptyDataError: 
             print('no inference to dump')
 
-        mm_test.to_csv(self._metamodel_csv_infer_path,  index= False, mode="w+")
+        mm_test.to_csv(self._metamodel_inference_path,  index= False, mode="w+")
     
     def evaluate(self) -> None:
         '''Evaluates the model on a dataframe'''

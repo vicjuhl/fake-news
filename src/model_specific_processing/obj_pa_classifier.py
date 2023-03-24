@@ -19,8 +19,10 @@ class PaClassifier(LinearModel):
         val_set: int,
         models_dir: pl.Path,
         t_session: str,
+        name : str = "pa_classifier",
+        model_format : str = "pkl"
     ) -> None:
-        super().__init__(params, training_sets, val_set, models_dir, t_session, "pa-classifier", "pkl")
+        super().__init__(params, training_sets, val_set, models_dir, t_session, name  , model_format)
         def __init__(
         self,
         params: dict,

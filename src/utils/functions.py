@@ -1,5 +1,6 @@
 import pandas as pd
 import math
+import os 
 from collections import Counter
 
 
@@ -31,3 +32,10 @@ def add_features_df(df : pd.DataFrame, feature_name : str) -> pd.DataFrame:
 
 def create_dict_MetaModel(row):
     return {**row.to_dict(), 'mm_inference': row.drop('type').to_dict()}
+
+def del_csv(path : str):
+    """Delete a csv file."""
+    if os.path.exists(path):
+        os.remove(path)
+    else:
+        print("The file does not exist")
