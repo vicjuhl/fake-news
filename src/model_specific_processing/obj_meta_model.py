@@ -33,8 +33,7 @@ class MetaModel(BaseModel):
             train_data_vec = self._vectorizer.fit_transform(train_data).to_list()
             self._model.fit(train_data_vec, train_data['type'])    
             print('metamodel trained, now wiping values') 
-            empty_df = pd.DataFrame()
-            empty_df.to_csv(self._metamodel_train_path, index=False) # empty the metamodel csv     
+            del_csv(self._metamodel_train_path)   
         except FileNotFoundError or pd.errors.EmptyDataError:
             print('metamodel cannot be trained, empty csv')        
             
