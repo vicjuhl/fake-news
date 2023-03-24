@@ -112,6 +112,7 @@ def process_lines(
 
 def reduce_corpus(
     from_file: pl.Path,
+    dups_path: pl.Path,
     to_path: pl.Path,
     n_rows: int,
 ) -> None:
@@ -122,7 +123,11 @@ def reduce_corpus(
         with open(to_path / "reduced_corpus.csv", 'w', encoding="utf8") as tf:
             writer = csv.writer(tf)
             writer.writerow(next(reader)) # Copy headers
-            reducer = CorpusReducer(writer)
+            try:
+                duplicates = pd.read_csv(dups_path)['id'].array # Load array of duplicates to skip when reading
+            except:
+                duplicates = np.array([])
+            reducer = CorpusReducer(writer, duplicates)
             n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, reducer)
     print_row_counts(n_incl, n_excl, n_ignored, n_skipped, f"Reduced corpus was written to {to_path}/")
 
