@@ -106,7 +106,7 @@ if __name__ == '__main__':
             'evaluate': model_inst.evaluate
         }
         for method_name in args.methods:
-            t0 = time.time()
+            t0 = time()
             print(f"\nRunning method", method_name)  
             if model_inst == MetaModel and method_name == "train": # skip over training
                 continue

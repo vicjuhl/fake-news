@@ -13,13 +13,6 @@ class MetaModel(BaseModel):
         super().__init__(training_sets , val_set, "meta_model")
         self._model = LogisticRegression(max_iter=1000)
         self._vectorizer = DictVectorizer()
-        self._training_sets = training_sets
-        linear_model_path = model_path / "meta_model/"
-        self._data_path =  pl.Path(__file__).parent.parent.resolve() / "data_files/"
-        linear_model_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
-        self._model_path = linear_model_path / f"{self._name}_valset{self._val_set}.pkl"
-        self._preds : Optional[pd.DataFrame] = None      
-        self._name = "meta_model"
     def train(self) -> None:
         # load data
         try:            
