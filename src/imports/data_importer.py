@@ -208,6 +208,29 @@ def summarize_articles(
                 n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, summarizer, incl_words=words)
     print_row_counts(n_incl, n_excl, n_ignored, n_skipped, f"Summarized corpus was written to files in {to_path}/")
 
+def get_duplicate_ids(
+        from_file: pl.Path,
+        to_path: pl.Path
+) -> None:
+    """Get ids of duplicate rows in a pandas dataframe.
+    
+    Only keeps the  occurence in the dataframe.
+
+    Returns a csv file containing duplicate ids.
+    """
+    from_file = from_file.resolve() / "summarized_corpus_valset2.csv"
+    to_path = to_path.resolve()
+
+    print(f"\n Reading pandas dataframe from file: {from_file}...")
+    df = pd.read_csv(from_file)
+    # update df to only contain duplicates
+    print("\n Extracting duplicate rows... This may take up to a minute...")
+    df = df[df.duplicated(subset=["domain","type","words","content_len","mean_word_len"], keep='first') == True] # does not include "scraped_at" in subset argument, so an article scraped on several occasions will only have the first occurence as non-duplicate
+    df = df['id']
+    to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
+    df.to_csv(to_path.resolve() / "summarized_corpus_valset2_duplicates.csv")
+    print(f"duplicate CSV was written to {to_path}\summarized_corpus_valset2_duplicates.csv")
+
 def import_val_set(from_file: pl.Path, split_num: int, splits: np.ndarray, n_rows: int) -> pd.DataFrame:
     """Import validation set as pandas dataframe."""
     df = pd.read_csv(from_file, usecols = ["id", "type", "content"], nrows = n_rows) # content instead of shortened for full corpus

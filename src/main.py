@@ -10,7 +10,8 @@ from imports.data_importer import ( # type: ignore
     split_data,
     remove_stop_words_json,
     import_val_set,
-    get_split
+    get_split,
+    get_duplicate_ids
 )
 
 def init_argparse() -> ap.ArgumentParser:
@@ -85,6 +86,14 @@ if __name__ == "__main__":
             args.nrows,
             val_set,
             splits,
+        )
+        print("runtime:", time.time() - t0)
+        t0 = time.time()
+
+    if "get_dups" in args.processes:
+        get_duplicate_ids(
+            data_path / "processed_csv",
+            data_path / "corpus"
         )
         print("runtime:", time.time() - t0)
         t0 = time.time()
