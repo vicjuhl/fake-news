@@ -1,20 +1,24 @@
 import pandas as pd
 import pathlib as pl
 from typing import Optional
+import json
+
 from model_specific_processing.simple_model import frequency_adjustment, tf_idf, logistic_Classification_weight, create_model, classify_article # type: ignore
 from model_specific_processing.base_model import BaseModel # type: ignore
 
 class SimpleModel(BaseModel):
     '''Simple model'''
-    def __init__(self, training_sets: dict, val_set: int, model_path: pl.Path) -> None:
-        super().__init__(training_sets, val_set, "simple")
-        self._model: Optional[pd.DataFrame] = None # a dataframe
+    def __init__(
+        self,
+        params: dict,
+        training_sets: dict,
+        val_set: int,
+        models_dir: pl.Path,
+        t_session: str,
+    ) -> None:
         self._name = "simplemodal" 
-        self._training_sets = training_sets
-        simple_path = model_path / "simple/"
-        self._data_path =  pl.Path(__file__).parent.parent.resolve() / "data_files/"
-        simple_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
-        self._model_path = simple_path / f"{self._name}_valset{self._val_set}.csv"
+        super().__init__(params, training_sets, val_set, models_dir, t_session, "simple", "csv")
+        self._model: Optional[pd.DataFrame] = None
         
     def train(self) -> None:
         '''Trains a simple_model instance on the training data'''
@@ -29,7 +33,7 @@ class SimpleModel(BaseModel):
         '''Dumps the model to a csv file'''
         model = self._model
         if model is not None:
-            model.to_csv(self._model_path, index=False) 
+            model.to_csv(self._model_path, index=True) 
         else:
             print("ERROR: model could not be dumped")
         print(f"Model saved to {self._model_path}")
@@ -37,7 +41,7 @@ class SimpleModel(BaseModel):
     def infer(self, test_df) -> None:
         '''Makes predictions on a dataframe'''
         if self._model is None:
-            self._model = pd.read_csv(self._model_path) 
+            self._model = pd.read_csv(self._model_path, index_col=0) 
         test_df[f'preds_from_{self._name}'] = classify_article(test_df , self._model)         
         self._preds = test_df
         

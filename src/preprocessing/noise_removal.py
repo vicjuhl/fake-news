@@ -76,12 +76,15 @@ def clean_str(text: str) -> str:
         to_ascii=True,
         lower=True,
         no_line_breaks=True,
-        normalize_whitespace=True,
-        replace_with_url="<URL>",
-        replace_with_email="<EMAIL>",
-        replace_with_number="<NUM>",
-        replace_with_currency_symbol="<CUR>",
+        no_urls=True,
+        no_emails=True,
+        no_phone_numbers=True,
+        no_numbers=True,
+        no_digits=True,
+        no_currency_symbols=True,
         no_punct=True,
+        no_emoji=True,
+        normalize_whitespace=True,
     )
     return re.sub("[^\x00-\x7F]+"," ", Cleaned) #removes all nonascii
 
@@ -113,7 +116,7 @@ def preprocess_without_stopwords(text: str, incl_words: set[str]) -> dict[str, i
     cleaned = clean_str(text) 
     tokenized = tokenize_str(cleaned)
     stemmed = [stem(word) for word in tokenized]
-    filtered = [word for word in filter(lambda word: word in incl_words, stemmed)]
+    filtered = list(filter(lambda word: word in incl_words, stemmed))
     count_dict = count_words(filtered)
     return count_dict
 

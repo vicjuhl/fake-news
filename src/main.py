@@ -3,8 +3,14 @@ import time
 import argparse as ap
 import numpy as np
 
-from imports.data_importer import (# type: ignore
-    extract_words, reduce_corpus, summarize_articles, split_data, remove_stop_words_json, import_val_set, get_split  # type: ignore
+from imports.data_importer import ( # type: ignore
+    extract_words,
+    reduce_corpus,
+    summarize_articles,
+    split_data,
+    remove_stop_words_json,
+    import_val_set,
+    get_split
 )
 
 def init_argparse() -> ap.ArgumentParser:
@@ -79,16 +85,6 @@ if __name__ == "__main__":
             args.nrows,
             val_set,
             splits,
-        )
-        print("runtime:", time.time() - t0)
-        t0 = time.time()
-
-    if "df" in args.processes:
-        # THIS PROCESS SHOULD BE MOVED TO MODEL MAIN SCRIPT WHEN READY TODO
-        df = import_val_set(
-            data_path / "corpus" / args.filename,
-            val_set,
-            splits
         )
         print("runtime:", time.time() - t0)
         t0 = time.time()
