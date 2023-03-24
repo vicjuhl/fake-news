@@ -34,11 +34,11 @@ class BaseModel(ABC):
         self._t_session = t_session
         self._data_path =  pl.Path(__file__).parent.parent.resolve() / "data_files/"
         self._preds: Optional[pd.DataFrame] = None
-        self.dump_metadata()
         self._metamodel_path = models_dir / "metamodel"
         self._metamodel_path.mkdir(parents=True, exist_ok=True)
         self._metamodel_train_path =  self._metamodel_path / "metamodel_preds.csv"
         self._metamodel_inference_path =  self._metamodel_path / "mm_inference.csv"
+        self.dump_metadata()
 
     def dump_metadata(self) -> None:
         """Dump json file with session metadata."""
@@ -63,33 +63,34 @@ class BaseModel(ABC):
     def infer(self, df: pd.DataFrame) -> pd.DataFrame:
         pass
     
-    def dump_preds(self):
+    def dump_for_mm_training(self):
         '''Dumps predictions to a csv for metamodel to train on'''
         print('generating training data for metamodel, dumping predictions')
         
-        if not os.path.exists(self._metamodel_train_path): # if csv does not exist create it
-            pd.DataFrame().to_csv(self._metamodel_train_path, index=False)        
-        
         try:
             # load existing metamodel CSV file into a DataFrame
-            mm_df = pd.read_csv(self._metamodel_train_path)
-            del_csv(self._metamodel_train_path) # delete csv file
-            
-        except pd.errors.EmptyDataError:
-            print('no metamodel csv found, creating one')
-            mm_df = pd.DataFrame()
-            mm_df['type'] = self._preds['type']
-        
+            mm_df = pd.read_csv(self._metamodel_train_path, index_col="id")
+            print("LOADED mm_df:", mm_df)
+        except Exception as e:
+            print(f"Something went wrong loading csv: {e}")
+            mm_df = pd.DataFrame({'id': self._preds.id, 'type': self._preds.type})
+            print("mm_df FROM PREDS:", mm_df)
         try:
             # add new predictions as a new column to existing DataFrame
-            mm_df[f'preds_from_{self._name}'] = self._preds[f'preds_from_{self._name}']
-        except KeyError:
-            print(f'no predictions to dump for {self._name}')
-        
+            col_name = f'preds_from_{self._name}'
+            if col_name not in self._preds:
+                print(f'no predictions to dump for {self._name}')
+                
+            mm_df = mm_df.assign(**{col_name: self._preds[col_name]}) # the error is here
+            print("mm_df:", mm_df[col_name])
+            print("preds", self._preds[col_name])
+        except Exception as e:
+            print(f'Something went wrong adding predictions: {e}')
+
         # save updated DataFrame to metamodel CSV file
-        mm_df.to_csv(self._metamodel_train_path, index= False, mode="w+")     
-        
-    def dump_inference(self):
+        mm_df.to_csv(self._metamodel_train_path, mode="w")
+
+    def dump_for_mm_inference(self):
         '''Dumps predictions to a csv for metamodel inference'''
         if not os.path.exists(self._metamodel_train_path): # if csv does not exist create it
             pd.DataFrame().to_csv(self._metamodel_inference_path, index=False)   

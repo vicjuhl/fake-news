@@ -23,7 +23,7 @@ MODELS: dict = {
 }
 
 TRAININGSETS = {
-    'simple': 'bow_simple', # tuple of int, df
+    'simple': 'bow_simple',
     'linear': 'bow_articles',
     'multi_nb': 'bow_articles',    
     'compl_nb': 'bow_articles',
@@ -36,6 +36,8 @@ METHODNAMES = [
     'dump_model',
     'infer',
     'evaluate',
+    'dump_for_mm_training',
+    'dump_for_mm_inference'
 ]
 
 def init_argparse() -> ap.ArgumentParser:
@@ -101,8 +103,8 @@ if __name__ == '__main__':
             'train': model_inst.train,
             'dump_model': model_inst.dump_model,
             'infer': model_inst.infer,
-            'dump_preds': model_inst.dump_preds,
-            'dump_inference': model_inst.dump_inference,
+            'dump_for_mm_training': model_inst.dump_for_mm_training,
+            'dump_for_mm_inference': model_inst.dump_for_mm_training,
             'evaluate': model_inst.evaluate
         }
         for method_name in args.methods:
