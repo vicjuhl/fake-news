@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 import statistics as stat
 import numpy as np
+import pandas as pd
 
 from utils.types import news_info, words_info, words_dict, NotInTrainingException # type: ignore
 from utils.functions import add_tuples # type: ignore
@@ -55,20 +56,25 @@ class DataHandler(ABC):
         pass
 
 class CorpusReducer(DataHandler):
-    def __init__(self, writer: '_csv._writer') -> None:
+    def __init__(self, writer: '_csv._writer', duplicates: np.ndarray) -> None:
         super().__init__()
         self.writer = writer
+        self.duplicates = duplicates
     
     def extract(self, row: list[str], _) -> tuple[str, ...]:
-        """Extract all entries from row."""
+        """Extract all entries from row except duplicates."""
         type_ = row[3]
+        id_ = int(row[1])
         if type_ is None or type_ in excl_types:
+            self._n_excl += 1
+            return () # Nothing added to buffer
+        elif id_ in self.duplicates:
             self._n_excl += 1
             return () # Nothing added to buffer
         else:
             self._n_incl += 1
             # Make sure that every field has data
-            return tuple([row[i] for i in range(17)])
+            return tuple([row[i] for i in range(len(row))])
         
     @classmethod
     def process_batch(cls, data: tuple[list[tuple[str, ...]], dict]) -> list[Any]:
