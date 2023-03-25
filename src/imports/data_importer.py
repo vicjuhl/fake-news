@@ -215,7 +215,8 @@ def summarize_articles(
 
 def get_duplicate_ids(
         from_file: pl.Path,
-        to_path: pl.Path
+        to_path: pl.Path,
+        file_name: str
 ) -> None:
     """Get ids of duplicate rows in a pandas dataframe.
     
@@ -223,18 +224,21 @@ def get_duplicate_ids(
 
     Returns a csv file containing duplicate ids.
     """
-    from_file = from_file.resolve() / "summarized_corpus_valset2.csv"
     to_path = to_path.resolve()
 
-    print(f"\n Reading pandas dataframe from file: {from_file}...")
-    df = pd.read_csv(from_file)
-    # update df to only contain duplicates
-    print("\n Extracting duplicate rows... This may take up to a minute...")
-    df = df[df.duplicated(subset=["domain","type","words","content_len","mean_word_len"], keep='first') == True] # does not include "scraped_at" in subset argument, so an article scraped on several occasions will only have the first occurence as non-duplicate
-    df = df['id']
-    to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
-    df.to_csv(to_path.resolve() / "summarized_corpus_valset2_duplicates.csv")
-    print(f"duplicate CSV was written to {to_path}\summarized_corpus_valset2_duplicates.csv")
+    if (to_path / file_name).is_file() == True: # do nothing if duplicate csv file already exists
+        print(f"\n Careful! If you want to overwrite the existing duplicates, you will have to delete the duplicate csv file first. The file already exists as {to_path}\{file_name}")
+    else:                                       # create new file if duplicate csv file does not exist
+        print(f' Creating file {to_path}\{file_name} ...')
+        print(f"\n Reading pandas dataframe from file: {from_file} ...")
+        df = pd.read_csv(from_file)
+        # update df to only contain duplicates
+        print("\n Extracting duplicate rows... This may take up to a minute...")
+        df = df[df.duplicated(subset=["domain","type","words","content_len","mean_word_len"], keep='first') == True] # does not include "scraped_at" in subset argument, so an article scraped on several occasions will only have the first occurence as non-duplicate
+        df = df['id']
+        to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
+        df.to_csv(to_path.resolve() / file_name)
+        print(f"\n duplicate CSV was written to {to_path}\{file_name}")
 
 def import_val_set(from_file: pl.Path, split_num: int, splits: np.ndarray, n_rows: int) -> pd.DataFrame:
     """Import validation set as pandas dataframe."""
