@@ -1,15 +1,8 @@
-import pandas as pd
-import pickle
 import pathlib as pl
-import ast
-from typing import Optional
-from sklearn.feature_extraction.text import TfidfVectorizer # type: ignore
 from sklearn.feature_extraction import DictVectorizer # type: ignore
 from sklearn.linear_model import PassiveAggressiveClassifier # type: ignore
-from model_specific_processing.base_model import BaseModel  # type: ignore
-import time 
 
-from model_specific_processing.obj_linear_model import LinearModel 
+from model_specific_processing.obj_linear_model import LinearModel # type: ignore
 
 class PaClassifier(LinearModel):
     def __init__(

@@ -1,7 +1,4 @@
-import pandas as pd
-import pickle
 import pathlib as pl
-import ast
 from sklearn.feature_extraction import DictVectorizer # type: ignore
 from sklearn.naive_bayes import MultinomialNB, ComplementNB # type: ignore
 from model_specific_processing.obj_linear_model import LinearModel # type: ignore

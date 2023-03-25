@@ -71,13 +71,12 @@ class BaseModel(ABC):
         try:
             # load existing metamodel CSV file into a DataFrame
             mm_df = pd.read_csv(self._metamodel_train_path)
-            print("LOADED mm_df:", mm_df)
         except Exception as e:
             print("Not loading csv: ", e)
             mm_df = pd.DataFrame({'id': self._preds.id, 'type': self._preds.type})
         try:
             # add new predictions as a new column to existing DataFrame
-            col_name = f'preds_from_{self._name}'
+            col_name = f'preds_{self._name}'
             if col_name not in self._preds:
                 print(f'no predictions to dump for {self._name}')
 
@@ -107,7 +106,7 @@ class BaseModel(ABC):
             # create new DataFrame with 'type' column only
             mm_test = pd.DataFrame()
         try:
-            mm_test[f'preds_from_{self._name}'] = self._preds[f'preds_from_{self._name}']
+            mm_test[f'preds_{self._name}'] = self._preds[f'preds_{self._name}']
         except pd.errors.EmptyDataError: 
             print('no inference to dump')
 
@@ -119,7 +118,7 @@ class BaseModel(ABC):
         if _preds is None:
             print('cannot evaluate without predictions')
             return
-        preds = _preds[f'preds_from_{self._name}'] #predictions
+        preds = _preds[f'preds_{self._name}'] #predictions
         labels = _preds['type'] #correct anwsers
         
         #counts results, assuming fake is the positve case 

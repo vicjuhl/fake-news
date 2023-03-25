@@ -54,7 +54,7 @@ class MetaModel(BaseModel):
             del_csv(self._metamodel_inference_path)
             # infer
             df['inference_column'] = df.apply(create_dict_MetaModel, axis=1).to_list()    
-            df[f'preds_from_{self._name}'] = self._model.predict(df['inference_column'])
+            df[f'preds_{self._name}'] = self._model.predict(df['inference_column'])
             df.drop(columns=['inference_column'], inplace=True)   
         except FileNotFoundError:
             print('no metamodel csv cannot do inference, run at least one model first')

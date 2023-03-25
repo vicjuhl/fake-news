@@ -62,7 +62,7 @@ class LinearModel(BaseModel):
                 df['bow'] = df['bow'].apply(lambda x: {**x,'content_len': len(x.keys())}) # adding content_len
                 df['bow'] = df['bow'].apply(lambda x: {**x,'mean_word_len': sum(x.values())/len(x.keys())}) # adding mean_word_len
                 
-            df[f'preds_from_{self._name}'] = model.predict(
+            df[f'preds_{self._name}'] = model.predict(
                 self._vectorizer.transform(df['bow'])
             ) # adding predictions as a column
             self._preds = df.drop(["bow", "content"], axis=1)
