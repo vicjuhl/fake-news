@@ -8,7 +8,8 @@ import os
 from sklearn.metrics import f1_score, balanced_accuracy_score # type: ignore
 #import matplotlib.pyplot as plt
 
-from utils.functions import del_csv 
+from utils.functions import del_csv # type: ignore
+
 class BaseModel(ABC):
     '''Abstract class for models'''
     def __init__(
@@ -69,26 +70,29 @@ class BaseModel(ABC):
         
         try:
             # load existing metamodel CSV file into a DataFrame
-            mm_df = pd.read_csv(self._metamodel_train_path, index_col="id")
+            mm_df = pd.read_csv(self._metamodel_train_path)
             print("LOADED mm_df:", mm_df)
         except Exception as e:
-            print(f"Something went wrong loading csv: {e}")
+            print("Not loading csv: ", e)
             mm_df = pd.DataFrame({'id': self._preds.id, 'type': self._preds.type})
-            print("mm_df FROM PREDS:", mm_df)
         try:
             # add new predictions as a new column to existing DataFrame
             col_name = f'preds_from_{self._name}'
             if col_name not in self._preds:
                 print(f'no predictions to dump for {self._name}')
-                
-            mm_df = mm_df.assign(**{col_name: self._preds[col_name]}) # the error is here
-            print("mm_df:", mm_df[col_name])
-            print("preds", self._preds[col_name])
+
+            # Merge preds from relevant model into meta-models training set.
+            mm_df = pd.merge(
+                mm_df,
+                self._preds.drop(["type", "split"], axis=1),
+                on="id",
+                how="left",
+                suffixes=("", "_r")
+            )
+            # save updated DataFrame to metamodel CSV file
+            mm_df.to_csv(self._metamodel_train_path, mode="w", index=False)
         except Exception as e:
             print(f'Something went wrong adding predictions: {e}')
-
-        # save updated DataFrame to metamodel CSV file
-        mm_df.to_csv(self._metamodel_train_path, mode="w")
 
     def dump_for_mm_inference(self):
         '''Dumps predictions to a csv for metamodel inference'''

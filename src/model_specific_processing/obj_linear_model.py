@@ -65,7 +65,7 @@ class LinearModel(BaseModel):
             df[f'preds_from_{self._name}'] = model.predict(
                 self._vectorizer.transform(df['bow'])
             ) # adding predictions as a column
-            self._preds = df
+            self._preds = df.drop(["bow", "content"], axis=1)
 
         except FileNotFoundError:
             print('Cannot make inference without a trained model')    

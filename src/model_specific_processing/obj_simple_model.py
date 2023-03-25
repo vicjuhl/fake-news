@@ -41,9 +41,9 @@ class SimpleModel(BaseModel):
     def infer(self, test_df) -> None:
         '''Makes predictions on a dataframe'''
         if self._model is None:
-            self._model = pd.read_csv(self._model_path, index_col=0) 
-        test_df[f'preds_from_{self._name}'] = classify_article(test_df , self._model)         
-        self._preds = test_df
+            self._model = pd.read_csv(self._model_path, index_col=0)
+        test_df[f'preds_from_{self._name}'] = classify_article(test_df , self._model) 
+        self._preds = test_df.drop("content", axis=1)
         
     
         

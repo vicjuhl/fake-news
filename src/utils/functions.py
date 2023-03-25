@@ -1,7 +1,7 @@
 import pandas as pd
 import math
 import os 
-from collections import Counter
+import pathlib as pl
 
 
 def add_tuples(a: tuple[int, int], b: tuple[int, int]) -> tuple[int, int]:
@@ -33,7 +33,7 @@ def add_features_df(df : pd.DataFrame, feature_name : str) -> pd.DataFrame:
 def create_dict_MetaModel(row):
     return {**row.to_dict(), 'mm_inference': row.drop('type').to_dict()}
 
-def del_csv(path : str):
+def del_csv(path : pl.Path):
     """Delete a csv file."""
     if os.path.exists(path):
         os.remove(path)
