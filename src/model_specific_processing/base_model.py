@@ -84,47 +84,54 @@ class BaseModel(ABC):
                     tn +=1
                 else:
                     fn +=1
-        #stats
-        total_preds = tp + tn + fp + fn
-        accuracy = (tp + tn)/total_preds
-        balanced_accuracy = balanced_accuracy_score(labels, preds)
-        f1 = f1_score(labels, preds, average="weighted")
-        precision =tp/(tp + fp)
-        npv = tn/(tn + fn) #reverse precision
-        recall =tp/(tp + fn)
-        tnr =tn/(tn + fp) #reverse recall
-        confusion_matrix = [[round(tp/total_preds, 2), round(fp/total_preds, 2)], [round(fn/total_preds, 2), round(tn/total_preds, 2)]]
-
-        #makes dict out off stats
-        eval_dict = { 
-            "nPredictions": total_preds,
-            "F1 Score": f1,
-            "Accuracy": accuracy,
-            "Balanced Accuracy": balanced_accuracy,
-            "Precision": precision,
-            "NPV": npv,
-            "Recall": recall,
-            "TNR": tnr,
-            "Confusion Matrix": confusion_matrix,
-        } 
-        print(eval_dict)
+        try:
+            #stats
+            total_preds = tp + tn + fp + fn
+            accuracy = (tp + tn)/total_preds
+            balanced_accuracy = balanced_accuracy_score(labels, preds)
+            f1 = f1_score(labels, preds, average="weighted")
+            precision =tp/(tp + fp)
+            npv = tn/(tn + fn) #reverse precision
+            recall =tp/(tp + fn)
+            tnr =tn/(tn + fp) #reverse recall
+            confusion_matrix = [[round(tp/total_preds, 4), round(fp/total_preds, 4)], [round(fn/total_preds, 4), round(tn/total_preds, 4)]]
+            #makes dict out off stats
+            eval_dict = { 
+                "nPredictions": total_preds,
+                "F1 Score": f1,
+                "Accuracy": accuracy,
+                "Balanced Accuracy": balanced_accuracy,
+                "Precision": precision,
+                "NPV": npv,
+                "Recall": recall,
+                "TNR": tnr,
+                "Confusion Matrix": confusion_matrix,
+            } 
         
-        #dump stats to json
-        json_eval = json.dumps(eval_dict, indent=4)
-        with open(self._evaluation_dir / "eval.json", "w") as outfile:
-            outfile.write(json_eval)
+            #dump stats to json
+            json_eval = json.dumps(eval_dict, indent=4)
+            print(json_eval)
+            with open(self._evaluation_dir / "eval.json", "w") as outfile:
+                outfile.write(json_eval)
 
+        except ZeroDivisionError:
+            print("devided by zero in evaluation, data lost")
+            confusion_matrix = [[round(tp/total_preds, 4), round(fp/total_preds, 4)], [round(fn/total_preds, 4), round(tn/total_preds, 4)]]
+        
         # Confusion matrix plot 
         fig, ax = plt.subplots()
         table = ax.matshow(confusion_matrix, cmap ='Blues')
-        ax.set_xticklabels(['', 'Fake', 'Reliable'])
-        ax.set_yticklabels(['', 'Fake', 'Reliable'])
+   
+        ax.set_xticks([0, 1])
+        ax.set_yticks([0, 1])
+        ax.set_xticklabels(['Fake', 'Reliable'])
+        ax.set_yticklabels(['Fake', 'Reliable'])
 
         # Add the values to the table
         for i in range(2):
             for j in range(2):
-                ax.text(j, i, str(confusion_matrix[i][j]), va='center', ha='center')
-        ax.set_title('Confusion Matrix')
+                text = f"{round(confusion_matrix[i][j]*100, 2)}%"
+                ax.text(j, i, text, va='center', ha='center', fontsize=10)
 
         #dump to png
         fig.savefig((self._evaluation_dir / 'ConfusionMatrix.png'))

@@ -7,6 +7,8 @@ import json
 from model_specific_processing.obj_simple_model import SimpleModel # type: ignore
 from model_specific_processing.obj_linear_model import LinearModel # type: ignore
 from model_specific_processing.obj_naive_bayes_models import MultinomialNaiveBayesModel, ComplementNaiveBayesModel  # type: ignore
+from model_specific_processing.obj_svm_model import svmModel # type: ignore
+from model_specific_processing.obj_random_forest_model import RandomForestModel # type: ignore
 from imports.json_to_pandas import json_to_pd # type: ignore
 from imports.data_importer import import_val_set, get_split # type: ignore
 
@@ -15,6 +17,8 @@ MODELS: dict = {
     'linear': LinearModel,
     'multi_nb': MultinomialNaiveBayesModel,    
     'compl_nb': ComplementNaiveBayesModel,
+    'svm': svmModel,
+    'random_f': RandomForestModel,
 }
 
 TRAININGSETS = {
@@ -22,6 +26,8 @@ TRAININGSETS = {
     'linear': 'bow_articles',
     'multi_nb': 'bow_articles',    
     'compl_nb': 'bow_articles',
+    'svm' : 'bow_articles',
+    'random_f': 'bow_articles'
 }
 
 METHODNAMES = [
