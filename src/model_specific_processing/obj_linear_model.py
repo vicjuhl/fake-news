@@ -22,8 +22,6 @@ class LinearModel(BaseModel):
         super().__init__(params, training_sets, val_set, models_dir, t_session, name, file_format)
         self._vectorizer = DictVectorizer()
         self._model = LogisticRegression(max_iter=1000, n_jobs=-1)
-        self._vectorizer = DictVectorizer()
-        self._training_sets = training_sets
         self._with_features = True 
       
     def train(self) -> None:        

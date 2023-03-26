@@ -1,8 +1,7 @@
 import pandas as pd
-import math
 import os 
 import pathlib as pl
-
+import math 
 
 def add_tuples(a: tuple[int, int], b: tuple[int, int]) -> tuple[int, int]:
     """Add two two-element integer tuples elementwise."""
@@ -30,8 +29,9 @@ def add_features_df(df : pd.DataFrame, feature_name : str) -> pd.DataFrame:
     df['words_dict'] = df.apply(lambda row: {**row['words_dict'], feature_name : row[f'{feature_name}']}, axis=1) # add feature to words_dict
     return df
 
+
 def create_dict_MetaModel(row):
-    return {**row.to_dict(), 'mm_inference': row.drop('type').to_dict()}
+    return {**row.to_dict()}
 
 def del_csv(path : pl.Path):
     """Delete a csv file."""

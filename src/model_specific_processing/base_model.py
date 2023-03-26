@@ -37,8 +37,8 @@ class BaseModel(ABC):
         self._preds: Optional[pd.DataFrame] = None
         self._metamodel_path = models_dir / "metamodel"
         self._metamodel_path.mkdir(parents=True, exist_ok=True)
-        self._metamodel_train_path =  self._metamodel_path / "metamodel_preds.csv"
-        self._metamodel_inference_path =  self._metamodel_path / "mm_inference.csv"
+        self._metamodel_train_path =  self._metamodel_path / "metamodel_train.csv"
+        self._metamodel_inference_path =  self._metamodel_path / "metamodel_inference.csv"
         self.dump_metadata()
 
     def dump_metadata(self) -> None:
