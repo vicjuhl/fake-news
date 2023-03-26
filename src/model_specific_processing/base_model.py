@@ -74,24 +74,29 @@ class BaseModel(ABC):
         except Exception as e:
             print("Not loading csv: ", e)
             mm_df = pd.DataFrame({'id': self._preds.id, 'type': self._preds.type})
+            
+        col_name = f'preds_{self._name}'
         try:
             # add new predictions as a new column to existing DataFrame
             col_name = f'preds_{self._name}'
             if col_name not in self._preds:
                 print(f'no predictions to dump for {self._name}')
 
-            # Merge preds from relevant model into meta-models training set.
+            if col_name in mm_df.columns:
+                mm_df = mm_df.drop(col_name, axis=1) # dropping column if it already exists 
+            
             mm_df = pd.merge(
                 mm_df,
-                self._preds.drop(["type", "split"], axis=1),
+                self._preds.drop(["type", "split"], axis=1), # problem, adding other columns than just preds!!
                 on="id",
                 how="left",
-                suffixes=("", "_r")
+                suffixes=("_l", "_r")
             )
             # save updated DataFrame to metamodel CSV file
             mm_df.to_csv(self._metamodel_train_path, mode="w", index=False)
         except Exception as e:
             print(f'Something went wrong adding predictions: {e}')
+            
 
     def dump_for_mm_inference(self):
         '''Dumps predictions to a csv for metamodel inference'''

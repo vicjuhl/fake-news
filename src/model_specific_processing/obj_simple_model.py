@@ -38,14 +38,14 @@ class SimpleModel(BaseModel):
             print("ERROR: model could not be dumped")
         print(f"Model saved to {self._model_path}")
         
-    def infer(self, test_df) -> None:
+    def infer(self, df) -> None:
         '''Makes predictions on a dataframe'''
         if self._model is None:
             self._model = pd.read_csv(self._model_path, index_col=0)
-        test_df[f'preds_{self._name}'] = classify_article(test_df , self._model) 
-        self._preds = test_df.drop("content", axis=1)
         
+        self._preds = df[['id', 'type', 'split']].copy()
+            # adding predictions as a column 
+        self._preds[f'preds_{self._name}'] = classify_article(df , self._model) 
     
-        
         
         

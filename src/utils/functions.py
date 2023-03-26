@@ -2,6 +2,10 @@ import pandas as pd
 import os 
 import pathlib as pl
 import math 
+#import graphviz
+from sklearn.tree import export_graphviz
+import re
+
 
 def add_tuples(a: tuple[int, int], b: tuple[int, int]) -> tuple[int, int]:
     """Add two two-element integer tuples elementwise."""
@@ -39,3 +43,10 @@ def del_csv(path : pl.Path):
         os.remove(path)
     else:
         print("The file does not exist")
+
+'''
+def draw_tree(model, df, size=10, ratio=0.6, precision=2, **kwargs):
+    s= export_graphviz(t, out_file=None, feature_names=df.columns, filled=True, rounded=True,
+                      special_characters=True, rotate=False, precision=precision, **kwargs)
+    return graphviz.Source(re.sub('Tree {', f'Tree {{ size={size}; ratio={ratio}', s))
+'''

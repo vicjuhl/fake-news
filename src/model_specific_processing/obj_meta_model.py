@@ -29,16 +29,13 @@ class MetaModel(BaseModel):
         try:            
             train_data = pd.read_csv(self._metamodel_train_path)
             
-            print(train_data.columns)
             labels = train_data['type'] # strings
-            
             train_data.drop(['id', 'type'], axis = 1, inplace=True) # should not be used for training because of information polution      
             train_data = train_data.applymap(lambda x: 1 if x == 'reliable' else 0)
             train_data['dict'] =  train_data.apply(create_dict_MetaModel, axis=1)
-            print(train_data['dict'])
             
             train_data_vec = self._vectorizer.fit_transform(train_data['dict'].to_list())
-            self._model.fit(train_data_vec, labels)    
+            self._model.fit(train_data_vec , labels)    
         except FileNotFoundError or pd.errors.EmptyDataError:
             print('metamodel cannot be trained, empty csv')   
              
@@ -54,30 +51,25 @@ class MetaModel(BaseModel):
     def infer(self, df: pd.DataFrame) -> pd.DataFrame:
         '''Infer the model on the given dataframe'''
         # load model
-        ''''''
         try:   
             if self._model is None:
-                    with open(self._model_path, 'rb') as f:
-                        model = pickle.load(f)
+                with open(self._model_path, 'rb') as f:
+                    model = pickle.load(f)
             else:
                 model = self._model
             
-            print('not ready yet')
-            '''           
-            labels = train_data['type']
+            self._preds = df  
             
-            train_data.drop('id', axis = 1, inplace=True)     
-            train_data.drop('type', axis = 1,  inplace=True)    
+            df.drop(['id', 'type'], axis = 1, inplace=True)            
+            df = df.applymap(lambda x: 1 if x == 'reliable' and x != 'type' else 0 if x == 'fake' and x != 'type' else x)            
+            df['inference_column'] = df.apply(create_dict_MetaModel, axis=1) 
             
-            df.drop('id', axis=1, inplace=True) # droppping id column
-            df = df.applymap(lambda x: 1 if x == 'reliable' and x != 'type' else 0 if x == 'fake' and x != 'type' else x)
-            print(df.head(5))
-            df['inference_column'] = df.apply(create_dict_MetaModel, axis=1)  
-            self._preds = df[['id', 'type', 'split']].copy()
+            for i in range(5):
+                print(df.loc[i,'inference_column'])
             
-            self._preds[f'preds_{self._name}'] = model.predict(
-                self._vectorizer.transform(df['inference_column']))
-            '''
+            vec = self._vectorizer.fit_transform(df['inference_column'].to_list())            
+            self._preds[f'preds_{self._name}'] = model.predict(vec)
+
         
         
         except FileNotFoundError:

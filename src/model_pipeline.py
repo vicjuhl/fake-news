@@ -13,6 +13,7 @@ from model_specific_processing.obj_naive_bayes_models import MultinomialNaiveBay
 from imports.json_to_pandas import json_to_pd # type: ignore
 from imports.data_importer import import_val_set, get_split # type: ignore
 
+
 MODELS: dict = {
     'simple': SimpleModel,
     'linear': LinearModel,
@@ -110,10 +111,13 @@ if __name__ == '__main__':
         for method_name in args.methods:
             t0 = time()
             print(f"\nRunning method", method_name)  
-            if model_inst == MetaModel and method_name == "train": # skip over training
-                continue
-            if method_name == "infer":
-                METHODS[method_name](val_data)
+            
+            if method_name == "infer" :
+                if isinstance(model_inst, MetaModel):
+                    mm_df = pd.read_csv('model_files\metamodel\metamodel_train.csv')
+                    METHODS[method_name](mm_df)
+                else:
+                    METHODS[method_name](val_data)
             else:
                 METHODS[method_name]()
             print("Runtime", time() - t0)        

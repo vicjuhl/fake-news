@@ -51,14 +51,13 @@ def binary_classifier(words: dict[str, int], df: pd.DataFrame) -> str:
             if not isinstance(acc_score,float):
                 raise ValueError
     # the following division produces an average (no effect on binary classification)   
-    return 'fake' if acc_score / acc_weight < 0 else 'reliable' 
+    return 'fake' if acc_score / acc_weight < 0 else 'reliable' # shoudl be changed to non binary 
 
 def classify_article(val_df: pd.DataFrame, model_df: pd.DataFrame) -> list[str]:
     """Classifies all articles in the input dataframe, and returns a list of predictions."""
     predictions = []
     column = val_df['content'].apply(lambda x: preprocess_string(x))
     column.apply(lambda x: predictions.append(binary_classifier(x, model_df)))       
-    print(len(predictions) , len(val_df['content']))
     
     return predictions
     
