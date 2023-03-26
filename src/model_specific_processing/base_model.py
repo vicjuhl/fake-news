@@ -114,6 +114,12 @@ class BaseModel(ABC):
     
     def evaluate(self) -> None:
         '''Evaluates the model on a dataframe'''
+        def try_divide(a, b):
+            try:
+                return a/(a+b)
+            except ZeroDivisionError:
+                return None
+
         _preds = self._preds
         if _preds is None:
             print('cannot evaluate without predictions')
@@ -142,10 +148,10 @@ class BaseModel(ABC):
         accuracy = (tp + tn)/total_preds
         balanced_accuracy = balanced_accuracy_score(labels, preds)
         f1 = f1_score(labels, preds, average="weighted")
-        precision =tp/(tp + fp)
-        npv = tn/(tn + fn) #reverse precision
-        recall =tp/(tp + fn)
-        tnr =tn/(tn + fp) #reverse recall
+        precision = try_divide(tp, fp)
+        npv = try_divide(tn, fn)#reverse precision
+        recall = try_divide(tp, fn)
+        tnr = try_divide(tn, fp) #reverse recall
         confusion_matrix = [[round(tp/total_preds, 2), round(fp/total_preds, 2)], [round(fn/total_preds, 2), round(tn/total_preds, 2)]]
 
         #makes dict out off stats
