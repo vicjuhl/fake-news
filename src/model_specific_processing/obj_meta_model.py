@@ -3,6 +3,7 @@ import pathlib as pl
 from typing import Optional
 import pandas as pd
 from sklearn.feature_extraction import DictVectorizer # type: ignore
+from sklearn.ensemble import RandomForestClassifier
 import pickle
 import os 
 
@@ -21,7 +22,7 @@ class MetaModel(BaseModel):
         model_format : str = "pkl"
     ) -> None:
         super().__init__(params, training_sets, val_set, models_dir, t_session, name, model_format)
-        self._model = LogisticRegression(max_iter=1000, n_jobs=-1)
+        self._model = RandomForestClassifier(n_estimators=100, max_depth=3, random_state=0, n_jobs=-1)
         self._vectorizer = DictVectorizer()
     def train(self) -> None:
         '''Train the model on the given training sets'''
