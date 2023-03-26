@@ -3,7 +3,7 @@ import pathlib as pl
 from typing import Optional
 import json
 
-from model_specific_processing.simple_model import frequency_adjustment, tf_idf, logistic_Classification_weight, create_model, classify_article # type: ignore
+from model_specific_processing.simple_model import frequency_adjustment, tf_idf, logistic_Classification_weight, create_model, classify_article, classify_article_continous # type: ignore
 from model_specific_processing.base_model import BaseModel # type: ignore
 
 class SimpleModel(BaseModel):
@@ -46,6 +46,7 @@ class SimpleModel(BaseModel):
         self._preds = df[['id', 'type', 'split']].copy()
             # adding predictions as a column 
         self._preds[f'preds_{self._name}'] = classify_article(df , self._model) 
+        self._preds[f'preds_{self._name}_cont'] = classify_article_continous(df , self._model)
     
         
         

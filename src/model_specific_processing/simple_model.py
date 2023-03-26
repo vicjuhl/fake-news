@@ -38,7 +38,7 @@ def create_model(df: pd.DataFrame) -> pd.DataFrame:
     new_df["fakeness_score"] = df["fakeness_score"]
     return new_df
 
-def binary_classifier(words: dict[str, int], df: pd.DataFrame) -> str:
+def classifier(words: dict[str, int], df: pd.DataFrame) -> str:
     """Given a dict of words and their freq, and dataframe for simpel model, it makes a binary prediction."""
     acc_weight = 0.1
     acc_score = 0
@@ -51,13 +51,26 @@ def binary_classifier(words: dict[str, int], df: pd.DataFrame) -> str:
             if not isinstance(acc_score,float):
                 raise ValueError
     # the following division produces an average (no effect on binary classification)   
-    return 'fake' if acc_score / acc_weight < 0 else 'reliable' # shoudl be changed to non binary 
+    return acc_score / acc_weight # shoudl be changed to non binary 
+
+def to_binary(val: float) -> str:
+    """Converts a float to a binary string."""
+    if val > 0:
+        return 'reliable'
+    else: 
+        return 'fake'
 
 def classify_article(val_df: pd.DataFrame, model_df: pd.DataFrame) -> list[str]:
     """Classifies all articles in the input dataframe, and returns a list of predictions."""
     predictions = []
     column = val_df['content'].apply(lambda x: preprocess_string(x))
-    column.apply(lambda x: predictions.append(binary_classifier(x, model_df)))       
-    
+    column.apply(lambda x: predictions.append(to_binary(classifier(x, model_df))))
+    return predictions
+
+def classify_article_continous(val_df: pd.DataFrame, model_df: pd.DataFrame) -> list[str]:
+    """Classifies all articles in the input dataframe, and returns a list of predictions."""
+    predictions = []
+    column = val_df['content'].apply(lambda x: preprocess_string(x))
+    column.apply(lambda x: predictions.append(classifier(x, model_df)))
     return predictions
     

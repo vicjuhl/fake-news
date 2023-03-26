@@ -75,6 +75,7 @@ class BaseModel(ABC):
             print("Not loading csv: ", e)
             mm_df = pd.DataFrame({'id': self._preds.id, 'type': self._preds.type})
             
+            
         col_name = f'preds_{self._name}'
         try:
             # add new predictions as a new column to existing DataFrame
