@@ -6,7 +6,7 @@ from typing import Optional
 import json
 import os
 from sklearn.metrics import f1_score, balanced_accuracy_score # type: ignore
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 from utils.functions import del_csv # type: ignore
 
@@ -22,7 +22,6 @@ class BaseModel(ABC):
         name: str,
         file_type: str,
     ) -> None:  # 1 as default value for val_set
-        models_dir
         self._session_dir = models_dir / f"{name}/{name}_{t_session}/"
         self._evaluation_dir = self._session_dir / "evaluation/"
         # Create dest folder with sub-folders if it does not exist.
@@ -174,12 +173,13 @@ class BaseModel(ABC):
         } 
         print(eval_dict)
         
-            #dump stats to json
-            json_eval = json.dumps(eval_dict, indent=4)
-            print(json_eval)
-            with open(self._evaluation_dir / "eval.json", "w") as outfile:
-                outfile.write(json_eval)
+        #dump stats to json
+        json_eval = json.dumps(eval_dict, indent=4)
+        print(json_eval)
+        with open(self._evaluation_dir / "eval.json", "w") as outfile:
+            outfile.write(json_eval)
 
+        
         # Confusion matrix plot 
         fig, ax = plt.subplots()
         table = ax.matshow(confusion_matrix, cmap ='Blues')
@@ -196,5 +196,5 @@ class BaseModel(ABC):
                 ax.text(j, i, text, va='center', ha='center', fontsize=10)
 
         #dump to png
-        #fig.savefig((self._evaluation_dir / 'ConfusionMatrix.png'))
+        fig.savefig((self._evaluation_dir / 'ConfusionMatrix.png'))
       
