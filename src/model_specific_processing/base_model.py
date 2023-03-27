@@ -174,23 +174,26 @@ class BaseModel(ABC):
         } 
         print(eval_dict)
         
-        #dump stats to json
-        json_eval = json.dumps(eval_dict, indent=4)
-        with open(self._evaluation_dir / "eval.json", "w") as outfile:
-            outfile.write(json_eval)
-
+            #dump stats to json
+            json_eval = json.dumps(eval_dict, indent=4)
+            print(json_eval)
+            with open(self._evaluation_dir / "eval.json", "w") as outfile:
+                outfile.write(json_eval)
 
         # Confusion matrix plot 
-        #fig, ax = plt.subplots()
-        #table = ax.matshow(confusion_matrix, cmap ='Blues')
-        #ax.set_xticklabels(['', 'Fake', 'Reliable'])
-        #ax.set_yticklabels(['', 'Fake', 'Reliable'])
+        fig, ax = plt.subplots()
+        table = ax.matshow(confusion_matrix, cmap ='Blues')
+   
+        ax.set_xticks([0, 1])
+        ax.set_yticks([0, 1])
+        ax.set_xticklabels(['Fake', 'Reliable'])
+        ax.set_yticklabels(['Fake', 'Reliable'])
 
         # Add the values to the table
-        #for i in range(2):
-        #    for j in range(2):
-        #        ax.text(j, i, str(confusion_matrix[i][j]), va='center', ha='center')
-        #ax.set_title('Confusion Matrix')
+        for i in range(2):
+            for j in range(2):
+                text = f"{round(confusion_matrix[i][j]*100, 2)}%"
+                ax.text(j, i, text, va='center', ha='center', fontsize=10)
 
         #dump to png
         #fig.savefig((self._evaluation_dir / 'ConfusionMatrix.png'))

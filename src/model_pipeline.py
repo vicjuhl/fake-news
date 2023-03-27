@@ -10,6 +10,8 @@ from model_specific_processing.obj_pa_classifier import PaClassifier # type: ign
 from model_specific_processing.obj_meta_model import MetaModel # type: ignore
 
 from model_specific_processing.obj_naive_bayes_models import MultinomialNaiveBayesModel, ComplementNaiveBayesModel  # type: ignore
+from model_specific_processing.obj_svm_model import svmModel # type: ignore
+from model_specific_processing.obj_random_forest_model import RandomForestModel # type: ignore
 from imports.json_to_pandas import json_to_pd # type: ignore
 from imports.data_importer import import_val_set, get_split # type: ignore
 
@@ -20,6 +22,8 @@ MODELS: dict = {
     'pa': PaClassifier,
     'multi_nb': MultinomialNaiveBayesModel,    
     'compl_nb': ComplementNaiveBayesModel,
+    'svm': svmModel,
+    'random_f': RandomForestModel,
     'meta_model': MetaModel
 }
 
@@ -30,6 +34,8 @@ TRAININGSETS = {
     'compl_nb': 'bow_articles',
     'pa':'bow_articles',
     'meta_model': 'bow_articles'
+    'svm' : 'bow_articles',
+    'random_f': 'bow_articles'
 }
 
 METHODNAMES = [
