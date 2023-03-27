@@ -15,6 +15,7 @@ from utils.mappings import out_cols # type: ignore
 from preprocessing.data_handlers import DataHandler, WordsCollector, CorpusSummarizer, CorpusReducer # type: ignore
 from imports.prints import print_row_counts # type: ignore
 from imports.json_to_pandas import json_to_pd # type: ignore
+from tqdm.auto import tqdm
 
 def create_clear_buffer(n_procs: int) -> list[list[news_info]]:
     """Create buffer list with n_procs empty lists."""
@@ -225,22 +226,25 @@ def get_duplicate_ids(
     Returns a csv file containing duplicate ids.
     """
     to_path = to_path.resolve()
-
-    if (to_path / file_name).is_file() == True: # do nothing if duplicate csv file already exists
-        print(f"\n Careful! If you want to overwrite the existing duplicates, you will have to delete the duplicate csv file first. The file already exists as {to_path}\{file_name}")
-    else:                                       # create new file if duplicate csv file does not exist
-        print(f' Creating file {to_path}\{file_name}')
-        print(f"\n Reading pandas dataframe from file: {from_file} ...")
-        df = pd.read_csv(from_file)
-        # update df to only contain duplicates
-        print("\n Extracting duplicate rows... This may take up to a minute...")
-        df = df[df.duplicated(subset=["domain","type","words","content_len","mean_word_len"], keep='first') == True] # does not include "scraped_at" in subset argument, so an article scraped on several occasions will only have the first occurence as non-duplicate
-        count = len(df['id'])
+    
+    print(f"\n Reading pandas dataframe from file: {from_file} ...")
+    df = pd.read_csv(from_file)
+    # update df to only contain duplicates
+    print("\n Extracting duplicate rows... This may take up to a minute...")
+    df = df[df.duplicated(subset=["domain","type","words","content_len","mean_word_len"], keep='first') == True] # does not include "scraped_at" in subset argument, so an article scraped on several occasions will only have the first occurence as non-duplicate
+    count = len(df)
+    print(f"\n A total of {count} duplicates were found.")
+    if count == 0:
+        print(f"\n No new duplicate csv file has been written, since there were {count} duplicates to write.")
+    elif count > 0:
         df.reset_index(inplace=True) # resets index
         df = df['id']
         to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
-        df.to_csv(to_path.resolve() / file_name)
-        print(f"\n A total of {count} duplicates were found. Duplicate CSV was written to {to_path}\{file_name}")
+        if (to_path / file_name).is_file() == True: # do nothing if duplicate csv file already exists
+            print(f"\n Careful! If you want to overwrite the existing duplicates, you will have to delete the duplicate csv file first. The file already exists as {to_path}\{file_name}")
+        else:                                       # create new file if duplicate csv file does not exist
+            df.to_csv(to_path.resolve() / file_name)
+            print(f"\n Duplicate CSV was written to {to_path}\{file_name}")
 
 def import_val_set(from_file: pl.Path, split_num: int, splits: np.ndarray, n_rows: int) -> pd.DataFrame:
     """Import validation set as pandas dataframe."""
