@@ -45,7 +45,9 @@ def init_argparse() -> ap.ArgumentParser:
     parser.add_argument('-mt', '--methods', nargs="*", choices=METHODNAMES, default=[], help='Method to run')
     parser.add_argument("-t1", "--train_set_1", nargs="*", help="Splits to include in training set 1")
     parser.add_argument("-t2", "--train_set_2", nargs="*", help="Splits to include in training set 2")
-    parser.add_argument("-v", "--val_set", type=int)
+    parser.add_argument("-v", "--val_set", type=int, help="Choose validation set split number")
+    parser.add_argument("--test_fake_news", type=str, help="Test models on test data from corpus split 1")
+    parser.add_argument("--test_liar", type=str, help="Test models on test data from the LIAR set")
     parser.add_argument("-nt", "--n_train", type=int, default=1000)
     parser.add_argument("-nv", "--n_val", type=int , default=1000)
     parser.add_argument("-hp", "--hyper_params", type=str , default=json.dumps({}))
@@ -72,7 +74,7 @@ if __name__ == '__main__':
     tr2 = [int(num) for num in args.train_set_2]
     all_splits = tr1 + tr2 + [args.val_set]
     all_splits.sort()
-    
+
     if not all_splits == [2, 3, 4, 5, 6, 7, 8, 9, 10]:
         raise ValueError("Some numbers missing in split definitions.")
     
