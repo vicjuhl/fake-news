@@ -3,7 +3,7 @@ import pathlib as pl
 from typing import Optional
 import json
 
-from model_specific_processing.simple_model import frequency_adjustment, tf_idf, logistic_Classification_weight, create_model, classify_article # type: ignore
+from model_specific_processing.simple_model import frequency_adjustment, tf_idf, logistic_Classification_weight, create_model, classify_article, classify_article_continous # type: ignore
 from model_specific_processing.base_model import BaseModel # type: ignore
 
 class SimpleModel(BaseModel):
@@ -16,6 +16,7 @@ class SimpleModel(BaseModel):
         models_dir: pl.Path,
         t_session: str,
     ) -> None:
+        self._name = "simplemodal" 
         super().__init__(params, training_sets, val_set, models_dir, t_session, "simple", "csv")
         self._model: Optional[pd.DataFrame] = None
         
@@ -37,14 +38,15 @@ class SimpleModel(BaseModel):
             print("ERROR: model could not be dumped")
         print(f"Model saved to {self._model_path}")
         
-    def infer(self, test_df) -> None:
+    def infer(self, df) -> None:
         '''Makes predictions on a dataframe'''
         if self._model is None:
-            self._model = pd.read_csv(self._model_path, index_col=0) 
-        test_df[f'preds_from_{self._name}'] = classify_article(test_df , self._model)         
-        self._preds = test_df
+            self._model = pd.read_csv(self._model_path, index_col=0)
         
+        self._preds = df[['id', 'type', 'split']].copy()
+            # adding predictions as a column 
+        self._preds[f'preds_{self._name}'] = classify_article(df , self._model) 
+        self._preds[f'preds_{self._name}_cont'] = classify_article_continous(df , self._model)
     
-        
         
         
