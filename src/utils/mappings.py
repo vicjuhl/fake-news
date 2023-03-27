@@ -30,24 +30,42 @@ out_cols = [
     "median_word_len",
     "split",
 ]
-
-# Label types to disregard
-excl_types = {
-    "satire",
-    "unknown",
-    "",
-    "unreliable",
-    "clickbait",
-    "conspiracy",
-    "bias",
-    "hate",
-    "junksci",
-    "political",
-    "rumor"
-}
-
 # Store columns that transfer unchanged from input to output csv's
 transfered_cols: list[str] = []
 for col_name in incl_keys:
     if col_name in out_cols:
         transfered_cols.append(col_name)
+
+# Label types to disregard
+excl_types = {
+    "satire",
+    "conspiracy",
+    "clickbait",
+    "unreliable",
+    "political",
+    "state",
+    "unknown",
+    "rumor",
+    ""
+}
+
+# Our chosen labels and their respective groupings
+labels = {
+    "fake": "fake",
+    "bias": "fake",
+    "junksci": "fake",
+    "hate": "fake",
+    "reliable": "reliable"
+}
+
+def add_labels(df: pd.DataFrame) -> pd.DataFrame:
+    """Add column to dataframe with label groups based on 'type' column."""
+    df = df.rename(columns={"type":"orig_type"})
+    
+    def lookup_labels(data) -> str:
+        return labels[data["orig_type"]]
+    df["type"] = df.apply(lookup_labels, axis=1)
+
+    new_index = ["id", "domain", "orig_type","type", "scraped_at", "words", "content_len", "mean_word_len", "median_word_len", "split"]
+    df = df.reindex(columns= new_index)
+    return df
