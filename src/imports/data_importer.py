@@ -122,7 +122,12 @@ def reduce_corpus(
         reader = csv.reader(ff)
         with open(to_path / "reduced_corpus.csv", 'w', encoding="utf8") as tf:
             writer = csv.writer(tf)
-            writer.writerow(next(reader)) # Copy headers
+            
+            headers = next(reader) # Create updated headers for label groups
+            headers[3] = "orig_type"
+            headers.append("type")
+            writer.writerow(headers) # Write new headers to out_file
+
             try:
                 duplicates = pd.read_csv(dups_path)['id'].array # Load array of duplicates to skip when reading
             except:
