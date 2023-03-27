@@ -33,7 +33,7 @@ TRAININGSETS = {
     'multi_nb': 'bow_articles',    
     'compl_nb': 'bow_articles',
     'pa':'bow_articles',
-    'meta_model': 'bow_articles'
+    'meta_model': 'bow_articles',
     'svm' : 'bow_articles',
     'random_f': 'bow_articles'
 }
