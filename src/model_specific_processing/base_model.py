@@ -111,13 +111,12 @@ class BaseModel(ABC):
         
 
         _preds = self._preds
+        
+        print(_preds)
         if _preds is None:
             print('cannot evaluate without predictions')
             return
         preds = _preds[f'preds_{self._name}'].apply(to_binary) #predictions
-        
-       
-        
         labels = _preds['type'] #correct anwsers
         
         #counts results, assuming fake is the positve case 
