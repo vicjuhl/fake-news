@@ -16,10 +16,8 @@ class LinearModel(BaseModel):
         val_set: int,
         models_dir: pl.Path,
         t_session: str,
-        name :str,
-        file_format : str,
     ) -> None:
-        super().__init__(params, training_sets, val_set, models_dir, t_session, name, file_format)
+        super().__init__(params, training_sets, val_set, models_dir, t_session, "linear", "pkl")
         self._model = LogisticRegression(max_iter=1000)
         self._vectorizer = DictVectorizer()
       
@@ -46,10 +44,11 @@ class LinearModel(BaseModel):
             else:
                 model = self._model
             df['bow'] = df['content'].apply(lambda x: preprocess_string(x)) # convertingt str to dict[str, int]
-            df[f'preds_from_{self._name}'] = model.predict(
+            df[f'preds_from_{self._name}'] = model.predict_proba(
                 self._vectorizer.transform(df['bow'])
             ) # adding predictions as a column
             self._preds = df
+            print(df)
         except FileNotFoundError:
             print('Cannot make inference without a trained model')    
 
