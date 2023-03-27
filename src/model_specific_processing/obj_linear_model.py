@@ -59,12 +59,16 @@ class LinearModel(BaseModel):
                 df['bow'] = df['bow'].apply(lambda x: {**x,'entropy': entropy(x, len(x.keys()))}) # adding entropy
                 df['bow'] = df['bow'].apply(lambda x: {**x,'content_len': len(x.keys())}) # adding content_len
                 df['bow'] = df['bow'].apply(lambda x: {**x,'mean_word_len': sum(x.values())/len(x.keys())}) # adding mean_word_len
-                
+            
+            df['bow'] = df['content'].apply(lambda x: preprocess_string(x)) # convertingt str to dict[str, int]
+
+            prob_preds = model.predict_proba(self._vectorizer.transform(df['bow']))
+            non_binary_preds = prob_preds[:,1] - prob_preds[:,0]
+            df[f'preds_from_{self._name}'] = non_binary_preds # adding predictions as a column
+            
             self._preds = df[['id', 'type', 'split']].copy()
             # adding predictions as a column
-            self._preds[f'preds_{self._name}'] = model.predict(
-                self._vectorizer.transform(df['bow'])
-            )
+            self._preds[f'preds_{self._name}'] = non_binary_preds
             
         except FileNotFoundError:
             print('Cannot make inference without a trained model')    
