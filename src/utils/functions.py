@@ -53,6 +53,11 @@ def del_csv(path : pl.Path):
     else:
         print("The file does not exist")
 
+def non_binary_predict(df : pd.Series, model):
+    prob_preds = model.predict_proba(self._vectorizer.transform(df['bow'])) #esctract probalities
+    non_binary_preds = prob_preds[:,1] - prob_preds[:,0] #normalize between 1 (real) and -1 (fake)
+    df[f'preds_from_{self._name}'] = non_binary_preds # adding predictions as a column
+
 '''
 def draw_tree(model, df, size=10, ratio=0.6, precision=2, **kwargs):
     s= export_graphviz(t, out_file=None, feature_names=df.columns, filled=True, rounded=True,
