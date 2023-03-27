@@ -41,7 +41,7 @@ class MetaModel(BaseModel):
              
     def dump_for_mm_training(self):
         pass   
-    
+
     def dump_model(self) -> None:
         '''Dumps the model to a pickle file'''
         with open(self._model_path, 'wb') as f:
@@ -58,20 +58,14 @@ class MetaModel(BaseModel):
             else:
                 model = self._model
             
-            self._preds = df   
-            
-            labels = df['type'] # saving type
-                     
+            self._preds = df        
+            labels = df['type'] # saving type          
             df.drop(['id', 'type'], axis = 1, inplace=True)            
             df = df.applymap(lambda x: 1 if x == 'reliable' and x != 'type' else 0 if x == 'fake' and x != 'type' else x)            
             df['inference_column'] = df.apply(create_dict_MetaModel, axis=1) 
             vec = self._vectorizer.fit_transform(df['inference_column'].to_list())            
             self._preds[f'preds_{self._name}'] = model.predict(vec)
-            
             self._preds['type'] = labels # restoring type
-
-            print(self._preds)
-            print(len(self._preds))
         
         except FileNotFoundError:
             print('Cannot make inference without a trained model')    
