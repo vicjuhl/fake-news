@@ -7,6 +7,7 @@ from sklearn.linear_model import LogisticRegression # type: ignore
 from model_specific_processing.base_model import BaseModel # type: ignore
 from preprocessing.noise_removal import preprocess_string # type: ignore
 from utils.functions import entropy, add_features_df # type: ignore
+
 class LinearModel(BaseModel):
     '''PassiveAggressiveClassifier model'''
     def __init__(
@@ -22,7 +23,8 @@ class LinearModel(BaseModel):
         super().__init__(params, training_sets, val_set, models_dir, t_session, name, file_format)
         self._vectorizer = DictVectorizer()
         self._model = LogisticRegression(max_iter=1000, n_jobs=-1)
-        self._with_features = True 
+        self._with_features = True   
+        self._predictor = self._model.predict_proba  
       
     def train(self) -> None:        
         '''Trains a PassiveAggressiveClassifier model on the training data'''
@@ -37,7 +39,7 @@ class LinearModel(BaseModel):
         y_train = train_data['type']
         x_train_vec = self._vectorizer.fit_transform(train_data['words_dict'].to_list())
         self._model.fit(x_train_vec, y_train)
-
+        
     def dump_model(self) -> None:
         '''Dumps the model to a pickle file'''
         with open(self._model_path, 'wb') as f:
@@ -59,12 +61,16 @@ class LinearModel(BaseModel):
                 df['bow'] = df['bow'].apply(lambda x: {**x,'entropy': entropy(x, len(x.keys()))}) # adding entropy
                 df['bow'] = df['bow'].apply(lambda x: {**x,'content_len': len(x.keys())}) # adding content_len
                 df['bow'] = df['bow'].apply(lambda x: {**x,'mean_word_len': sum(x.values())/len(x.keys())}) # adding mean_word_len
-                
+            
+            df['bow'] = df['content'].apply(lambda x: preprocess_string(x)) # convertingt str to dict[str, int]
+
+            prob_preds = self._predictor(self._vectorizer.transform(df['bow'])) #extract probalities
+            non_binary_preds = prob_preds[:,1] - prob_preds[:,0] #normalize between 1 (real) and -1 (fake)
+            df[f'preds_from_{self._name}'] = non_binary_preds # adding predictions as a column
+                    
             self._preds = df[['id', 'type', 'split']].copy()
             # adding predictions as a column
-            self._preds[f'preds_{self._name}'] = model.predict(
-                self._vectorizer.transform(df['bow'])
-            )
+            self._preds[f'preds_{self._name}'] = non_binary_preds
             
         except FileNotFoundError:
             print('Cannot make inference without a trained model')    

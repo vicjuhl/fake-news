@@ -7,6 +7,8 @@ import json
 import os
 from sklearn.metrics import f1_score, balanced_accuracy_score # type: ignore
 import matplotlib.pyplot as plt
+from utils.functions import to_binary
+from utils.functions import del_csv # type: ignore
 
 from utils.functions import del_csv # type: ignore
 
@@ -34,7 +36,7 @@ class BaseModel(ABC):
         self._t_session = t_session
         self._data_path =  pl.Path(__file__).parent.parent.resolve() / "data_files/"
         self._preds: Optional[pd.DataFrame] = None
-        self._metamodel_path = models_dir / "metamodel"
+        self._metamodel_path = models_dir / "meta_model"
         self._metamodel_path.mkdir(parents=True, exist_ok=True)
         self._metamodel_train_path =  self._metamodel_path / "metamodel_train.csv"
         self._metamodel_inference_path =  self._metamodel_path / "metamodel_inference.csv"
@@ -74,7 +76,6 @@ class BaseModel(ABC):
             print("Not loading csv: ", e)
             mm_df = pd.DataFrame({'id': self._preds.id, 'type': self._preds.type})
             
-            
         col_name = f'preds_{self._name}'
         try:
             # add new predictions as a new column to existing DataFrame
@@ -112,8 +113,8 @@ class BaseModel(ABC):
         if _preds is None:
             print('cannot evaluate without predictions')
             return
-        preds = _preds[f'preds_{self._name}'] #predictions
-        labels = _preds['type'] #correct anwsers
+        preds = _preds[f'preds_{self._name}'].apply(to_binary) # predictions
+        labels = _preds['type'] # correct answers 
         
         #counts results, assuming fake is the positve case 
         tp = 0  # true and fake
@@ -162,7 +163,6 @@ class BaseModel(ABC):
         with open(self._evaluation_dir / "eval.json", "w") as outfile:
             outfile.write(json_eval)
 
-        
         # Confusion matrix plot 
         fig, ax = plt.subplots()
         table = ax.matshow(confusion_matrix, cmap ='Blues')
@@ -176,7 +176,7 @@ class BaseModel(ABC):
         for i in range(2):
             for j in range(2):
                 text = f"{round(confusion_matrix[i][j]*100, 2)}%"
-                ax.text(j, i, text, va='center', ha='center', fontsize=10)
+                ax.text(j, i, text, va='center', ha='center', fontsize=11)
 
         #dump to png
         fig.savefig((self._evaluation_dir / 'ConfusionMatrix.png'))
