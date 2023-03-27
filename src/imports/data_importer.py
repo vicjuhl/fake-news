@@ -250,9 +250,9 @@ def import_val_set(from_file: pl.Path, split_num: int, splits: np.ndarray, n_row
 
 def get_split(data_path: pl.Path) -> np.ndarray: 
     splits = np.loadtxt(
-            data_path / 'corpus/splits_full.csv',
-            delimiter=',',
-            skiprows=1,
-            dtype=np.int_
-        )
+        data_path / 'corpus/splits_full.csv',
+        delimiter=',',
+        skiprows=1,
+        dtype=np.int_
+    )
     return splits

@@ -9,7 +9,7 @@ from imports.data_importer import ( # type: ignore
     summarize_articles,
     split_data,
     remove_stop_words_json,
-    import_val_set,
+    shorten_articles,
     get_split,
     get_duplicate_ids
 )
@@ -46,6 +46,15 @@ if __name__ == "__main__":
         )
         print("runtime:", time.time() - t0)
         t0 = time.time()
+    
+    if "shorten" in args.processes:
+        shorten_articles(
+            data_path / "corpus/reduced_corpus.csv",
+            data_path / "processed_csv/",
+            args.nrows
+        )
+        print("runtime:", time.time() - t0)
+        t0 = time.time()
 
     if "split" in args.processes:
         split_data(
@@ -55,7 +64,7 @@ if __name__ == "__main__":
         print("runtime:", time.time() - t0)
         t0 = time.time()
 
-    if not set(args.processes).isdisjoint({"json", "csv", "df"}): # REMOVE df FROM SET TODO (SEE BELOW COMMENT)
+    if not set(args.processes).isdisjoint({"json", "summarize", "df"}): # REMOVE df FROM SET TODO (SEE BELOW COMMENT)
         # Load splits information if needed
         splits = get_split(data_path)
 
@@ -78,8 +87,8 @@ if __name__ == "__main__":
         )
         print("runtime:", time.time() - t0)
         t0 = time.time()
-        
-    if "csv" in args.processes:
+
+    if "summarize" in args.processes:
         summarize_articles(
             data_path / "corpus" / args.filename,
             data_path / "words" / f"stop_words_removed_valset{val_set}.json",
