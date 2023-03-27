@@ -8,6 +8,8 @@ from sklearn.linear_model import LogisticRegression # type: ignore
 from model_specific_processing.base_model import BaseModel # type: ignore
 from preprocessing.noise_removal import preprocess_string # type: ignore
 from utils.functions import entropy, add_features_df # type: ignore
+
+from sklearn.utils.validation import check_is_fitted
 class LinearModel(BaseModel):
     '''PassiveAggressiveClassifier model'''
     def __init__(
@@ -39,6 +41,11 @@ class LinearModel(BaseModel):
         y_train = train_data['type']
         x_train_vec = self._vectorizer.fit_transform(train_data['words_dict'].to_list())
         self._model.fit(x_train_vec, y_train)
+        
+        if check_is_fitted(self._model):
+            print("Model is already fitted.")
+        else:
+            print("Model is not yet fitted.")
 
     def dump_model(self) -> None:
         '''Dumps the model to a pickle file'''
