@@ -112,6 +112,7 @@ def process_lines(
 
 def reduce_corpus(
     from_file: pl.Path,
+    dups_path: pl.Path,
     to_path: pl.Path,
     n_rows: int,
 ) -> None:
@@ -122,7 +123,11 @@ def reduce_corpus(
         with open(to_path / "reduced_corpus.csv", 'w', encoding="utf8") as tf:
             writer = csv.writer(tf)
             writer.writerow(next(reader)) # Copy headers
-            reducer = CorpusReducer(writer)
+            try:
+                duplicates = pd.read_csv(dups_path)['id'].array # Load array of duplicates to skip when reading
+            except:
+                duplicates = np.array([])
+            reducer = CorpusReducer(writer, duplicates)
             n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, reducer)
     print_row_counts(n_incl, n_excl, n_ignored, n_skipped, f"Reduced corpus was written to {to_path}/")
 
@@ -207,6 +212,33 @@ def summarize_articles(
                 summarizer = CorpusSummarizer(summ_writer, short_writer, val_set, splits)
                 n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, summarizer, incl_words=words)
     print_row_counts(n_incl, n_excl, n_ignored, n_skipped, f"Summarized corpus was written to files in {to_path}/")
+
+def get_duplicate_ids(
+        from_file: pl.Path,
+        to_path: pl.Path,
+        file_name: str
+) -> None:
+    """Get ids of duplicate rows in a pandas dataframe.
+    
+    Only keeps the  occurence in the dataframe.
+
+    Returns a csv file containing duplicate ids.
+    """
+    to_path = to_path.resolve()
+
+    if (to_path / file_name).is_file() == True: # do nothing if duplicate csv file already exists
+        print(f"\n Careful! If you want to overwrite the existing duplicates, you will have to delete the duplicate csv file first. The file already exists as {to_path}\{file_name}")
+    else:                                       # create new file if duplicate csv file does not exist
+        print(f' Creating file {to_path}\{file_name} ...')
+        print(f"\n Reading pandas dataframe from file: {from_file} ...")
+        df = pd.read_csv(from_file)
+        # update df to only contain duplicates
+        print("\n Extracting duplicate rows... This may take up to a minute...")
+        df = df[df.duplicated(subset=["domain","type","words","content_len","mean_word_len"], keep='first') == True] # does not include "scraped_at" in subset argument, so an article scraped on several occasions will only have the first occurence as non-duplicate
+        df = df['id']
+        to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
+        df.to_csv(to_path.resolve() / file_name)
+        print(f"\n duplicate CSV was written to {to_path}\{file_name}")
 
 def import_val_set(from_file: pl.Path, split_num: int, splits: np.ndarray, n_rows: int) -> pd.DataFrame:
     """Import validation set as pandas dataframe."""
