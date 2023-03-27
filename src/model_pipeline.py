@@ -16,6 +16,7 @@ from imports.json_to_pandas import json_to_pd # type: ignore
 from imports.data_importer import import_val_set, get_split # type: ignore
 
 
+
 MODELS: dict = {
     'simple': SimpleModel,
     'linear': LinearModel,
@@ -49,10 +50,14 @@ METHODNAMES = [
 def init_argparse() -> ap.ArgumentParser:
     """Initialize the argument parser."""
     parser = ap.ArgumentParser(description='Run a model')
-    parser.add_argument('-md', '--models', nargs="*",  choices=MODELS.keys(), type=str, help='Specify list of models')
+    parser.add_argument('-md', '--models', nargs="*", choices=MODELS.keys(), type=str, default=[], help='Specify list of models')
     # parser.add_argument('--datasets', choices=DATASETS.keys(), help='Dataset to use')
-    parser.add_argument('-mt', '--methods', nargs="*", help='Method to run')
-    parser.add_argument("-v", "--val_set", type=int)
+    parser.add_argument('-mt', '--methods', nargs="*", choices=METHODNAMES, default=[], help='Method to run')
+    parser.add_argument("-t1", "--train_set_1", nargs="*", help="Splits to include in training set 1")
+    parser.add_argument("-t2", "--train_set_2", nargs="*", help="Splits to include in training set 2")
+    parser.add_argument("-v", "--val_set", type=int, help="Choose validation set split number")
+    parser.add_argument("--test_fake_news", type=str, help="Test models on test data from corpus split 1")
+    parser.add_argument("--test_liar", type=str, help="Test models on test data from the LIAR set")
     parser.add_argument("-nt", "--n_train", type=int, default=1000)
     parser.add_argument("-nv", "--n_val", type=int , default=1000)
     parser.add_argument("-hp", "--hyper_params", type=str , default=json.dumps({}))
@@ -74,6 +79,14 @@ if __name__ == '__main__':
     # Training data
     data_kinds = set([TRAININGSETS[model] for model in args.models])
     training_sets: dict[str, pd.DataFrame] = {}
+    # Assert that all split nums are chosen, except 1
+    tr1 = [int(num) for num in args.train_set_1]
+    tr2 = [int(num) for num in args.train_set_2]
+    all_splits = tr1 + tr2 + [args.val_set]
+    all_splits.sort()
+
+    if not all_splits == [2, 3, 4, 5, 6, 7, 8, 9, 10]:
+        raise ValueError("Some numbers missing in split definitions.")
     
     if "train" in args.methods:
         if "bow_simple" in data_kinds:
@@ -82,6 +95,11 @@ if __name__ == '__main__':
             training_sets["bow_articles"] = pd.read_csv(
                 data_path / f"processed_csv/summarized_corpus_valset{args.val_set}.csv",
                 nrows=args.n_train
+            )
+            # Add trn split column based on user input
+            bow_art_trn = training_sets["bow_articles"]
+            bow_art_trn["trn_split"] = bow_art_trn["split"].apply(
+                lambda x: 1 if x in tr1 else 2 if x in tr2 else None
             )
     
     if "infer" in args.methods:

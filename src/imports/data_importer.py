@@ -12,7 +12,7 @@ from preprocessing.noise_removal import cut_tail_and_head # type: ignore
 from preprocessing.noise_removal import clean_str # type: ignore
 from utils.types import news_info, words_info, NotInTrainingException # type: ignore
 from utils.mappings import out_cols # type: ignore
-from preprocessing.data_handlers import DataHandler, WordsCollector, CorpusSummarizer, CorpusReducer # type: ignore
+from preprocessing.data_handlers import DataHandler, WordsCollector, CorpusSummarizer, CorpusReducer, CorpusShortener # type: ignore
 from imports.prints import print_row_counts # type: ignore
 from imports.json_to_pandas import json_to_pd # type: ignore
 
@@ -187,6 +187,23 @@ def remove_stop_words_json(
     with open(to_path, "w") as outfile:
         outfile.write(json_data)
 
+def shorten_articles(
+    from_file: pl.Path,
+    to_path: pl.Path,
+    n_rows: int,
+) -> None:
+    """Create new csv of id's and shortened articles."""
+    print("\n Shortening articles...")
+    with open(from_file, encoding="utf8") as ff:
+        reader = csv.reader(ff)
+        next(reader)
+        with open(to_path / f"shortened_corpus.csv", "w", encoding="utf8") as tf:
+            short_writer = csv.writer(tf)
+            short_writer.writerow(["id", "shortened"]) # Write headers
+            shortener = CorpusShortener(short_writer)
+            n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, shortener)
+    print_row_counts(n_incl, n_excl, n_ignored, n_skipped, f"Shortened corpus was written to files in {to_path}/")
+
 def summarize_articles(
     from_file: pl.Path,
     words_file: pl.Path,
@@ -208,13 +225,10 @@ def summarize_articles(
     with open(from_file, encoding="utf8") as ff:
         reader = csv.reader(ff)
         next(reader) # Skip headers (as they are not equal to output headers)
-        with open(to_path / f"summarized_corpus_valset{val_set}.csv", 'w', encoding="utf8") as summ:
-            with open(to_path / f"shortened_corpus_valset{val_set}.csv", "w", encoding="utf8") as short:
-                summ_writer = csv.writer(summ)
-                short_writer = csv.writer(short)
+        with open(to_path / f"summarized_corpus_valset{val_set}.csv", 'w', encoding="utf8") as tf:
+                summ_writer = csv.writer(tf)
                 summ_writer.writerow(out_cols) # Write headers
-                short_writer.writerow(["id", "type", "shortened"]) # Write headers
-                summarizer = CorpusSummarizer(summ_writer, short_writer, val_set, splits)
+                summarizer = CorpusSummarizer(summ_writer, val_set, splits)
                 n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, summarizer, incl_words=words)
     print_row_counts(n_incl, n_excl, n_ignored, n_skipped, f"Summarized corpus was written to files in {to_path}/")
 
@@ -240,7 +254,7 @@ def get_duplicate_ids(
     if count == 0:
         print(f"\n No new duplicate csv file has been written, since there were {count} duplicates to write.")
     elif count > 0:
-        df = df['id']
+        df = df['id'].to_frame()
         to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
         if (to_path / file_name).is_file() == True: # do nothing if duplicate csv file already exists
             print(f"\n Careful! If you want to overwrite the existing duplicates, you will have to delete the duplicate csv file first. The file already exists as {to_path}\{file_name}")
@@ -258,9 +272,9 @@ def import_val_set(from_file: pl.Path, split_num: int, splits: np.ndarray, n_row
 
 def get_split(data_path: pl.Path) -> np.ndarray: 
     splits = np.loadtxt(
-            data_path / 'corpus/splits_full.csv',
-            delimiter=',',
-            skiprows=1,
-            dtype=np.int_
-        )
+        data_path / 'corpus/splits.csv',
+        delimiter=',',
+        skiprows=1,
+        dtype=np.int_
+    )
     return splits

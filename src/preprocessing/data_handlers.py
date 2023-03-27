@@ -55,6 +55,7 @@ class DataHandler(ABC):
         """Do final actions if needed."""
         pass
 
+
 class CorpusReducer(DataHandler):
     def __init__(self, writer: '_csv._writer', duplicates: np.ndarray) -> None:
         super().__init__()
@@ -93,6 +94,34 @@ class CorpusReducer(DataHandler):
     def finalize(self):
         """Do nothing."""
         pass
+
+
+class CorpusShortener(DataHandler):
+    def __init__(self, writer: '_csv._writer') -> None:
+        super().__init__()
+        self._writer = writer
+    
+    def extract(self, row: list[str], _) -> tuple[str, ...]:
+        id_ = row[1]
+        content = row[5]
+        self._n_incl += 1
+        return (id_, content)
+    
+    @classmethod
+    def process_batch(cls, data: tuple[list[tuple[str, ...]], dict]) -> list[Any]:
+        """Get id and shorten content."""
+        batch, _ = data
+        ret = [[row[0], row[1][:500]] for row in batch]
+        return ret
+
+    def write(self, rows: list[tuple[str, ...]]) -> None:
+        """Write rows."""
+        self._writer.writerows(rows)
+
+    def finalize(self):
+        """Do nothing."""
+        pass
+
 
 class WordsCollector(DataHandler):
     """Two dictionaries with included and excluded words, respectively."""
@@ -170,13 +199,11 @@ class CorpusSummarizer(DataHandler):
     def __init__(
         self,
         summ_writer: '_csv._writer',
-        short_writer: '_csv._writer',
         val_set: int,
         splits: np.ndarray,
     ) -> None:
         super().__init__()
         self.summ_writer = summ_writer
-        self.short_writer = short_writer
         self._val_set = val_set
         self._splits = splits
 
@@ -195,12 +222,12 @@ class CorpusSummarizer(DataHandler):
             return tuple(row)
 
     @classmethod
-    def process_batch(cls, data: tuple[list[tuple[str, ...]], dict]) -> list[Any]:
+    def process_batch(cls, data: tuple[list[tuple[str, ...]], dict]) -> list[list[Any]]:
         """Transfer specified columns without processing, process others."""
         # Unpack and prepare
         batch, kwargs = data
         incl_words = kwargs["incl_words"]
-        return_lst = []
+        return_lst: list[list[Any]] = []
         # Iterate through batch
         for in_row in batch:
             out_row = []
@@ -224,18 +251,13 @@ class CorpusSummarizer(DataHandler):
             out_row.append(median_len)
             # Split number
             out_row.append(in_row[-1])
-            # Shortened article MUST BE LAST ELEMENT ([-1])
-            cutoff = content.find(" ", 600) # returns -1 if no find, else index of ' '
-            short_content = content if cutoff == -1 else content[:cutoff]
-            out_row.append(short_content)
             # Append to return list
             return_lst.append(out_row)
         return return_lst
 
     def write(self, rows: list[tuple[str, ...]]) -> None:
         """Write rows."""
-        self.summ_writer.writerows([row[:-1] for row in rows])
-        self.short_writer.writerows([[row[0], row[2], row[-1]] for row in rows])
+        self.summ_writer.writerows(rows)
 
     def finalize(self):
         """Do nothing."""
