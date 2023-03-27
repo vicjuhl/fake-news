@@ -18,3 +18,4 @@ class svmModel(LinearModel):
         super().__init__(params, training_sets, val_set, models_dir, t_session, name , model_format) # had to choose BaseModel inheritance (instead of LinearModel), since we wish to include the last two parameters here
         self._model = LinearSVC()
         self._vectorizer = DictVectorizer()
+        self._predictor = self._model._predict_proba_lr

@@ -3,6 +3,7 @@ import os
 import pathlib as pl
 import math 
 #import graphviz
+from typing import Callable
 from sklearn.tree import export_graphviz
 import re
 
@@ -22,6 +23,15 @@ def df_type_to_binary(df: pd.DataFrame) -> pd.DataFrame:
     """Converts the 'type' column of a dataframe to a binary column."""
     df['type_binary'] = df['type'].apply(lambda x: to_binary(x))
     return df
+
+
+def to_binary(val: float) -> str:    
+    """Converts a float to a binary string."""
+    if val > 0:
+        return 'reliable'
+    else: 
+        return 'fake'
+
 
 def entropy(word_dict: dict[str,int], length : int):
     """Calculate the entropy of a text."""
@@ -43,6 +53,7 @@ def del_csv(path : pl.Path):
         os.remove(path)
     else:
         print("The file does not exist")
+
 
 '''
 def draw_tree(model, df, size=10, ratio=0.6, precision=2, **kwargs):

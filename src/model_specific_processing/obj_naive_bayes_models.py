@@ -21,8 +21,8 @@ class MultinomialNaiveBayesModel(LinearModel):
         super().__init__(params, training_sets, val_set, models_dir, t_session, name , file_format) # had to choose BaseModel inheritance (instead of LinearModel), since we wish to include the last two parameters here
         self._model = MultinomialNB(alpha=1, force_alpha=True)
         self._vectorizer = DictVectorizer()
-    
-   
+        self._predictor = self._model.predict_proba
+           
 class ComplementNaiveBayesModel(LinearModel):
     '''Complement Naive Bayes model
     
@@ -40,3 +40,4 @@ class ComplementNaiveBayesModel(LinearModel):
         super().__init__(params, training_sets, val_set, models_dir, t_session, "compl_nb", "pkl") # had to choose BaseModel inheritance (instead of LinearModel), since we wish to include the last two parameters here
         self._model = ComplementNB(alpha=1, force_alpha=True)
         self._vectorizer = DictVectorizer()
+        self._predictor = self._model.predict_proba
