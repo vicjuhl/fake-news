@@ -15,7 +15,6 @@ from utils.mappings import out_cols # type: ignore
 from preprocessing.data_handlers import DataHandler, WordsCollector, CorpusSummarizer, CorpusReducer # type: ignore
 from imports.prints import print_row_counts # type: ignore
 from imports.json_to_pandas import json_to_pd # type: ignore
-from tqdm.auto import tqdm
 
 def create_clear_buffer(n_procs: int) -> list[list[news_info]]:
     """Create buffer list with n_procs empty lists."""
