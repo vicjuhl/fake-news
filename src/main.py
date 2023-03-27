@@ -40,7 +40,7 @@ if __name__ == "__main__":
     if "reduce" in args.processes:
         reduce_corpus(
             data_path / "corpus/news_cleaned_2018_02_13.csv",
-            data_path / "corpus/summarized_corpus_valset2_duplicates.csv",
+            data_path / f"corpus/summarized_corpus_valset{val_set}_duplicates.csv",
             data_path / "corpus/",
             args.nrows
         )
