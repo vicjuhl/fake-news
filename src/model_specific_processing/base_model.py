@@ -85,6 +85,10 @@ class BaseModel(ABC):
             if col_name in mm_df.columns:
                 mm_df = mm_df.drop(col_name, axis=1) # dropping column if it already exists 
             
+            if 'preds_simple_cont' in mm_df.columns:
+                mm_df = mm_df.drop('preds_simple_cont', axis=1) # dropping column if it already exists
+            
+            
             mm_df = pd.merge(
                 mm_df,
                 self._preds.drop(["type", "split"], axis=1), # problem, adding other columns than just preds!!

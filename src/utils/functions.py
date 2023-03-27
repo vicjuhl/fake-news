@@ -23,9 +23,9 @@ def df_type_to_binary(df: pd.DataFrame) -> pd.DataFrame:
     df['type_binary'] = df['type'].apply(lambda x: to_binary(x))
     return df
 
-def entropy(word_dict: dict[str,int], len : int):
+def entropy(word_dict: dict[str,int], length : int):
     """Calculate the entropy of a text."""
-    entropy = -sum(freq/len * math.log2(freq/len) for freq in word_dict.values()) # # entropy using formula: text using the formula: - sum(freq/total_chars * log2(freq/total_chars))
+    entropy = -sum(freq/length * math.log2(freq/length) for freq in word_dict.values()) # # entropy using formula: text using the formula: - sum(freq/total_chars * log2(freq/total_chars))
     return entropy
 
 def add_features_df(df : pd.DataFrame, feature_name : str) -> pd.DataFrame:
