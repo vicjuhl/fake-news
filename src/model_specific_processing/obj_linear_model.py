@@ -16,8 +16,10 @@ class LinearModel(BaseModel):
         val_set: int,
         models_dir: pl.Path,
         t_session: str,
+        name :str,
+        file_format : str,
     ) -> None:
-        super().__init__(params, training_sets, val_set, models_dir, t_session, "linear", "pkl")
+        super().__init__(params, training_sets, val_set, models_dir, t_session, name, file_format)
         self._model = LogisticRegression(max_iter=1000)
         self._vectorizer = DictVectorizer()
       
