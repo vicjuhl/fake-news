@@ -2,6 +2,7 @@ import pandas as pd
 import pickle
 import pathlib as pl
 import ast
+from typing import Callable
 from sklearn.feature_extraction import DictVectorizer # type: ignore
 from sklearn.linear_model import LogisticRegression # type: ignore
 from model_specific_processing.base_model import BaseModel # type: ignore
@@ -22,7 +23,8 @@ class LinearModel(BaseModel):
         super().__init__(params, training_sets, val_set, models_dir, t_session, name, file_format)
         self._vectorizer = DictVectorizer()
         self._model = LogisticRegression(max_iter=1000, n_jobs=-1)
-        self._with_features = True 
+        self._with_features = True   
+        self._predictor = self._model.predict_proba  
       
     def train(self) -> None:        
         '''Trains a PassiveAggressiveClassifier model on the training data'''
@@ -62,10 +64,10 @@ class LinearModel(BaseModel):
             
             df['bow'] = df['content'].apply(lambda x: preprocess_string(x)) # convertingt str to dict[str, int]
 
-            prob_preds = model.predict_proba(self._vectorizer.transform(df['bow']))
-            non_binary_preds = prob_preds[:,1] - prob_preds[:,0]
+            prob_preds = self._predictor(self._vectorizer.transform(df['bow'])) #extract probalities
+            non_binary_preds = prob_preds[:,1] - prob_preds[:,0] #normalize between 1 (real) and -1 (fake)
             df[f'preds_from_{self._name}'] = non_binary_preds # adding predictions as a column
-            
+                    
             self._preds = df[['id', 'type', 'split']].copy()
             # adding predictions as a column
             self._preds[f'preds_{self._name}'] = non_binary_preds

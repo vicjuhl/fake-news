@@ -35,7 +35,7 @@ TRAININGSETS = {
     'pa':'bow_articles',
     'meta_model': 'bow_articles',
     'svm' : 'bow_articles',
-    'random_forestorest': 'bow_articles'
+    'random_forest': 'bow_articles'
 }
 
 METHODNAMES = [

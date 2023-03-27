@@ -22,7 +22,6 @@ class MultinomialNaiveBayesModel(LinearModel):
         self._model = MultinomialNB(alpha=1, force_alpha=True)
         self._vectorizer = DictVectorizer()
     
-   
 class ComplementNaiveBayesModel(LinearModel):
     '''Complement Naive Bayes model
     
