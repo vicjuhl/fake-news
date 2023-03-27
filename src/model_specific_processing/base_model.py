@@ -88,7 +88,6 @@ class BaseModel(ABC):
             if 'preds_simple_cont' in mm_df.columns:
                 mm_df = mm_df.drop('preds_simple_cont', axis=1) # dropping column if it already exists
             
-            
             mm_df = pd.merge(
                 mm_df,
                 self._preds.drop(["type", "split"], axis=1), # problem, adding other columns than just preds!!
@@ -100,26 +99,6 @@ class BaseModel(ABC):
             mm_df.to_csv(self._metamodel_train_path, mode="w", index=False)
         except Exception as e:
             print(f'Something went wrong adding predictions: {e}')
-            
-
-    def dump_for_mm_inference(self):
-        '''Dumps predictions to a csv for metamodel inference'''
-        if not os.path.exists(self._metamodel_train_path): # if csv does not exist create it
-            pd.DataFrame().to_csv(self._metamodel_inference_path, index=False)   
-        
-        try:
-            mm_test = pd.read_csv(self._metamodel_inference_path)
-            del_csv(self._metamodel_inference_path) # delete csv file
-        except pd.errors.EmptyDataError:
-            print('no metamodel csv found, creating one')
-            # create new DataFrame with 'type' column only
-            mm_test = pd.DataFrame()
-        try:
-            mm_test[f'preds_{self._name}'] = self._preds[f'preds_{self._name}']
-        except pd.errors.EmptyDataError: 
-            print('no inference to dump')
-
-        mm_test.to_csv(self._metamodel_inference_path,  index= False, mode="w+")
     
     def evaluate(self) -> None:
         '''Evaluates the model on a dataframe'''

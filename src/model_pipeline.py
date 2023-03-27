@@ -11,7 +11,7 @@ from model_specific_processing.obj_meta_model import MetaModel # type: ignore
 
 from model_specific_processing.obj_naive_bayes_models import MultinomialNaiveBayesModel, ComplementNaiveBayesModel  # type: ignore
 from model_specific_processing.obj_svm_model import svmModel # type: ignore
-from model_specific_processing.obj_random_forestorest_model import RandomForestModel # type: ignore
+from model_specific_processing.obj_random_forest_model import RandomForestModel # type: ignore
 from imports.json_to_pandas import json_to_pd # type: ignore
 from imports.data_importer import import_val_set, get_split # type: ignore
 
