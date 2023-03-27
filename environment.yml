@@ -13,6 +13,7 @@ dependencies:
   - pip=22.3.1
   - scikit-learn=1.2.0
   - unidecode=1.2.0
+  - graphviz = 7.1.0
   - pip:
       - clean-text==0.6.0 
       - nltk==3.8.1

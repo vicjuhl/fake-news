@@ -102,9 +102,9 @@ if __name__ == "__main__":
 
     if "get_dups" in args.processes:
         get_duplicate_ids(
-            data_path / "processed_csv/summarized_corpus_valset2.csv",
+            data_path / f"processed_csv/summarized_corpus_valset{val_set}.csv",
             data_path / "corpus",
-            "summarized_corpus_valset2_duplicates.csv" # this name has been hard-coded
+            f"summarized_corpus_valset{val_set}_duplicates.csv" # this name has been hard-coded
         )
         print("runtime:", time.time() - t0)
         t0 = time.time()
