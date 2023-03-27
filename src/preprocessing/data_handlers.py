@@ -9,7 +9,7 @@ import pandas as pd
 
 from utils.types import news_info, words_info, words_dict, NotInTrainingException # type: ignore
 from utils.functions import add_tuples # type: ignore
-from utils.mappings import transfered_cols, excl_types, incl_cols # type: ignore
+from utils.mappings import transfered_cols, excl_types, incl_cols, labels # type: ignore
 from preprocessing.noise_removal import clean_str, tokenize_str, stem, preprocess_without_stopwords # type: ignore
 
 
@@ -79,7 +79,12 @@ class CorpusReducer(DataHandler):
     @classmethod
     def process_batch(cls, data: tuple[list[tuple[str, ...]], dict]) -> list[Any]:
         batch, _ =  data
-        return batch
+        result_lst = []
+        for row in batch:
+            row = list(row)
+            row.append(labels[row[3]])
+            result_lst.append(row)
+        return result_lst
         
     def write(self, row: list[list[str]]) -> None:
         """Write rows."""
