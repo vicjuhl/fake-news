@@ -45,8 +45,7 @@ class SimpleModel(BaseModel):
         
         self._preds = df[['id', 'type', 'split']].copy()
             # adding predictions as a column 
-        self._preds[f'preds_{self._name}'] = classify_article(df , self._model) 
-        self._preds[f'preds_{self._name}_cont'] = classify_article_continous(df , self._model)
+        self._preds[f'preds_{self._name}'] = classify_article_continous(df , self._model)
     
         
         

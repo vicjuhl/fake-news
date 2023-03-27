@@ -53,19 +53,6 @@ def classifier(words: dict[str, int], df: pd.DataFrame) -> str:
     # the following division produces an average (no effect on binary classification)   
     return acc_score / acc_weight # shoudl be changed to non binary 
 
-def to_binary(val: float) -> str:
-    """Converts a float to a binary string."""
-    if val > 0:
-        return 'reliable'
-    else: 
-        return 'fake'
-
-def classify_article(val_df: pd.DataFrame, model_df: pd.DataFrame) -> list[str]:
-    """Classifies all articles in the input dataframe, and returns a list of predictions."""
-    predictions = []
-    column = val_df['content'].apply(lambda x: preprocess_string(x))
-    column.apply(lambda x: predictions.append(to_binary(classifier(x, model_df))))
-    return predictions
 
 def classify_article_continous(val_df: pd.DataFrame, model_df: pd.DataFrame) -> list[str]:
     """Classifies all articles in the input dataframe, and returns a list of predictions."""
