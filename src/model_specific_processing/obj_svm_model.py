@@ -12,7 +12,9 @@ class svmModel(LinearModel):
         val_set: int,
         models_dir: pl.Path,
         t_session: str,
+        name : str = "svm",
+        model_format : str = "pkl"
     ) -> None:
-        super().__init__(params, training_sets, val_set, models_dir, t_session, "svm", "pkl") # had to choose BaseModel inheritance (instead of LinearModel), since we wish to include the last two parameters here
+        super().__init__(params, training_sets, val_set, models_dir, t_session, name , model_format) # had to choose BaseModel inheritance (instead of LinearModel), since we wish to include the last two parameters here
         self._model = LinearSVC()
         self._vectorizer = DictVectorizer()
