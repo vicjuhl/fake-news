@@ -7,7 +7,7 @@ import json
 import os
 from sklearn.metrics import f1_score, balanced_accuracy_score # type: ignore
 import matplotlib.pyplot as plt
-
+from utils.functions import to_binary
 from utils.functions import del_csv # type: ignore
 
 class BaseModel(ABC):
@@ -108,11 +108,16 @@ class BaseModel(ABC):
             except ZeroDivisionError:
                 return None
 
+        
+
         _preds = self._preds
         if _preds is None:
             print('cannot evaluate without predictions')
             return
-        preds = _preds[f'preds_{self._name}'] #predictions
+        preds = _preds[f'preds_{self._name}'].apply(to_binary) #predictions
+        
+       
+        
         labels = _preds['type'] #correct anwsers
         
         #counts results, assuming fake is the positve case 
