@@ -13,7 +13,7 @@ incl_cols = {
     "keywords": 11,
     "tags": 14,
     "summary": 15,
-    "type": 16,
+    "type": 17,
 }
 
 incl_inds = [ind for ind in incl_cols.values()]

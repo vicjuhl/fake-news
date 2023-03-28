@@ -197,6 +197,7 @@ def shorten_articles(
     with open(from_file, encoding="utf8") as ff:
         reader = csv.reader(ff)
         next(reader)
+        to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
         with open(to_path / f"shortened_corpus.csv", "w", newline='', encoding="utf8") as tf:
             short_writer = csv.writer(tf)
             short_writer.writerow(["id", "shortened"]) # Write headers
@@ -248,7 +249,8 @@ def get_duplicate_ids(
     df = pd.read_csv(from_file)
     # update df to only contain duplicates
     print("\n Extracting duplicate rows... This may take up to a minute...")
-    df = df[df.duplicated(subset=["domain","type","words","content_len","mean_word_len"], keep='first') == True] # does not include "scraped_at" in subset argument, so an article scraped on several occasions will only have the first occurence as non-duplicate
+    print(df)
+    df = df[df.duplicated(subset=["shortened"], keep='first') == True] # does not include "scraped_at" in subset argument, so an article scraped on several occasions will only have the first occurence as non-duplicate
     count = len(df)
     print(f"\n A total of {count} duplicates were found.")
     if count == 0:
@@ -257,10 +259,10 @@ def get_duplicate_ids(
         df = df['id'].to_frame()
         to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
         if (to_path / file_name).is_file() == True: # do nothing if duplicate csv file already exists
-            print(f"\n Careful! If you want to overwrite the existing duplicates, you will have to delete the duplicate csv file first. The file already exists as {to_path}\{file_name}")
+            print(f"\n Careful! If you want to overwrite the existing duplicates, you will have to delete the duplicate csv file first. The file already exists as {to_path}/{file_name}")
         else:                                       # create new file if duplicate csv file does not exist
             df.to_csv(to_path / file_name, index=False)
-            print(f"\n Duplicate CSV was written to {to_path}\{file_name}")
+            print(f"\n Duplicate CSV was written to {to_path}/{file_name}")
 
 def import_val_set(from_file: pl.Path, split_num: int, splits: np.ndarray, n_rows: int) -> pd.DataFrame:
     """Import validation set as pandas dataframe."""
