@@ -184,7 +184,7 @@ def remove_stop_words_json(
     df = cut_tail_and_head (df, head_q, tail_q) 
     data = {"nArticles": n_articles, "words": df.to_dict(orient="index")} # pack into new dict
     json_data = json.dumps(data, indent=4)
-    with open(to_path, "w") as outfile:
+    with open(to_path, "w", newline='') as outfile:
         outfile.write(json_data)
 
 def shorten_articles(
@@ -197,7 +197,7 @@ def shorten_articles(
     with open(from_file, encoding="utf8") as ff:
         reader = csv.reader(ff)
         next(reader)
-        with open(to_path / f"shortened_corpus.csv", "w", encoding="utf8") as tf:
+        with open(to_path / f"shortened_corpus.csv", "w", newline='', encoding="utf8") as tf:
             short_writer = csv.writer(tf)
             short_writer.writerow(["id", "shortened"]) # Write headers
             shortener = CorpusShortener(short_writer)
@@ -225,7 +225,7 @@ def summarize_articles(
     with open(from_file, encoding="utf8") as ff:
         reader = csv.reader(ff)
         next(reader) # Skip headers (as they are not equal to output headers)
-        with open(to_path / f"summarized_corpus_valset{val_set}.csv", 'w', encoding="utf8") as tf:
+        with open(to_path / f"summarized_corpus_valset{val_set}.csv", 'w', newline='', encoding="utf8") as tf:
                 summ_writer = csv.writer(tf)
                 summ_writer.writerow(out_cols) # Write headers
                 summarizer = CorpusSummarizer(summ_writer, val_set, splits)
