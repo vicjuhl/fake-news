@@ -47,7 +47,8 @@ class MetaModel(BaseModel):
         except FileNotFoundError or pd.errors.EmptyDataError:
             print('metamodel cannot be trained, empty csv')   
              
-    def dump_for_mm_training(self):
+    def infer4_mm_training(self):
+        """Do nothing."""
         pass   
     
     def dump_model(self) -> None:

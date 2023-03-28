@@ -201,11 +201,13 @@ class CorpusSummarizer(DataHandler):
         summ_writer: '_csv._writer',
         val_set: int,
         splits: np.ndarray,
+        file_path: pl.Path
     ) -> None:
         super().__init__()
         self.summ_writer = summ_writer
         self._val_set = val_set
         self._splits = splits
+        self._file_path = file_path
 
     def extract(self, row: list[str], i: int) -> tuple[str, ...]:
         """Extract all relevant entries from row."""
@@ -260,5 +262,8 @@ class CorpusSummarizer(DataHandler):
         self.summ_writer.writerows(rows)
 
     def finalize(self):
-        """Do nothing."""
-        pass
+        """Shuffle the deck."""
+        print("Shuffling summarized corpus.")
+        df = pd.read_csv(self._file_path)
+        df = df.sample(frac=1.0, random_state=42)
+        df.to_csv(self._file_path, index=False)

@@ -24,18 +24,18 @@ MODELS: dict = {
     'compl_nb': ComplementNaiveBayesModel,
     'svm': svmModel,
     'random_forest': RandomForestModel,
-    'meta_model': MetaModel
+    'meta': MetaModel
 }
 
 TRAININGSETS = {
     'simple': 'bow_simple',
     'linear': 'bow_articles',
+    'pa':'bow_articles',
     'multi_nb': 'bow_articles',    
     'compl_nb': 'bow_articles',
-    'pa':'bow_articles',
-    'meta_model': 'bow_articles',
     'svm' : 'bow_articles',
-    'random_forest': 'bow_articles'
+    'random_forest': 'bow_articles',
+    'meta': 'bow_articles',
 }
 
 METHODNAMES = [
@@ -101,11 +101,10 @@ if __name__ == '__main__':
                 lambda x: 1 if x in tr1 else 2 if x in tr2 else None
             )
             bow_art_trn['words'] = bow_art_trn['words'].apply(ast.literal_eval)
-            # if self._with_features:
-            #     #this is ugly, could have been absorbed in add_features_df? 
-            #     df['words'] = df['words'].apply(lambda x: {**x,'entropy': entropy(x, len(x.keys()))}) # adding entropy
-            #     df['words'] = df['words'].apply(lambda x: {**x,'content_len': len(x.keys())}) # adding content_len
-            #     df['words'] = df['words'].apply(lambda x: {**x,'mean_word_len': sum(x.values())/len(x.keys())}) # adding mean_word_len
+            bow_art_trn = bow_art_trn.sample(frac=1.0, random_state=42)
+            n_fakes = len(bow_art_trn[bow_art_trn["type"] == "fake"])
+            n_reals = len(bow_art_trn[bow_art_trn["type"] == "reliable"])
+            print(f"Number of fake articles: {n_fakes}, number of reliable articles: {n_reals}")
     
     if "infer" in args.methods:
         val_data = import_val_set(
@@ -115,11 +114,7 @@ if __name__ == '__main__':
             n_rows = args.n_val # number of rows
         )
         val_data['words'] = val_data['content'].apply(lambda x: preprocess_string(x)) # convertingt str to dict[str, int]
-        # if self._with_features:
-        #     #this is ugly, could have been absorbed in add_features_df? 
-        #     df['words'] = df['words'].apply(lambda x: {**x,'entropy': entropy(x, len(x.keys()))}) # adding entropy
-        #     df['words'] = df['words'].apply(lambda x: {**x,'content_len': len(x.keys())}) # adding content_len
-        #     df['words'] = df['words'].apply(lambda x: {**x,'mean_word_len': sum(x.values())/len(x.keys())}) # adding mean_word_len
+        val_data = val_data.sample(frac=1.0, random_state=42)
     
     for model_name in args.models:
         t0_model = time()

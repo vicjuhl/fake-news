@@ -106,7 +106,7 @@ def process_lines(
             running = False
     # Flush what remains in the buffer
     out_obj.write(process_buffer(out_obj, buffer, n_procs, **kwargs))
-    # Export as json
+    # Finish last processes
     out_obj.finalize()
     return out_obj.n_incl, out_obj.n_excl, n_ignored, n_skipped
 
@@ -120,7 +120,7 @@ def reduce_corpus(
     print("\n Reducing corpus...")
     with open(from_file, encoding="utf8") as ff:
         reader = csv.reader(ff)
-        with open(to_path / "reduced_corpus.csv", 'w', newline='', encoding="utf8") as tf: # hallelujah
+        with open(to_path / "reduced_corpus.csv", 'w', newline='', encoding="utf8") as tf:
             writer = csv.writer(tf)
             # Create updated headers for label groups
             headers = next(reader)
@@ -230,10 +230,11 @@ def summarize_articles(
     with open(from_file, encoding="utf8") as ff:
         reader = csv.reader(ff)
         next(reader) # Skip headers (as they are not equal to output headers)
-        with open(to_path / f"summarized_corpus_valset{val_set}.csv", 'w', newline='', encoding="utf8") as tf:
+        to_file = to_path / f"summarized_corpus_valset{val_set}.csv"
+        with open(to_file, 'w', newline='', encoding="utf8") as tf:
                 summ_writer = csv.writer(tf)
                 summ_writer.writerow(out_cols) # Write headers
-                summarizer = CorpusSummarizer(summ_writer, val_set, splits)
+                summarizer = CorpusSummarizer(summ_writer, val_set, splits, to_file)
                 n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, summarizer, incl_words=words)
     print_row_counts(n_incl, n_excl, n_ignored, n_skipped, f"Summarized corpus was written to files in {to_path}/")
 
