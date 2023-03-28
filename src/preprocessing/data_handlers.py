@@ -9,7 +9,7 @@ import pandas as pd
 
 from utils.types import news_info, words_info, words_dict, NotInTrainingException # type: ignore
 from utils.functions import add_tuples # type: ignore
-from utils.mappings import transfered_cols, excl_types, incl_cols # type: ignore
+from utils.mappings import transfered_cols, excl_types, incl_cols, labels # type: ignore
 from preprocessing.noise_removal import clean_str, tokenize_str, stem, preprocess_without_stopwords # type: ignore
 
 
@@ -80,7 +80,12 @@ class CorpusReducer(DataHandler):
     @classmethod
     def process_batch(cls, data: tuple[list[tuple[str, ...]], dict]) -> list[Any]:
         batch, _ =  data
-        return batch
+        result_lst = []
+        for row in batch:
+            row = list(row)
+            row.append(labels[row[3]])
+            result_lst.append(row)
+        return result_lst
         
     def write(self, row: list[list[str]]) -> None:
         """Write rows."""
@@ -131,7 +136,7 @@ class WordsCollector(DataHandler):
     def extract(self, row: list[str], i: int) -> news_info:
         """Extract type and content from row"""
         self.check_split(i, int(row[1]), self._splits, self._val_set)
-        return row[3], row[5]
+        return row[incl_cols["type"]], row[5]
     
     @classmethod
     def process_batch(cls, data: tuple[list[news_info], dict]) -> list[words_info]:
@@ -205,7 +210,7 @@ class CorpusSummarizer(DataHandler):
     def extract(self, row: list[str], i: int) -> tuple[str, ...]:
         """Extract all relevant entries from row."""
         self.check_split(i, int(row[1]), self._splits, self._val_set)
-        type_ = row[3]
+        type_ = row[incl_cols["type"]]
         if type_ is None or type_ in excl_types:
             self._n_excl += 1
             return () # Nothing added to buffer

@@ -16,6 +16,7 @@ from imports.json_to_pandas import json_to_pd # type: ignore
 from imports.data_importer import import_val_set, get_split # type: ignore
 
 
+
 MODELS: dict = {
     'simple': SimpleModel,
     'linear': LinearModel,
