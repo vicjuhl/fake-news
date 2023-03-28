@@ -3,19 +3,18 @@ import argparse as ap
 import pandas as pd
 from time import time, localtime, strftime
 import json
+import ast
 
+from preprocessing.noise_removal import preprocess_string # type: ignore
 from model_specific_processing.obj_simple_model import SimpleModel # type: ignore
 from model_specific_processing.obj_linear_model import LinearModel # type: ignore
 from model_specific_processing.obj_pa_classifier import PaClassifier # type: ignore
 from model_specific_processing.obj_meta_model import MetaModel # type: ignore
-
 from model_specific_processing.obj_naive_bayes_models import MultinomialNaiveBayesModel, ComplementNaiveBayesModel  # type: ignore
 from model_specific_processing.obj_svm_model import svmModel # type: ignore
 from model_specific_processing.obj_random_forest_model import RandomForestModel # type: ignore
 from imports.json_to_pandas import json_to_pd # type: ignore
 from imports.data_importer import import_val_set, get_split # type: ignore
-
-
 
 MODELS: dict = {
     'simple': SimpleModel,
@@ -101,6 +100,12 @@ if __name__ == '__main__':
             bow_art_trn["trn_split"] = bow_art_trn["split"].apply(
                 lambda x: 1 if x in tr1 else 2 if x in tr2 else None
             )
+            bow_art_trn['words'] = bow_art_trn['words'].apply(ast.literal_eval)
+            # if self._with_features:
+            #     #this is ugly, could have been absorbed in add_features_df? 
+            #     df['words'] = df['words'].apply(lambda x: {**x,'entropy': entropy(x, len(x.keys()))}) # adding entropy
+            #     df['words'] = df['words'].apply(lambda x: {**x,'content_len': len(x.keys())}) # adding content_len
+            #     df['words'] = df['words'].apply(lambda x: {**x,'mean_word_len': sum(x.values())/len(x.keys())}) # adding mean_word_len
     
     if "infer" in args.methods:
         val_data = import_val_set(
@@ -109,6 +114,12 @@ if __name__ == '__main__':
             get_split(data_path), 
             n_rows = args.n_val # number of rows
         )
+        val_data['words'] = val_data['content'].apply(lambda x: preprocess_string(x)) # convertingt str to dict[str, int]
+        # if self._with_features:
+        #     #this is ugly, could have been absorbed in add_features_df? 
+        #     df['words'] = df['words'].apply(lambda x: {**x,'entropy': entropy(x, len(x.keys()))}) # adding entropy
+        #     df['words'] = df['words'].apply(lambda x: {**x,'content_len': len(x.keys())}) # adding content_len
+        #     df['words'] = df['words'].apply(lambda x: {**x,'mean_word_len': sum(x.values())/len(x.keys())}) # adding mean_word_len
     
     for model_name in args.models:
         t0_model = time()
@@ -136,7 +147,7 @@ if __name__ == '__main__':
             
             if method_name == "infer" :
                 if isinstance(model_inst, MetaModel):
-                    mm_df = pd.read_csv(model_path / 'meta_model/metamodel_train.csv')
+                    mm_df = pd.read_csv(model_path / 'meta_model/metamodel_inference.csv')
                     # REMEMBER this is not the real dataset, SHOULD BE CHANGED!!
                     METHODS[method_name](mm_df)
                 else:

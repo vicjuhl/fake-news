@@ -1,12 +1,7 @@
 import pandas as pd
 import os 
 import pathlib as pl
-import math 
-#import graphviz
-from typing import Callable
-from sklearn.tree import export_graphviz
-import re
-
+import math
 
 def add_tuples(a: tuple[int, int], b: tuple[int, int]) -> tuple[int, int]:
     """Add two two-element integer tuples elementwise."""
@@ -24,13 +19,6 @@ def df_type_to_binary(df: pd.DataFrame) -> pd.DataFrame:
     df['type_binary'] = df['type'].apply(lambda x: to_binary(x))
     return df
 
-def to_binary(val: float) -> str:    
-    """Converts a float to a binary string."""
-    if val > 0:
-        return 'reliable'
-    else: 
-        return 'fake'
-
 def entropy(word_dict: dict[str,int], length : int):
     """Calculate the entropy of a text."""
     entropy = -sum(freq/length * math.log2(freq/length) for freq in word_dict.values()) # # entropy using formula: text using the formula: - sum(freq/total_chars * log2(freq/total_chars))
@@ -38,9 +26,8 @@ def entropy(word_dict: dict[str,int], length : int):
 
 def add_features_df(df : pd.DataFrame, feature_name : str) -> pd.DataFrame:
     """Add a key to a dictionary if it doesn't exist yet."""
-    df['words_dict'] = df.apply(lambda row: {**row['words_dict'], feature_name : row[f'{feature_name}']}, axis=1) # add feature to words_dict
+    df['words'] = df.apply(lambda row: {**row['words'], feature_name : row[f'{feature_name}']}, axis=1) # add feature to words_dict
     return df
-
 
 def create_dict_MetaModel(row):
     return {**row.to_dict()}

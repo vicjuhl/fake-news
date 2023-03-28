@@ -1,7 +1,6 @@
 import pandas as pd
 import pickle
 import pathlib as pl
-import ast
 from sklearn.feature_extraction import DictVectorizer # type: ignore
 from sklearn.linear_model import LogisticRegression # type: ignore
 from model_specific_processing.base_model import BaseModel # type: ignore
@@ -29,17 +28,11 @@ class LinearModel(BaseModel):
       
     def train(self) -> None:        
         '''Trains a PassiveAggressiveClassifier model on the training data'''
-        df = self._training_sets["bow_articles"]
-        df = df[df["trn_split" == 1]]
-        df['words_dict'] = df['words'].apply(ast.literal_eval) # converting str dict to dict
-        
-        if self._with_features:
-            df['words_dict'] = df.apply(lambda row: {**row['words_dict'],'entropy': entropy(row['words_dict'], row['content_len'])}, axis=1)
-            df = add_features_df(df, 'content_len')
-            df = add_features_df(df, 'mean_word_len')
+        df: pd.DataFrame = self._training_sets["bow_articles"]
+        df = df[df["trn_split"] == 1]
             
         y_train = df['type']
-        x_train_vec = self._vectorizer.fit_transform(df['words_dict'].to_list())
+        x_train_vec = self._vectorizer.fit_transform(df['words'].to_list())
         self._model.fit(x_train_vec, y_train)
         
     def dump_model(self) -> None:
@@ -57,19 +50,12 @@ class LinearModel(BaseModel):
             with open(self._model_path, 'rb') as f:
                 self._model = pickle.load(f)
                 
-        df = self._training_sets["bow_articles"]
-        df = df[df["trn_split" == 2]]
-                        
-       #assume a bag of words is a column called 'bow' in the dataframe 
-        if self._with_features:
-                #this is ugly, could have been absorbed in add_features_df? 
-            df['bow'] = df['bow'].apply(lambda x: {**x,'entropy': entropy(x, len(x.keys()))}) # adding entropy
-            df['bow'] = df['bow'].apply(lambda x: {**x,'content_len': len(x.keys())}) # adding content_len
-            df['bow'] = df['bow'].apply(lambda x: {**x,'mean_word_len': sum(x.values())/len(x.keys())}) # adding mean_word_len
-                    
-        prob_preds = self._predictor(self._vectorizer.transform(df['bow'])) #extract probalities
+        df: pd.DataFrame = self._training_sets["bow_articles"]
+        df = df[df["trn_split"] == 2]
+
+        prob_preds = self._predictor(self._vectorizer.transform(df['words'])) #extract probalities
         non_binary_preds = prob_preds[:,1] - prob_preds[:,0] #normalize between 1 (real) and -1 (fake)
-        df[f'preds_from_{self._name}'] = non_binary_preds # adding predictions as a column
+        df[f'preds_{self._name}'] = non_binary_preds # adding predictions as a column
                     
         self._preds_mm_training = df[['id', 'type', 'split']].copy()
         # adding predictions as a column
@@ -78,7 +64,7 @@ class LinearModel(BaseModel):
         #Dumps predictions to a csv for metamodel to train on
         print('generating training data for metamodel, dumping predictions')
         
-        self.dump_inference(self, self._metamodel_inference_path, self._preds_mm_training)                
+        self.dump_inference(self._metamodel_train_path, self._preds_mm_training)                
    
     def infer(self, df: pd.DataFrame) -> None:
         '''Makes predictions on a validation dataframe'''
@@ -88,27 +74,22 @@ class LinearModel(BaseModel):
                     model = pickle.load(f)
             else:
                 model = self._model
-            df['bow'] = df['content'].apply(lambda x: preprocess_string(x)) # convertingt str to dict[str, int]
-            
-            if self._with_features:
-                #this is ugly, could have been absorbed in add_features_df? 
-                df['bow'] = df['bow'].apply(lambda x: {**x,'entropy': entropy(x, len(x.keys()))}) # adding entropy
-                df['bow'] = df['bow'].apply(lambda x: {**x,'content_len': len(x.keys())}) # adding content_len
-                df['bow'] = df['bow'].apply(lambda x: {**x,'mean_word_len': sum(x.values())/len(x.keys())}) # adding mean_word_len
 
-            prob_preds = self._predictor(self._vectorizer.transform(df['bow'])) #extract probalities
+            prob_preds = self._predictor(self._vectorizer.transform(df['words'])) #extract probalities
             non_binary_preds = prob_preds[:,1] - prob_preds[:,0] #normalize between 1 (real) and -1 (fake)
-            df[f'preds_from_{self._name}'] = non_binary_preds # adding predictions as a column
-                    
             self._preds = df[['id', 'type', 'split']].copy()
+            self._preds[f'preds_{self._name}'] = non_binary_preds # adding predictions as a column
+            
             # adding predictions as a column
             self._preds[f'preds_{self._name}'] = non_binary_preds       
         except FileNotFoundError:
             print('Cannot make inference without a trained model')   
         
         # Dumps the predictions to a csv file
-        self.dump_inference(self, self._metamodel_inference_path, self._preds)
+        self.dump_inference(self._metamodel_inference_path, self._preds)
              
+        print(self._preds)
+        print(df)
         
     def dump_inference(self, path: pl.Path, preds: pd.DataFrame) -> None:
         '''Dumps the predictions to a csv file'''

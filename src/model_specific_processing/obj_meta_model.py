@@ -3,9 +3,9 @@ import pathlib as pl
 from typing import Optional
 import pandas as pd
 from sklearn.feature_extraction import DictVectorizer # type: ignore
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier # type: ignore
 import pickle
-from utils.functions import create_dict_MetaModel
+from utils.functions import create_dict_MetaModel # type: ignore
 from model_specific_processing.base_model import BaseModel  # type: ignore
 
 
@@ -56,7 +56,7 @@ class MetaModel(BaseModel):
             pickle.dump(self._model , f)
         print(f'model dumped to {self._model_path}')
         
-    def infer(self, df: pd.DataFrame) -> pd.DataFrame:
+    def infer(self, df: pd.DataFrame) -> None:
         '''Infer the model on the given dataframe'''
         # load model
         try:   
