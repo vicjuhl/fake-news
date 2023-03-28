@@ -127,9 +127,13 @@ def reduce_corpus(
             headers[3] = "orig_type"
             headers.append("type")
             writer.writerow(headers) # Write new headers to out_file
-
             try:
-                duplicates = pd.read_csv(dups_path)['id'].array # Load array of duplicates to skip when reading
+                duplicates = np.loadtxt(
+                    dups_path,
+                    delimiter=',',
+                    skiprows=1,
+                    dtype=np.int_
+                )
             except:
                 duplicates = np.array([])
             reducer = CorpusReducer(writer, duplicates)
@@ -249,7 +253,6 @@ def get_duplicate_ids(
     df = pd.read_csv(from_file)
     # update df to only contain duplicates
     print("\n Extracting duplicate rows... This may take up to a minute...")
-    print(df)
     df = df[df.duplicated(subset=["shortened"], keep='first') == True] # does not include "scraped_at" in subset argument, so an article scraped on several occasions will only have the first occurence as non-duplicate
     count = len(df)
     print(f"\n A total of {count} duplicates were found.")

@@ -82,9 +82,9 @@ class CorpusReducer(DataHandler):
         batch, _ =  data
         result_lst = []
         for row in batch:
-            row = list(row)
-            row.append(labels[row[3]])
-            result_lst.append(row)
+            out_row = list(row)
+            out_row.append(labels[row[3]])
+            result_lst.append(out_row)
         return result_lst
         
     def write(self, row: list[list[str]]) -> None:
