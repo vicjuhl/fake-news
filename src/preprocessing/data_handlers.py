@@ -136,7 +136,7 @@ class WordsCollector(DataHandler):
     def extract(self, row: list[str], i: int) -> news_info:
         """Extract type and content from row"""
         self.check_split(i, int(row[1]), self._splits, self._val_set)
-        return row[3], row[5]
+        return row[incl_cols["type"]], row[5]
     
     @classmethod
     def process_batch(cls, data: tuple[list[news_info], dict]) -> list[words_info]:
@@ -210,7 +210,7 @@ class CorpusSummarizer(DataHandler):
     def extract(self, row: list[str], i: int) -> tuple[str, ...]:
         """Extract all relevant entries from row."""
         self.check_split(i, int(row[1]), self._splits, self._val_set)
-        type_ = row[3]
+        type_ = row[incl_cols["type"]]
         if type_ is None or type_ in excl_types:
             self._n_excl += 1
             return () # Nothing added to buffer

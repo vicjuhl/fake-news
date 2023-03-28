@@ -120,10 +120,10 @@ def reduce_corpus(
     print("\n Reducing corpus...")
     with open(from_file, encoding="utf8") as ff:
         reader = csv.reader(ff)
-        with open(to_path / "reduced_corpus.csv", 'w', encoding="utf8") as tf:
+        with open(to_path / "reduced_corpus.csv", 'w', newline='', encoding="utf8") as tf: # hallelujah
             writer = csv.writer(tf)
-            
-            headers = next(reader) # Create updated headers for label groups
+            # Create updated headers for label groups
+            headers = next(reader)
             headers[3] = "orig_type"
             headers.append("type")
             writer.writerow(headers) # Write new headers to out_file
