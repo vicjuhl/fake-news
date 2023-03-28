@@ -41,9 +41,9 @@ TRAININGSETS = {
 METHODNAMES = [
     'train',
     'dump_model',
+    'infer4_mm_training',
     'infer',
     'evaluate',
-    'dump_for_mm_training'
 ]
 
 def init_argparse() -> ap.ArgumentParser:
@@ -125,9 +125,8 @@ if __name__ == '__main__':
         METHODS = {
             'train': model_inst.train,
             'dump_model': model_inst.dump_model,
+            'infer4_mm_training': model_inst.infer4_mm_training,
             'infer': model_inst.infer,
-            'dump_for_mm_training': model_inst.dump_for_mm_training,
-            'dump_for_mm_inference': model_inst.dump_for_mm_training,
             'evaluate': model_inst.evaluate
         }
         for method_name in args.methods:

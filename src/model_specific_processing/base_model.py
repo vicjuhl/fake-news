@@ -6,7 +6,7 @@ from typing import Optional
 import json
 import os
 from sklearn.metrics import f1_score, balanced_accuracy_score # type: ignore
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from utils.functions import to_binary
 from utils.functions import del_csv # type: ignore
 
@@ -40,6 +40,7 @@ class BaseModel(ABC):
         self._metamodel_path.mkdir(parents=True, exist_ok=True)
         self._metamodel_train_path =  self._metamodel_path / "metamodel_train.csv"
         self._metamodel_inference_path =  self._metamodel_path / "metamodel_inference.csv"
+        self._preds_mm_training = pd.DataFrame()
         self.dump_metadata()
 
     def dump_metadata(self) -> None:
@@ -64,42 +65,6 @@ class BaseModel(ABC):
     @abstractmethod
     def infer(self, df: pd.DataFrame) -> pd.DataFrame:
         pass
-    
-    def dump_for_mm_training(self):
-        '''Dumps predictions to a csv for metamodel to train on'''
-        print('generating training data for metamodel, dumping predictions')
-        
-        try:
-            # load existing metamodel CSV file into a DataFrame
-            mm_df = pd.read_csv(self._metamodel_train_path)
-        except Exception as e:
-            print("Not loading csv: ", e)
-            mm_df = pd.DataFrame({'id': self._preds.id, 'type': self._preds.type})
-            
-        col_name = f'preds_{self._name}'
-        try:
-            # add new predictions as a new column to existing DataFrame
-            col_name = f'preds_{self._name}'
-            if col_name not in self._preds:
-                print(f'no predictions to dump for {self._name}')
-
-            if col_name in mm_df.columns:
-                mm_df = mm_df.drop(col_name, axis=1) # dropping column if it already exists 
-            
-            if 'preds_simple_cont' in mm_df.columns:
-                mm_df = mm_df.drop('preds_simple_cont', axis=1) # dropping column if it already exists
-            
-            mm_df = pd.merge(
-                mm_df,
-                self._preds.drop(["type", "split"], axis=1), # problem, adding other columns than just preds!!
-                on="id",
-                how="left",
-                suffixes=("_l", "_r")
-            )
-            # save updated DataFrame to metamodel CSV file
-            mm_df.to_csv(self._metamodel_train_path, mode="w", index=False)
-        except Exception as e:
-            print(f'Something went wrong adding predictions: {e}')
     
     def evaluate(self) -> None:
         '''Evaluates the model on a dataframe'''
@@ -164,20 +129,20 @@ class BaseModel(ABC):
             outfile.write(json_eval)
 
         # Confusion matrix plot 
-        fig, ax = plt.subplots()
-        table = ax.matshow(confusion_matrix, cmap ='Blues')
+    #    fig, ax = plt.subplots()
+     #   table = ax.matshow(confusion_matrix, cmap ='Blues')
    
-        ax.set_xticks([0, 1])
-        ax.set_yticks([0, 1])
-        ax.set_xticklabels(['Fake', 'Reliable'])
-        ax.set_yticklabels(['Fake', 'Reliable'])
+      #  ax.set_xticks([0, 1])
+        # ax.set_yticks([0, 1])
+        # ax.set_xticklabels(['Fake', 'Reliable'])
+        # ax.set_yticklabels(['Fake', 'Reliable'])
 
         # Add the values to the table
-        for i in range(2):
-            for j in range(2):
-                text = f"{round(confusion_matrix[i][j]*100, 2)}%"
-                ax.text(j, i, text, va='center', ha='center', fontsize=11)
+        #for i in range(2):
+          #  for j in range(2):
+         #       text = f"{round(confusion_matrix[i][j]*100, 2)}%"
+         #       ax.text(j, i, text, va='center', ha='center', fontsize=11)
 
         #dump to png
-        fig.savefig((self._evaluation_dir / 'ConfusionMatrix.png'))
+        #fig.savefig((self._evaluation_dir / 'ConfusionMatrix.png'))
       
