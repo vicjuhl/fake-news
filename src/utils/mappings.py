@@ -24,8 +24,9 @@ out_cols = [
     # Transfered
     "id",
     "domain",
-    "type",
+    "orig_type",
     "scraped_at",
+    "type",
     # Derived
     "words",
     "content_len",
