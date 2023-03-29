@@ -101,3 +101,29 @@ Summarized corpus was written to files in /Users/victor/Documents/Uddannelse/Rep
 runtime: 3659.3779697418213
 
  Total runtime: 5797.815762042999
+
+Afternoon March 29th:
+(fake-news) victor@victors-macbook-pro fake-news % python src/model_pipeline.py -v 2 -t1 3 4 5 6 7 -t2 8 9 10 -p prep_val -nt 1000000000 -nv 1000000000
+Importing validation data for preprocessing...
+3467900 rows read successfully:
+	3467900 rows were used:
+		346790 were included.
+		3121110 were excluded.
+	0 were ignored because they belong to test or validation set.
+0 rows were skipped due to reading error.
+Read validation data from /Users/victor/Documents/Uddannelse/Repos/fake-news/data_files/corpus/reduced_corpus.csv.
+Processed validation data
+Total runtime 626.4340720176697
+
+(fake-news) victor@victors-macbook-pro fake-news % python src/model_pipeline.py -v 1 -t1 3 4 5 6 7 -t2 8 9 10 -p prep_val -nt 10000000 -nv 10000000 -t 1
+CAUTION: Running on test set!!!
+Importing validation data for preprocessing...
+3467900 rows read successfully:
+	3467900 rows were used:
+		346790 were included.
+		3121110 were excluded.
+	0 were ignored because they belong to test or validation set.
+0 rows were skipped due to reading error.
+Read validation data from /Users/victor/Documents/Uddannelse/Repos/fake-news/data_files/corpus/reduced_corpus.csv.
+Processed validation data
+Total runtime 622.294585943222
