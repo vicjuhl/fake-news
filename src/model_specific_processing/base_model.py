@@ -19,13 +19,13 @@ class BaseModel(ABC):
         models_dir: pl.Path,
         t_session: str,
         name: str,
-        file_type: str,
+        file_format: str,
     ) -> None:  # 1 as default value for val_set
         self._session_dir = models_dir / f"{name}/{name}_{t_session}/"
         self._evaluation_dir = self._session_dir / "evaluation/"
         # Create dest folder with sub-folders if it does not exist.
         self._evaluation_dir.mkdir(parents=True, exist_ok=True)
-        self._model_path = self._session_dir / f"model.{file_type}"
+        self._model_path = self._session_dir / f"model.{file_format}"
         self._params = params
         self._training_sets = training_sets
         self._val_set = val_set
@@ -39,6 +39,7 @@ class BaseModel(ABC):
         self._metamodel_inference_path =  self._metamodel_path / "metamodel_inference.csv"
         self._preds_mm_training = pd.DataFrame()
         self.dump_metadata()
+        self.filetype = file_format
 
     def dump_metadata(self) -> None:
         """Dump json file with session metadata."""
@@ -64,8 +65,8 @@ class BaseModel(ABC):
         pass
 
     def load(self) -> None:
-        savedmodel_path = pl.Path(__file__).parent.parent.resolve() / "model_files_shared" / "saved_models" / self.name + "." + self.file_type
-        saved_model = pickle.load(savedmodel_path)
+        savedmodel_path = pl.Path(__file__).parent.parent.parent.resolve() / "model_files_shared" / "saved_models" / (self._name + "." + self.filetype)
+        saved_model = pickle.load(open(savedmodel_path, 'rb'))
         self.set_model(saved_model)
         
     @abstractmethod

@@ -20,8 +20,8 @@ class SimpleModel(BaseModel):
         super().__init__(params, training_sets, val_set, models_dir, t_session, "simple", "csv")
         self._model: Optional[pd.DataFrame] = None
         
-        def set_model(self, model: any) -> None:
-            self._model = model
+    def set_model(self, model: any) -> None:
+        self._model = model
 
     def train(self) -> None:
         '''Trains a simple_model instance on the training data'''
@@ -50,8 +50,5 @@ class SimpleModel(BaseModel):
             # adding predictions as a column 
         self._preds[f'preds_{self._name}'] = classify_article_continous(df , self._model)
     
-    def infer4_mm_training(self) -> None:
-        """Do nothing."""
-        pass
         
         
