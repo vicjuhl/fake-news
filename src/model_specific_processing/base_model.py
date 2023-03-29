@@ -11,7 +11,7 @@ from utils.functions import to_binary
 from utils.functions import del_csv # type: ignore
 
 from utils.functions import del_csv # type: ignore
-
+import pickle
 class BaseModel(ABC):
     '''Abstract class for models'''
     def __init__(
@@ -64,6 +64,15 @@ class BaseModel(ABC):
     
     @abstractmethod
     def infer(self, df: pd.DataFrame) -> pd.DataFrame:
+        pass
+
+    def load(self) -> None:
+        savedmodel_path = pl.Path(__file__).parent.parent.resolve() / "model_files_shared" / "saved_models" / self.name + "." + self.file_type
+        saved_model = pickle.load(savedmodel_path)
+        self.set_model(saved_model)
+        
+    @abstractmethod
+    def set_model(self, model: any) -> None:
         pass
     
     def evaluate(self) -> None:

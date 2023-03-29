@@ -20,6 +20,9 @@ class SimpleModel(BaseModel):
         super().__init__(params, training_sets, val_set, models_dir, t_session, "simple", "csv")
         self._model: Optional[pd.DataFrame] = None
         
+        def set_model(self, model: any) -> None:
+            self._model = model
+
     def train(self) -> None:
         '''Trains a simple_model instance on the training data'''
         total_num_articles, train_data = self._training_sets["bow_simple"]
