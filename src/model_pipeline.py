@@ -92,7 +92,8 @@ if __name__ == '__main__':
             print("CAUTION: Running on test set!!!")
         elif args.val_set == -1: # LIAR
             print("CAUTION: Running on LIAR set!!!")
-        raise ValueError("Some numbers missing in split definitions.")
+        else:
+            raise ValueError("Some numbers missing in split definitions.")
     
     if "train" in args.methods:
         if "bow_simple" in data_kinds:
