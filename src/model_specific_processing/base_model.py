@@ -65,9 +65,12 @@ class BaseModel(ABC):
         pass
 
     def load(self) -> None:
+        savedmodel_path = pl.Path(__file__).parent.parent.parent.resolve() / "model_files_shared" / "saved_models" / self._name / ("model" + "." + self.filetype)
         try:
-            savedmodel_path = pl.Path(__file__).parent.parent.parent.resolve() / "model_files_shared" / "saved_models" / self._name / ("model" + "." + self.filetype)
-            saved_model = pickle.load(open(savedmodel_path, 'rb'))
+            if self.filetype == "pkl":
+                saved_model = pickle.load(open(savedmodel_path, 'rb'))
+            elif self.filetype == "csv":
+                saved_model = pd.read_csv(savedmodel_path)
             self.set_model(saved_model)
         except:
             print ("Exception: modelfile not found")
