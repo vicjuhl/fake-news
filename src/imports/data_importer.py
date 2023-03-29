@@ -9,12 +9,14 @@ import json
 from typing import Union
 from multiprocessing import Pool, cpu_count
 from preprocessing.noise_removal import cut_tail_and_head # type: ignore
-from preprocessing.noise_removal import clean_str # type: ignore
+from preprocessing.noise_removal import preprocess_string # type: ignore
 from utils.types import news_info, words_info, NotInTrainingException # type: ignore
 from utils.mappings import out_cols # type: ignore
 from preprocessing.data_handlers import DataHandler, WordsCollector, CorpusSummarizer, CorpusReducer, CorpusShortener # type: ignore
 from imports.prints import print_row_counts # type: ignore
 from imports.json_to_pandas import json_to_pd # type: ignore
+
+pd.options.mode.chained_assignment = None # Silence false postive warning
 
 def create_clear_buffer(n_procs: int) -> list[list[news_info]]:
     """Create buffer list with n_procs empty lists."""
@@ -270,11 +272,28 @@ def get_duplicate_ids(
 
 def import_val_set(from_file: pl.Path, split_num: int, splits: np.ndarray, n_rows: int) -> pd.DataFrame:
     """Import validation set as pandas dataframe."""
-    df = pd.read_csv(from_file, usecols = ["id", "type", "content"], nrows = n_rows) # content instead of shortened for full corpus
     df_splits = pd.DataFrame(splits, columns=["id", "split"])
-    df_w_splits = pd.merge(df, df_splits, on="id")
-    df_val_set = df_w_splits[df_w_splits["split"] == split_num]
-    return df_val_set
+    df_splits.sort_values("id", inplace=True)
+
+    iter_csv = pd.read_csv(
+        from_file,
+        iterator=True,
+        chunksize=10000,
+        usecols=["id", "type", "content"],
+        nrows=n_rows #TODO Erase
+    )
+
+    df_val_set = pd.DataFrame()
+    for chunk in iter_csv:
+        chunk_w_splits = pd.merge(chunk, df_splits, "left", "id")
+        matching_rows = chunk_w_splits[chunk_w_splits["split"] == split_num]
+        matching_rows["words"] = matching_rows["content"].apply(lambda x: preprocess_string(x))
+        matching_rows.drop("content", inplace=True, axis=1)
+        df_val_set = pd.concat([df_val_set, matching_rows])
+
+    df_val_set = df_val_set.sample(frac=1.0, random_state=42)
+
+    return df_val_set[:n_rows]
 
 def get_split(data_path: pl.Path) -> np.ndarray: 
     splits = np.loadtxt(
@@ -284,3 +303,4 @@ def get_split(data_path: pl.Path) -> np.ndarray:
         dtype=np.int_
     )
     return splits
+

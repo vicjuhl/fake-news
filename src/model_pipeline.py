@@ -101,20 +101,18 @@ if __name__ == '__main__':
                 lambda x: 1 if x in tr1 else 2 if x in tr2 else None
             )
             bow_art_trn['words'] = bow_art_trn['words'].apply(ast.literal_eval)
-            bow_art_trn = bow_art_trn.sample(frac=1.0, random_state=42)
             n_fakes = len(bow_art_trn[bow_art_trn["type"] == "fake"])
             n_reals = len(bow_art_trn[bow_art_trn["type"] == "reliable"])
             print(f"Number of fake articles: {n_fakes}, number of reliable articles: {n_reals}")
     
     if "infer" in args.methods:
+        print("Importing validation data...")
         val_data = import_val_set(
             data_path / 'corpus/reduced_corpus.csv',
             args.val_set,
             get_split(data_path), 
             n_rows = args.n_val # number of rows
         )
-        val_data['words'] = val_data['content'].apply(lambda x: preprocess_string(x)) # convertingt str to dict[str, int]
-        val_data = val_data.sample(frac=1.0, random_state=42)
     
     for model_name in args.models:
         t0_model = time()
