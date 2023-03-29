@@ -110,6 +110,7 @@ if __name__ == '__main__':
             )
             # Add trn split column based on user input
             bow_art_trn = training_sets["bow_articles"]
+            bow_art_trn = bow_art_trn[bow_art_trn['id'].notnull()]
             bow_art_trn["trn_split"] = bow_art_trn["split"].apply(
                 lambda x: 1 if x in tr1 else 2 if x in tr2 else None
             )
@@ -133,7 +134,7 @@ if __name__ == '__main__':
         print("Importing validation data for inference...")
         if args.with_liar == 1:
             val_data = pd.read_csv(liar_path)
-            val_data["words"] = val_data["words"].apply(ast.literal_eval)
+            val_data["words"] = val_data["content"].apply(preprocess_string)
         else:
             val_data = pd.read_csv(val_data_path, nrows=args.n_val)
             val_data["words"] = val_data["words"].apply(ast.literal_eval)
