@@ -24,6 +24,9 @@ class MetaModel(BaseModel):
         self._model = RandomForestClassifier(n_estimators=100, max_depth=3, random_state=0, n_jobs=-1)
         self._vectorizer = DictVectorizer()
         
+    def set_model(self, model: any) -> None:
+        self._model = model
+
     def train(self) -> None:
         '''Train the model on the given training sets'''
         try:            
