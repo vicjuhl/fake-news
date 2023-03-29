@@ -12,7 +12,7 @@ from preprocessing.noise_removal import cut_tail_and_head # type: ignore
 from preprocessing.noise_removal import clean_str # type: ignore
 from utils.types import news_info, words_info, NotInTrainingException # type: ignore
 from utils.mappings import out_cols # type: ignore
-from preprocessing.data_handlers import DataHandler, WordsCollector, CorpusSummarizer, CorpusReducer # type: ignore
+from preprocessing.data_handlers import DataHandler, WordsCollector, CorpusSummarizer, CorpusReducer, CorpusShortener # type: ignore
 from imports.prints import print_row_counts # type: ignore
 from imports.json_to_pandas import json_to_pd # type: ignore
 
@@ -106,7 +106,7 @@ def process_lines(
             running = False
     # Flush what remains in the buffer
     out_obj.write(process_buffer(out_obj, buffer, n_procs, **kwargs))
-    # Export as json
+    # Finish last processes
     out_obj.finalize()
     return out_obj.n_incl, out_obj.n_excl, n_ignored, n_skipped
 
@@ -120,11 +120,20 @@ def reduce_corpus(
     print("\n Reducing corpus...")
     with open(from_file, encoding="utf8") as ff:
         reader = csv.reader(ff)
-        with open(to_path / "reduced_corpus.csv", 'w', encoding="utf8") as tf:
+        with open(to_path / "reduced_corpus.csv", 'w', newline='', encoding="utf8") as tf:
             writer = csv.writer(tf)
-            writer.writerow(next(reader)) # Copy headers
+            # Create updated headers for label groups
+            headers = next(reader)
+            headers[3] = "orig_type"
+            headers.append("type")
+            writer.writerow(headers) # Write new headers to out_file
             try:
-                duplicates = pd.read_csv(dups_path)['id'].array # Load array of duplicates to skip when reading
+                duplicates = np.loadtxt(
+                    dups_path,
+                    delimiter=',',
+                    skiprows=1,
+                    dtype=np.int_
+                )
             except:
                 duplicates = np.array([])
             reducer = CorpusReducer(writer, duplicates)
@@ -179,8 +188,26 @@ def remove_stop_words_json(
     df = cut_tail_and_head (df, head_q, tail_q) 
     data = {"nArticles": n_articles, "words": df.to_dict(orient="index")} # pack into new dict
     json_data = json.dumps(data, indent=4)
-    with open(to_path, "w") as outfile:
+    with open(to_path, "w", newline='') as outfile:
         outfile.write(json_data)
+
+def shorten_articles(
+    from_file: pl.Path,
+    to_path: pl.Path,
+    n_rows: int,
+) -> None:
+    """Create new csv of id's and shortened articles."""
+    print("\n Shortening articles...")
+    with open(from_file, encoding="utf8") as ff:
+        reader = csv.reader(ff)
+        next(reader)
+        to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
+        with open(to_path / f"shortened_corpus.csv", "w", newline='', encoding="utf8") as tf:
+            short_writer = csv.writer(tf)
+            short_writer.writerow(["id", "shortened"]) # Write headers
+            shortener = CorpusShortener(short_writer)
+            n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, shortener)
+    print_row_counts(n_incl, n_excl, n_ignored, n_skipped, f"Shortened corpus was written to files in {to_path}/")
 
 def summarize_articles(
     from_file: pl.Path,
@@ -203,13 +230,11 @@ def summarize_articles(
     with open(from_file, encoding="utf8") as ff:
         reader = csv.reader(ff)
         next(reader) # Skip headers (as they are not equal to output headers)
-        with open(to_path / f"summarized_corpus_valset{val_set}.csv", 'w', encoding="utf8") as summ:
-            with open(to_path / f"shortened_corpus_valset{val_set}.csv", "w", encoding="utf8") as short:
-                summ_writer = csv.writer(summ)
-                short_writer = csv.writer(short)
+        to_file = to_path / f"summarized_corpus_valset{val_set}.csv"
+        with open(to_file, 'w', newline='', encoding="utf8") as tf:
+                summ_writer = csv.writer(tf)
                 summ_writer.writerow(out_cols) # Write headers
-                short_writer.writerow(["id", "type", "shortened"]) # Write headers
-                summarizer = CorpusSummarizer(summ_writer, short_writer, val_set, splits)
+                summarizer = CorpusSummarizer(summ_writer, val_set, splits, to_file)
                 n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, summarizer, incl_words=words)
     print_row_counts(n_incl, n_excl, n_ignored, n_skipped, f"Summarized corpus was written to files in {to_path}/")
 
@@ -229,19 +254,19 @@ def get_duplicate_ids(
     df = pd.read_csv(from_file)
     # update df to only contain duplicates
     print("\n Extracting duplicate rows... This may take up to a minute...")
-    df = df[df.duplicated(subset=["domain","type","words","content_len","mean_word_len"], keep='first') == True] # does not include "scraped_at" in subset argument, so an article scraped on several occasions will only have the first occurence as non-duplicate
+    df = df[df.duplicated(subset=["shortened"], keep='first') == True] # does not include "scraped_at" in subset argument, so an article scraped on several occasions will only have the first occurence as non-duplicate
     count = len(df)
     print(f"\n A total of {count} duplicates were found.")
     if count == 0:
         print(f"\n No new duplicate csv file has been written, since there were {count} duplicates to write.")
     elif count > 0:
-        df = df['id']
+        df = df['id'].to_frame()
         to_path.mkdir(parents=True, exist_ok=True) # Create dest folder if it does not exist
         if (to_path / file_name).is_file() == True: # do nothing if duplicate csv file already exists
-            print(f"\n Careful! If you want to overwrite the existing duplicates, you will have to delete the duplicate csv file first. The file already exists as {to_path}\{file_name}")
+            print(f"\n Careful! If you want to overwrite the existing duplicates, you will have to delete the duplicate csv file first. The file already exists as {to_path}/{file_name}")
         else:                                       # create new file if duplicate csv file does not exist
             df.to_csv(to_path / file_name, index=False)
-            print(f"\n Duplicate CSV was written to {to_path}\{file_name}")
+            print(f"\n Duplicate CSV was written to {to_path}/{file_name}")
 
 def import_val_set(from_file: pl.Path, split_num: int, splits: np.ndarray, n_rows: int) -> pd.DataFrame:
     """Import validation set as pandas dataframe."""
@@ -253,9 +278,9 @@ def import_val_set(from_file: pl.Path, split_num: int, splits: np.ndarray, n_row
 
 def get_split(data_path: pl.Path) -> np.ndarray: 
     splits = np.loadtxt(
-            data_path / 'corpus/splits_full.csv',
-            delimiter=',',
-            skiprows=1,
-            dtype=np.int_
-        )
+        data_path / 'corpus/splits.csv',
+        delimiter=',',
+        skiprows=1,
+        dtype=np.int_
+    )
     return splits

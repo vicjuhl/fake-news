@@ -4,7 +4,7 @@ import pandas as pd
 incl_cols = {
     "id": 1,
     "domain": 2,
-    "type": 3,
+    "orig_type": 3,
     "url": 4,
     "content": 5,
     "scraped_at": 6,
@@ -13,6 +13,7 @@ incl_cols = {
     "keywords": 11,
     "tags": 14,
     "summary": 15,
+    "type": 17,
 }
 
 incl_inds = [ind for ind in incl_cols.values()]
@@ -23,8 +24,9 @@ out_cols = [
     # Transfered
     "id",
     "domain",
-    "type",
+    "orig_type",
     "scraped_at",
+    "type",
     # Derived
     "words",
     "content_len",

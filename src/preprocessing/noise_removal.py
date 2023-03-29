@@ -58,7 +58,7 @@ def cut_tail_and_head(
     words_removed = uniquewords - words_left 
 
     print(f"Executing function: cut_tail_and_head with quantiles: {head_quantile} and {tail_quantile}")
-    print(f"{(head_quantile+tail_quantile)*100}% of unique words removed (APPROX!).")
+    print(f"{(head_quantile+tail_quantile)*100}% of total words removed (APPROX!).")
     print(f"{(words_removed/uniquewords)*100}% of unique words removed.")
     print("unique words before cleaning: ", uniquewords)
     print("unique words after: ", words_left)
