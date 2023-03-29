@@ -64,7 +64,7 @@ if __name__ == "__main__":
         print("runtime:", time.time() - t0)
         t0 = time.time()
 
-    if not set(args.processes).isdisjoint({"json", "summarize", "df"}): # REMOVE df FROM SET TODO (SEE BELOW COMMENT)
+    if not set(args.processes).isdisjoint({"json", "summarize"}):
         # Load splits information if needed
         splits = get_split(data_path)
 

@@ -33,9 +33,8 @@ class MetaModel(BaseModel):
             labels = labels.apply(
                 lambda x:
                 1 if x == 'reliable' else
-                # -1 if x == 'fake' else
-                # None TODO: 
-                -1
+                -1 if x == 'fake' else
+                None
             )
             train_data.drop(['id', 'type'], axis = 1, inplace=True) # should not be used for training because of information polution      
 
