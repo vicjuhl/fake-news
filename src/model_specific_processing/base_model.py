@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 import pathlib as pl
 from typing import Optional
 import json
-import os
+import sys
 from sklearn.metrics import f1_score, balanced_accuracy_score # type: ignore
 import matplotlib.pyplot as plt # type: ignore
 from utils.functions import to_binary # type: ignore
@@ -65,9 +65,13 @@ class BaseModel(ABC):
         pass
 
     def load(self) -> None:
-        savedmodel_path = pl.Path(__file__).parent.parent.parent.resolve() / "model_files_shared" / "saved_models" / (self._name + "." + self.filetype)
-        saved_model = pickle.load(open(savedmodel_path, 'rb'))
-        self.set_model(saved_model)
+        try:
+            savedmodel_path = pl.Path(__file__).parent.parent.parent.resolve() / "model_files_shared" / "saved_models" / self._name / ("model" + "." + self.filetype)
+            saved_model = pickle.load(open(savedmodel_path, 'rb'))
+            self.set_model(saved_model)
+        except:
+            print ("Exception: modelfile not found")
+            sys.exit(1)
         
     @abstractmethod
     def set_model(self, model: any) -> None:
