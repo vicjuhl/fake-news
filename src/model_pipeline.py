@@ -58,8 +58,10 @@ def init_argparse() -> ap.ArgumentParser:
     parser.add_argument('-mt', '--methods', nargs="*", choices=METHODNAMES, default=[], help='Method to run')
     parser.add_argument("-t1", "--train_set_1", nargs="*", help="Splits to include in training set 1")
     parser.add_argument("-t2", "--train_set_2", nargs="*", help="Splits to include in training set 2")
-    parser.add_argument("-p", "--pre_processing", nargs="*", choices=PREPNAMES, help="Preprocess validation data")
+    parser.add_argument("-p", "--pre_processing", nargs="*", choices=PREPNAMES, default=[], help="Preprocess validation data")
     parser.add_argument("-v", "--val_set", type=int, help="Choose validation set split number")
+    parser.add_argument("-t", "--with_test", type=int, default=0, help="Test performance of models on test data")
+    parser.add_argument("-l", "--with_liar", type=int, default=0, help="Test performance of models on LIAR data")
     parser.add_argument("-nt", "--n_train", type=int, default=1000)
     parser.add_argument("-nv", "--n_val", type=int , default=1000)
     parser.add_argument("-hp", "--hyper_params", type=str , default=json.dumps({}))
@@ -78,7 +80,8 @@ if __name__ == '__main__':
     # Paths
     data_path = pl.Path(__file__).parent.parent.resolve() / "data_files/"
     model_path = pl.Path(__file__).parent.parent.resolve() / "model_files/"
-    val_data_path = data_path / f"processed_csv/val_data_set{args.val_set}.csv"
+    val_split_num = 1 if args.with_test else args.val_set
+    val_data_path = data_path / f"processed_csv/val_data_set{val_split_num}.csv"
     liar_path = pl.Path(__file__).parent.parent.resolve() / "data_files/LIAR.csv"
     # Training data
     data_kinds = set([TRAININGSETS[model] for model in args.models])
@@ -90,9 +93,9 @@ if __name__ == '__main__':
     all_splits.sort()
 
     if not all_splits == [2, 3, 4, 5, 6, 7, 8, 9, 10]:
-        if args.val_set == 1: # Test set
+        if args.with_test == 1: # Test set
             print("CAUTION: Running on test set!!!")
-        elif args.val_set == -1: # LIAR set
+        elif args.with_liar == 1: # LIAR set
             print("CAUTION: Running on LIAR set!!!")
         else:
             raise ValueError("Some numbers missing in split definitions.")
@@ -120,7 +123,7 @@ if __name__ == '__main__':
         preprocess_val_set(
             data_path / 'corpus/reduced_corpus.csv',
             val_data_path,
-            args.val_set,
+            val_split_num,
             get_split(data_path), 
             n_rows = args.n_val # number of rows
         )
@@ -128,7 +131,7 @@ if __name__ == '__main__':
 
     if "infer" in args.methods:
         print("Importing validation data for inference...")
-        if args.val_set == -1:
+        if args.with_liar == 1:
             val_data = pd.read_csv(liar_path)
             val_data["words"] = val_data["content"].apply(preprocess_string)
         else:
