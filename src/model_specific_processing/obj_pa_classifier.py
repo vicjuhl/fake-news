@@ -19,3 +19,7 @@ class PaClassifier(LinearModel):
         super().__init__(params, training_sets, val_set, models_dir, t_session, name, model_format)
         self._model = PassiveAggressiveClassifier(max_iter=1000, n_jobs=-1)
         self._predictor = self._model._predict_proba_lr
+
+    def set_model(self, model) -> None:
+        self._model = model
+        self._predictor = self._model._predict_proba_lr

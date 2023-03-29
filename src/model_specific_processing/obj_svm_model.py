@@ -19,3 +19,7 @@ class svmModel(LinearModel):
         self._model = LinearSVC()
         self._vectorizer = DictVectorizer()
         self._predictor = self._model._predict_proba_lr
+
+    def set_model(self, model) -> None:
+        self._model = model
+        self._predictor = self._model._predict_proba_lr

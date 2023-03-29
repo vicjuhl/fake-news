@@ -44,6 +44,7 @@ class BaseModel(ABC):
         self._preds_mm_training = pd.DataFrame()
         self.dump_metadata()
         self.filetype = file_format
+        self._savedmodel_path = pl.Path(__file__).parent.parent.parent.resolve() / "model_files_shared" / "saved_models/"
 
     def dump_metadata(self) -> None:
         """Dump json file with session metadata."""
@@ -69,12 +70,16 @@ class BaseModel(ABC):
         pass
 
     def load(self) -> None:
-        savedmodel_path = pl.Path(__file__).parent.parent.parent.resolve() / "model_files_shared" / "saved_models" / self._name / ("model" + "." + self.filetype)
         try:
             if self.filetype == "pkl":
-                saved_model = pickle.load(open(savedmodel_path, 'rb'))
+                saved_model = pickle.load(open(
+                    self._savedmodel_path / self._name / ("model" + "." + self.filetype),
+                    'rb'
+                ))
             elif self.filetype == "csv":
-                saved_model = pd.read_csv(savedmodel_path)
+                saved_model = pd.read_csv(
+                    self._savedmodel_path / self._name / ("model" + "." + self.filetype)
+                )
             self.set_model(saved_model)
         except:
             raise Exception("Exception load failed: modelfile not found")

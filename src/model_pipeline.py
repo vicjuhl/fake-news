@@ -37,7 +37,7 @@ TRAININGSETS = {
     'compl_nb': 'bow_articles',
     'svm' : 'bow_articles',
     'random_forest': 'bow_articles',
-    'meta': 'bow_articles',
+    'meta': '',
 }
 
 METHODNAMES = [

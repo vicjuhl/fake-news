@@ -24,8 +24,12 @@ class LinearModel(BaseModel):
         file_format : str = "pkl"
     ) -> None:
         super().__init__(params, training_sets, val_set, models_dir, t_session, name, file_format)
-        with open(models_dir / 'dict_vectorizer.pkl', 'rb') as f:
-            self._vectorizer: DictVectorizer = pickle.load(f)
+        self._vectorizer = DictVectorizer()
+        try:
+            with open(self._savedmodel_path / 'dict_vectorizer.pkl', 'rb') as f:
+                self._vectorizer = pickle.load(f)
+        except FileNotFoundError as e:
+            print("No meta model file found, continuing without vectorizer:", e)
         self._model = LogisticRegression(max_iter=1000, n_jobs=-1)
         self._with_features = True
         self._predictor = self._model.predict_proba

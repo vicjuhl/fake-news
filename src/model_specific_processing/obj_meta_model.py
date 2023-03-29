@@ -24,10 +24,15 @@ class MetaModel(BaseModel):
         model_format : str = "pkl"
     ) -> None:
         super().__init__(params, training_sets, val_set, models_dir, t_session, name, model_format)
-        self._model = RandomForestClassifier(n_estimators=100, max_depth=3, random_state=0, n_jobs=-1)
         self._vectorizer = DictVectorizer()
+        try:
+            with open(self._savedmodel_path / 'meta_dict_vectorizer.pkl', 'rb') as f:
+                self._vectorizer = pickle.load(f)
+        except FileNotFoundError as e:
+            print("No meta model file found, continuing without vectorizer:", e)
+        self._model = RandomForestClassifier(n_estimators=100, random_state=0, n_jobs=-1)
         
-    def set_model(self, model: any) -> None:
+    def set_model(self, model) -> None:
         self._model = model
 
     def train(self) -> None:
@@ -47,7 +52,7 @@ class MetaModel(BaseModel):
             # put predictions from models as key-value pairs in a dictionary
             train_data['dict'] =  train_data.apply(create_dict_MetaModel, axis=1) 
             train_data_vec = self._vectorizer.fit_transform(train_data['dict'].to_list())            
-            self._model.fit(train_data_vec, labels)    
+            self._model.fit(train_data_vec, labels)
 
         except FileNotFoundError or pd.errors.EmptyDataError:
             print('metamodel cannot be trained, empty csv')   
@@ -60,6 +65,8 @@ class MetaModel(BaseModel):
         '''Dumps the model to a pickle file'''
         with open(self._model_path, 'wb') as f:
             pickle.dump(self._model , f)
+        with open(self._metamodel_path / 'meta_dict_vectorizer.pkl', 'wb') as f:
+            pickle.dump(self._vectorizer, f)
         print(f'model dumped to {self._model_path}')
         
     def infer(self, df: pd.DataFrame) -> None:
