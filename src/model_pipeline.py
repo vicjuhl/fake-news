@@ -133,7 +133,7 @@ if __name__ == '__main__':
         print("Importing validation data for inference...")
         if args.with_liar == 1:
             val_data = pd.read_csv(liar_path)
-            val_data["words"] = val_data["content"].apply(preprocess_string)
+            val_data["words"] = val_data["words"].apply(ast.literal_eval)
         else:
             val_data = pd.read_csv(val_data_path, nrows=args.n_val)
             val_data["words"] = val_data["words"].apply(ast.literal_eval)
