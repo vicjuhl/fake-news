@@ -6,6 +6,8 @@ from typing import Optional
 import json
 import sys
 from sklearn.metrics import f1_score, balanced_accuracy_score # type: ignore
+from sklearn.utils.validation import check_is_fitted # type: ignore
+from sklearn.exceptions import NotFittedError # type: ignore
 import matplotlib.pyplot as plt # type: ignore
 from utils.functions import to_binary # type: ignore
 import pickle
@@ -73,7 +75,7 @@ class BaseModel(ABC):
                 saved_model = pd.read_csv(savedmodel_path)
             self.set_model(saved_model)
         except:
-            print ("Exception: modelfile not found")
+            print ("Exception load failed: modelfile not found")
             sys.exit(1)
         
     @abstractmethod

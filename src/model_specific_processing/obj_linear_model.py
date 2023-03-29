@@ -51,8 +51,7 @@ class LinearModel(BaseModel):
         try:
             check_is_fitted(self._model)
         except NotFittedError:
-            with open(self._model_path, 'rb') as f:
-                self._model = pickle.load(f)
+            self.load() # loads and sets model
                 
         df: pd.DataFrame = self._training_sets["bow_articles"]
         df = df[df["trn_split"] == 2]
@@ -73,11 +72,9 @@ class LinearModel(BaseModel):
     def infer(self, df: pd.DataFrame) -> None:
         '''Makes predictions on a validation dataframe'''
         try:
-            if self._model is None:
-                with open(self._model_path, 'rb') as f:
-                    model = pickle.load(f)
-            else:
-                model = self._model
+            check_is_fitted(self._model)
+        except NotFittedError:
+            self.load() # loads and sets model
 
             prob_preds = self._predictor(self._vectorizer.transform(df['words'])) #extract probalities
             non_binary_preds = prob_preds[:,1] - prob_preds[:,0] #normalize between 1 (real) and -1 (fake)

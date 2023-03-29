@@ -1,7 +1,8 @@
 import pandas as pd
 import pathlib as pl
 from typing import Optional
-import json
+from sklearn.utils.validation import check_is_fitted # type: ignore
+from sklearn.exceptions import NotFittedError # type: ignore
 
 from model_specific_processing.simple_model import frequency_adjustment, tf_idf, logistic_Classification_weight, create_model, classify_article_continous # type: ignore
 from model_specific_processing.base_model import BaseModel # type: ignore
@@ -43,8 +44,10 @@ class SimpleModel(BaseModel):
         
     def infer(self, df) -> None:
         '''Makes predictions on a dataframe'''
-        if self._model is None:
-            self._model = pd.read_csv(self._model_path, index_col=0)
+        try:
+            check_is_fitted(self._model)
+        except NotFittedError:
+            self.load() # loads and sets model
         
         self._preds = df[['id', 'type', 'orig_type']].copy()
         # adding predictions as a column 
