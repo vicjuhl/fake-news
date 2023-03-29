@@ -14,6 +14,7 @@ from model_specific_processing.obj_svm_model import svmModel # type: ignore
 from model_specific_processing.obj_random_forest_model import RandomForestModel # type: ignore
 from imports.json_to_pandas import json_to_pd # type: ignore
 from imports.data_importer import preprocess_val_set, get_split # type: ignore
+from preprocessing.noise_removal import preprocess_string # type: ignore
 
 MODELS: dict = {
     'simple': SimpleModel,
@@ -78,6 +79,7 @@ if __name__ == '__main__':
     data_path = pl.Path(__file__).parent.parent.resolve() / "data_files/"
     model_path = pl.Path(__file__).parent.parent.resolve() / "model_files/"
     val_data_path = data_path / f"processed_csv/val_data_set{args.val_set}.csv"
+    liar_path = pl.Path(__file__).parent.parent.resolve() / "data_files/LIAR.csv"
     # Training data
     data_kinds = set([TRAININGSETS[model] for model in args.models])
     training_sets: dict[str, pd.DataFrame] = {}
@@ -88,9 +90,9 @@ if __name__ == '__main__':
     all_splits.sort()
 
     if not all_splits == [2, 3, 4, 5, 6, 7, 8, 9, 10]:
-        if args.val_set == 1:
+        if args.val_set == 1: # Test set
             print("CAUTION: Running on test set!!!")
-        elif args.val_set == -1: # LIAR
+        elif args.val_set == -1: # LIAR set
             print("CAUTION: Running on LIAR set!!!")
         else:
             raise ValueError("Some numbers missing in split definitions.")
@@ -126,8 +128,12 @@ if __name__ == '__main__':
 
     if "infer" in args.methods:
         print("Importing validation data for inference...")
-        val_data = pd.read_csv(val_data_path, nrows=args.n_val)
-        val_data["words"] = val_data["words"].apply(ast.literal_eval)
+        if args.val_set == -1:
+            val_data = pd.read_csv(liar_path)
+            val_data["words"] = val_data["content"].apply(preprocess_string)
+        else:
+            val_data = pd.read_csv(val_data_path, nrows=args.n_val)
+            val_data["words"] = val_data["words"].apply(ast.literal_eval)
     
     for model_name in args.models:
         t0_model = time()
