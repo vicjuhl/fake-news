@@ -150,7 +150,7 @@ if __name__ == '__main__':
             vectorizer = DictVectorizer()
             vectorizer.fit(bow_art_trn[bow_art_trn["trn_split"] == 1]["words"].to_list())
             with open(model_path / 'dict_vectorizer.pkl', 'wb') as f:
-                pickle.dump(vectorizer, f)            
+                pickle.dump(vectorizer, f)
             
             # Assign to training sets
             training_sets["bow_articles"] = bow_art_trn
