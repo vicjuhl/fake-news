@@ -4,6 +4,8 @@ import pandas as pd
 from time import time, localtime, strftime
 import json
 import ast
+from sklearn.feature_extraction import DictVectorizer # type: ignore
+import pickle # type: ignore
 
 from model_specific_processing.obj_simple_model import SimpleModel # type: ignore
 from model_specific_processing.obj_linear_model import LinearModel # type: ignore
@@ -144,6 +146,12 @@ if __name__ == '__main__':
             bow_art_trn["trn_split"] = bow_art_trn["split"].apply(
                 lambda x: 1 if x in tr1 else 2 if x in tr2 else None
             )
+
+            vectorizer = DictVectorizer()
+            vectorizer.fit(bow_art_trn[bow_art_trn["trn_split"] == 1]["words"].to_list())
+            with open(model_path / 'dict_vectorizer.pkl', 'wb') as f:
+                pickle.dump(vectorizer, f)            
+            
             # Assign to training sets
             training_sets["bow_articles"] = bow_art_trn
 
