@@ -998,3 +998,159 @@ Lines read: 3400000 ...
 Read validation data from /Users/victor/Documents/Uddannelse/Repos/fake-news/data_files/corpus/reduced_corpus.csv.
 Processed validation data
 Total runtime 622.294585943222
+
+March 29th, evening:
+victor@Victors-MacBook-Pro fake-news % python src/model_pipeline.py -v 2 -t1 3 4 5 6 7 -t2 8 9 10 -md linear pa simple multi_nb compl_nb svm random_forest meta -mt train dump_model infer4_mm_training -nt 10000000 -nv 10000000
+Importing training sets...
+Processing lines: 0...
+Processing lines: 100000...
+Processing lines: 200000...
+Processing lines: 300000...
+Processing lines: 400000...
+Processing lines: 500000...
+Processing lines: 600000...
+Processing lines: 700000...
+Processing lines: 800000...
+Processing lines: 900000...
+Processing lines: 1000000...
+Processing lines: 1100000...
+Processing lines: 1200000...
+Processing lines: 1300000...
+Processing lines: 1400000...
+Processing lines: 1500000...
+Processing lines: 1600000...
+Processing lines: 1700000...
+Processing lines: 1800000...
+Processing lines: 1900000...
+Processing lines: 2000000...
+Processing lines: 2100000...
+Processing lines: 2200000...
+Processing lines: 2300000...
+Processing lines: 2400000...
+Processing lines: 2500000...
+Processing lines: 2600000...
+Processing lines: 2700000...
+Number of fake articles: 1336296, number of reliable articles: 1438022
+
+ LinearModel
+
+Running method train
+/Users/victor/miniconda3/envs/fake-news/lib/python3.10/site-packages/sklearn/linear_model/_logistic.py:458: ConvergenceWarning: lbfgs failed to converge (status=1):
+STOP: TOTAL NO. of ITERATIONS REACHED LIMIT.
+
+Increase the number of iterations (max_iter) or scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+Please also refer to the documentation for alternative solver options:
+    https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression
+  n_iter_i = _check_optimize_result(
+Runtime 1055.3843581676483
+
+Running method dump_model
+model dumped to /Users/victor/Documents/Uddannelse/Repos/fake-news/model_files/linear/linear_2023-03-29_17-44-02/model.pkl
+Runtime 0.007097959518432617
+
+Running method infer4_mm_training
+generating training data for metamodel, dumping predictions
+Runtime 345.6868727207184
+Total model runtime 1401.1102368831635
+
+ PaClassifier
+
+Running method train
+Runtime 526.3158299922943
+
+Running method dump_model
+model dumped to /Users/victor/Documents/Uddannelse/Repos/fake-news/model_files/pa_classifier/pa_classifier_2023-03-29_17-44-02/model.pkl
+Runtime 0.009960174560546875
+
+Running method infer4_mm_training
+generating training data for metamodel, dumping predictions
+Runtime 366.44173288345337
+Total model runtime 892.824490070343
+
+ SimpleModel
+
+Running method train
+executing function: frequency_adjustment on wordsut with total article count
+excecuting function: tf_idf, applied term frequency adjustment weights
+Runtime 1.5196459293365479
+
+Running method dump_model
+Model saved to /Users/victor/Documents/Uddannelse/Repos/fake-news/model_files/simple/simple_2023-03-29_17-44-02/model.csv
+Runtime 0.020384788513183594
+
+Running method infer4_mm_training
+Runtime 3.0994415283203125e-06
+Total model runtime 1.5798909664154053
+
+ MultinomialNaiveBayesModel
+
+Running method train
+Runtime 539.8037748336792
+
+Running method dump_model
+model dumped to /Users/victor/Documents/Uddannelse/Repos/fake-news/model_files/multi_nb/multi_nb_2023-03-29_17-44-02/model.pkl
+Runtime 0.011154890060424805
+
+Running method infer4_mm_training
+generating training data for metamodel, dumping predictions
+Runtime 369.8022439479828
+Total model runtime 909.623740196228
+
+ ComplementNaiveBayesModel
+
+Running method train
+Runtime 536.4062662124634
+
+Running method dump_model
+model dumped to /Users/victor/Documents/Uddannelse/Repos/fake-news/model_files/compl_nb/compl_nb_2023-03-29_17-44-02/model.pkl
+Runtime 0.015401840209960938
+
+Running method infer4_mm_training
+generating training data for metamodel, dumping predictions
+Runtime 378.5410099029541
+Total model runtime 915.0064687728882
+
+ svmModel
+
+Running method train
+/Users/victor/miniconda3/envs/fake-news/lib/python3.10/site-packages/sklearn/svm/_base.py:1244: ConvergenceWarning: Liblinear failed to converge, increase the number of iterations.
+  warnings.warn(
+Runtime 2844.748885154724
+
+Running method dump_model
+model dumped to /Users/victor/Documents/Uddannelse/Repos/fake-news/model_files/svm/svm_2023-03-29_17-44-02/model.pkl
+Runtime 0.010476112365722656
+
+Running method infer4_mm_training
+generating training data for metamodel, dumping predictions
+Runtime 386.855446100235
+Total model runtime 3231.660810947418
+
+ RandomForestModel
+
+Running method train
+Runtime 950.2389590740204
+
+Running method dump_model
+model dumped to /Users/victor/Documents/Uddannelse/Repos/fake-news/model_files/random_forest/random_forest_2023-03-29_17-44-02/model.pkl
+Runtime 0.10993099212646484
+
+Running method infer4_mm_training
+generating training data for metamodel, dumping predictions
+Runtime 374.2103009223938
+Total model runtime 1324.6136939525604
+
+ MetaModel
+
+Running method train
+Runtime 0.5467309951782227
+
+Running method dump_model
+model dumped to /Users/victor/Documents/Uddannelse/Repos/fake-news/model_files/meta_model/meta_model_2023-03-29_17-44-02/model.pkl
+Runtime 0.0048520565032958984
+
+Running method infer4_mm_training
+Runtime 3.0994415283203125e-06
+Total model runtime 0.6000597476959229
+Total runtime 10578.793168067932
