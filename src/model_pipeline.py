@@ -39,6 +39,7 @@ TRAININGSETS = {
 }
 
 METHODNAMES = [
+    'load',
     'train',
     'dump_model',
     'infer4_mm_training',
@@ -100,6 +101,7 @@ if __name__ == '__main__':
         else:
             raise ValueError("Some numbers missing in split definitions.")
     
+
     if "train" in args.methods:
         if "bow_simple" in data_kinds:
             training_sets["bow_simple"] = json_to_pd(args.val_set, 'stop_words_removed')
@@ -153,6 +155,7 @@ if __name__ == '__main__':
         model_inst = model_class(params, training_sets, args.val_set, model_path, t_session)
         # Run methods
         METHODS = {
+            'load' : model_inst.load,
             'train': model_inst.train,
             'dump_model': model_inst.dump_model,
             'infer4_mm_training': model_inst.infer4_mm_training,

@@ -26,6 +26,9 @@ class LinearModel(BaseModel):
         self._with_features = True           
         self._predictor = self._model.predict_proba  
       
+    def set_model(self, model: any) -> None:
+        self._model = model
+
     def train(self) -> None:        
         '''Trains a PassiveAggressiveClassifier model on the training data'''
         df: pd.DataFrame = self._training_sets["bow_articles"]
