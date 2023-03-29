@@ -8,6 +8,7 @@ from preprocessing.noise_removal import preprocess_string # type: ignore
 from utils.functions import entropy, add_features_df # type: ignore
 from sklearn.utils.validation import check_is_fitted # type: ignore
 from sklearn.exceptions import NotFittedError # type: ignore
+from typing import Any
 class LinearModel(BaseModel):
     '''PassiveAggressiveClassifier model'''
     def __init__(
@@ -23,10 +24,10 @@ class LinearModel(BaseModel):
         super().__init__(params, training_sets, val_set, models_dir, t_session, name, file_format)
         self._vectorizer = DictVectorizer()
         self._model = LogisticRegression(max_iter=1000, n_jobs=-1)
-        self._with_features = True           
+        self._with_features = True
         self._predictor = self._model.predict_proba  
       
-    def set_model(self, model: any) -> None:
+    def set_model(self, model: Any) -> None:
         self._model = model
 
     def train(self) -> None:        
