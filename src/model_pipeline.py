@@ -5,7 +5,6 @@ from time import time, localtime, strftime
 import json
 import ast
 
-from preprocessing.noise_removal import preprocess_string # type: ignore
 from model_specific_processing.obj_simple_model import SimpleModel # type: ignore
 from model_specific_processing.obj_linear_model import LinearModel # type: ignore
 from model_specific_processing.obj_pa_classifier import PaClassifier # type: ignore
@@ -127,6 +126,7 @@ if __name__ == '__main__':
     if "infer" in args.methods:
         print("Importing validation data for inference...")
         val_data = pd.read_csv(val_data_path, nrows=args.n_val)
+        val_data["words"] = val_data["words"].apply(ast.literal_eval)
     
     for model_name in args.models:
         t0_model = time()

@@ -38,7 +38,7 @@ def create_model(df: pd.DataFrame) -> pd.DataFrame:
     new_df["fakeness_score"] = df["fakeness_score"]
     return new_df
 
-def classifier(words: dict[str, int], df: pd.DataFrame) -> float:
+def classifier(words: dict[str, int], df: pd.DataFrame) -> str:
     """Given a dict of words and their freq, and dataframe for simpel model, it makes a binary prediction."""
     acc_weight = 0.1
     acc_score = 0
@@ -56,7 +56,6 @@ def classifier(words: dict[str, int], df: pd.DataFrame) -> float:
 def classify_article_continous(val_df: pd.DataFrame, model_df: pd.DataFrame) -> list[str]:
     """Classifies all articles in the input dataframe, and returns a list of predictions."""
     predictions = []
-    column = val_df['content'].apply(lambda x: preprocess_string(x))
-    column.apply(lambda x: predictions.append(classifier(x, model_df)))
+    val_df["words"].apply(lambda x: predictions.append(classifier(x, model_df)))
     return predictions
     
