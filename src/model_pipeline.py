@@ -5,7 +5,6 @@ from time import time, localtime, strftime
 import json
 import ast
 
-from preprocessing.noise_removal import preprocess_string # type: ignore
 from model_specific_processing.obj_simple_model import SimpleModel # type: ignore
 from model_specific_processing.obj_linear_model import LinearModel # type: ignore
 from model_specific_processing.obj_pa_classifier import PaClassifier # type: ignore
@@ -14,7 +13,8 @@ from model_specific_processing.obj_naive_bayes_models import MultinomialNaiveBay
 from model_specific_processing.obj_svm_model import svmModel # type: ignore
 from model_specific_processing.obj_random_forest_model import RandomForestModel # type: ignore
 from imports.json_to_pandas import json_to_pd # type: ignore
-from imports.data_importer import import_val_set, get_split # type: ignore
+from imports.data_importer import preprocess_val_set, get_split # type: ignore
+from preprocessing.noise_removal import preprocess_string # type: ignore
 
 MODELS: dict = {
     'simple': SimpleModel,
@@ -47,6 +47,10 @@ METHODNAMES = [
     'evaluate',
 ]
 
+PREPNAMES = {
+    "prep_val"
+}
+
 def init_argparse() -> ap.ArgumentParser:
     """Initialize the argument parser."""
     parser = ap.ArgumentParser(description='Run a model')
@@ -55,9 +59,10 @@ def init_argparse() -> ap.ArgumentParser:
     parser.add_argument('-mt', '--methods', nargs="*", choices=METHODNAMES, default=[], help='Method to run')
     parser.add_argument("-t1", "--train_set_1", nargs="*", help="Splits to include in training set 1")
     parser.add_argument("-t2", "--train_set_2", nargs="*", help="Splits to include in training set 2")
+    parser.add_argument("-p", "--pre_processing", nargs="*", choices=PREPNAMES, default=[], help="Preprocess validation data")
     parser.add_argument("-v", "--val_set", type=int, help="Choose validation set split number")
-    parser.add_argument("--test_fake_news", type=str, help="Test models on test data from corpus split 1")
-    parser.add_argument("--test_liar", type=str, help="Test models on test data from the LIAR set")
+    parser.add_argument("-t", "--with_test", type=int, default=0, help="Test performance of models on test data")
+    parser.add_argument("-l", "--with_liar", type=int, default=0, help="Test performance of models on LIAR data")
     parser.add_argument("-nt", "--n_train", type=int, default=1000)
     parser.add_argument("-nv", "--n_val", type=int , default=1000)
     parser.add_argument("-hp", "--hyper_params", type=str , default=json.dumps({}))
@@ -76,6 +81,9 @@ if __name__ == '__main__':
     # Paths
     data_path = pl.Path(__file__).parent.parent.resolve() / "data_files/"
     model_path = pl.Path(__file__).parent.parent.resolve() / "model_files/"
+    val_split_num = 1 if args.with_test else args.val_set
+    val_data_path = data_path / f"processed_csv/val_data_set{val_split_num}.csv"
+    liar_path = pl.Path(__file__).parent.parent.resolve() / "data_files/LIAR.csv"
     # Training data
     data_kinds = set([TRAININGSETS[model] for model in args.models])
     training_sets: dict[str, pd.DataFrame] = {}
@@ -86,7 +94,12 @@ if __name__ == '__main__':
     all_splits.sort()
 
     if not all_splits == [2, 3, 4, 5, 6, 7, 8, 9, 10]:
-        raise ValueError("Some numbers missing in split definitions.")
+        if args.with_test == 1: # Test set
+            print("CAUTION: Running on test set!!!")
+        elif args.with_liar == 1: # LIAR set
+            print("CAUTION: Running on LIAR set!!!")
+        else:
+            raise ValueError("Some numbers missing in split definitions.")
     
 
     if "train" in args.methods:
@@ -99,24 +112,34 @@ if __name__ == '__main__':
             )
             # Add trn split column based on user input
             bow_art_trn = training_sets["bow_articles"]
+            bow_art_trn = bow_art_trn[bow_art_trn['id'].notnull()]
             bow_art_trn["trn_split"] = bow_art_trn["split"].apply(
                 lambda x: 1 if x in tr1 else 2 if x in tr2 else None
             )
             bow_art_trn['words'] = bow_art_trn['words'].apply(ast.literal_eval)
-            bow_art_trn = bow_art_trn.sample(frac=1.0, random_state=42)
             n_fakes = len(bow_art_trn[bow_art_trn["type"] == "fake"])
             n_reals = len(bow_art_trn[bow_art_trn["type"] == "reliable"])
             print(f"Number of fake articles: {n_fakes}, number of reliable articles: {n_reals}")
     
-    if "infer" in args.methods:
-        val_data = import_val_set(
+    if "prep_val" in args.pre_processing:
+        print("Importing validation data for preprocessing...")
+        preprocess_val_set(
             data_path / 'corpus/reduced_corpus.csv',
-            args.val_set,
+            val_data_path,
+            val_split_num,
             get_split(data_path), 
             n_rows = args.n_val # number of rows
         )
-        val_data['words'] = val_data['content'].apply(lambda x: preprocess_string(x)) # convertingt str to dict[str, int]
-        val_data = val_data.sample(frac=1.0, random_state=42)
+        print("Processed validation data")
+
+    if "infer" in args.methods:
+        print("Importing validation data for inference...")
+        if args.with_liar == 1:
+            val_data = pd.read_csv(liar_path)
+            val_data["words"] = val_data["content"].apply(preprocess_string)
+        else:
+            val_data = pd.read_csv(val_data_path, nrows=args.n_val)
+            val_data["words"] = val_data["words"].apply(ast.literal_eval)
     
     for model_name in args.models:
         t0_model = time()

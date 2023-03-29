@@ -60,7 +60,7 @@ class LinearModel(BaseModel):
         non_binary_preds = prob_preds[:,1] - prob_preds[:,0] #normalize between 1 (real) and -1 (fake)
         df[f'preds_{self._name}'] = non_binary_preds # adding predictions as a column
                     
-        self._preds_mm_training = df[['id', 'type', 'split']].copy()
+        self._preds_mm_training = df[['id', 'type', 'orig_type']].copy()
         # adding predictions as a column
         self._preds_mm_training[f'preds_{self._name}'] = non_binary_preds
         
@@ -80,7 +80,7 @@ class LinearModel(BaseModel):
 
             prob_preds = self._predictor(self._vectorizer.transform(df['words'])) #extract probalities
             non_binary_preds = prob_preds[:,1] - prob_preds[:,0] #normalize between 1 (real) and -1 (fake)
-            self._preds = df[['id', 'type', 'split']].copy()
+            self._preds = df[['id', 'type', 'orig_type']].copy()
             self._preds[f'preds_{self._name}'] = non_binary_preds # adding predictions as a column
             
             # adding predictions as a column
@@ -98,9 +98,8 @@ class LinearModel(BaseModel):
             mm_df = pd.read_csv(path)
         except Exception as e:
             print("Not loading csv: ", e)
-            mm_df = pd.DataFrame({'id': preds.id, 'type': preds.type})
+            mm_df = pd.DataFrame({'id': preds.id, 'type': preds.type, 'orig_type': preds.orig_type})
             
-        col_name = f'preds_{self._name}'
         try:
             # add new predictions as a new column to existing DataFrame
             col_name = f'preds_{self._name}'
@@ -115,12 +114,12 @@ class LinearModel(BaseModel):
             
             mm_df = pd.merge(
                 mm_df,
-                preds.drop(["type", "split"], axis=1), # problem, adding other columns than just preds!!
+                preds.drop(["type", "orig_type"], axis=1), # problem, adding other columns than just preds!!
                 on="id",
                 how="left",
                 suffixes=("_l", "_r")
             )
             # save updated DataFrame to metamodel CSV file
-            mm_df.to_csv(path, mode="w", index=False)
+            mm_df.to_csv(path, index=False)
         except Exception as e:
             print(f'Something went wrong adding predictions: {e}')

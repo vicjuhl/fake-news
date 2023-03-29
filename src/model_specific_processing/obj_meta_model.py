@@ -39,7 +39,7 @@ class MetaModel(BaseModel):
                 -1 if x == 'fake' else
                 None
             )
-            train_data.drop(['id', 'type'], axis = 1, inplace=True) # should not be used for training because of information polution      
+            train_data.drop(['id', 'type', 'orig_type'], axis = 1, inplace=True) # should not be used for training because of information polution      
 
             # put predictions from models as key-value pairs in a dictionary
             train_data['dict'] =  train_data.apply(create_dict_MetaModel, axis=1) 
@@ -71,7 +71,7 @@ class MetaModel(BaseModel):
             
             self._preds = df        
             labels = df['type'] # saving type          
-            df.drop(['id', 'type'], axis = 1, inplace=True)            
+            df.drop(['id', 'type', 'orig_type'], axis = 1, inplace=True)            
             df = df.applymap(lambda x:
                 1 if x == 'reliable' else
                 0 if x == 'fake' else

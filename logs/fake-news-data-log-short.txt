@@ -1,0 +1,103 @@
+Night before march 29th:
+
+(fake-news) victor@victors-macbook-pro fake-news % bash run_full_pipeline.sh
+
+ Reducing corpus...
+8528956 rows read successfully:
+	8528956 rows were used:
+		4140929 were included.
+		4388027 were excluded.
+	0 were ignored because they belong to test or validation set.
+238 rows were skipped due to reading error.
+Reduced corpus was written to /Users/victor/Documents/Uddannelse/Repos/fake-news/data_files/corpus/
+runtime: 488.02635288238525
+
+ Shortening articles...
+4140929 rows read successfully:
+	4140929 rows were used:
+		4140929 were included.
+		0 were excluded.
+	0 were ignored because they belong to test or validation set.
+0 rows were skipped due to reading error.
+Shortened corpus was written to files in /Users/victor/Documents/Uddannelse/Repos/fake-news/data_files/processed_csv/
+runtime: 195.36946511268616
+
+ Reading pandas dataframe from file: /Users/victor/Documents/Uddannelse/Repos/fake-news/data_files/processed_csv/shortened_corpus.csv ...
+
+ Extracting duplicate rows... This may take up to a minute...
+
+ A total of 673029 duplicates were found.
+
+ Duplicate CSV was written to /Users/victor/Documents/Uddannelse/Repos/fake-news/data_files/corpus/duplicates.csv
+runtime: 19.891069889068604
+
+ Total runtime: 703.2869141101837
+
+ Reducing corpus...
+8528956 rows read successfully:
+	8528956 rows were used:
+		3467900 were included.
+		5061056 were excluded.
+	0 were ignored because they belong to test or validation set.
+238 rows were skipped due to reading error.
+Reduced corpus was written to /Users/victor/Documents/Uddannelse/Repos/fake-news/data_files/corpus/
+runtime: 1172.9164941310883
+
+ Shortening articles...
+3467900 rows read successfully:
+	3467900 rows were used:
+		3467900 were included.
+		0 were excluded.
+	0 were ignored because they belong to test or validation set.
+0 rows were skipped due to reading error.
+Shortened corpus was written to files in /Users/victor/Documents/Uddannelse/Repos/fake-news/data_files/processed_csv/
+runtime: 169.28629899024963
+
+ Splitting corpus...
+runtime: 48.118664026260376
+
+ Reading pandas dataframe from file: /Users/victor/Documents/Uddannelse/Repos/fake-news/data_files/processed_csv/shortened_corpus.csv ...
+
+ Extracting duplicate rows... This may take up to a minute...
+
+ A total of 0 duplicates were found.
+
+ No new duplicate csv file has been written, since there were 0 duplicates to write.
+runtime: 17.99665379524231
+
+ Total runtime: 1408.3181540966034
+
+ Extracting words...
+3467899 rows read successfully:
+	2774319 rows were used:
+		2774319 were included.
+		0 were excluded.
+	693580 were ignored because they belong to test or validation set.
+1 rows were skipped due to reading error.
+JSON was written to /Users/victor/Documents/Uddannelse/Repos/fake-news/data_files/words/
+runtime: 2108.198168039322
+
+ Removing stopwords...
+Executing function: cut_tail_and_head with quantiles: 0.5 and 0.05
+55.00000000000001% of total words removed (APPROX!).
+99.61205811428042% of unique words removed.
+unique words before cleaning:  3857021
+unique words after:  14963
+unique words removed:  3842058
+	unique words removed from head:  75
+	unique words removed from tail: 3841983
+	at minimum occurence level: 2341
+runtime: 30.23952579498291
+
+ Summarizing articles...
+Shuffling summarized corpus.
+3467899 rows read successfully:
+	2774319 rows were used:
+		2774319 were included.
+		0 were excluded.
+	693580 were ignored because they belong to test or validation set.
+1 rows were skipped due to reading error.
+Summarized corpus was written to files in /Users/victor/Documents/Uddannelse/Repos/fake-news/data_files/processed_csv/
+runtime: 3659.3779697418213
+
+ Total runtime: 5797.815762042999
