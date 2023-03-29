@@ -14,7 +14,7 @@ from model_specific_processing.obj_naive_bayes_models import MultinomialNaiveBay
 from model_specific_processing.obj_svm_model import svmModel # type: ignore
 from model_specific_processing.obj_random_forest_model import RandomForestModel # type: ignore
 from imports.json_to_pandas import json_to_pd # type: ignore
-from imports.data_importer import import_val_set, get_split # type: ignore
+from imports.data_importer import preprocess_val_set, get_split # type: ignore
 
 MODELS: dict = {
     'simple': SimpleModel,
@@ -46,6 +46,10 @@ METHODNAMES = [
     'evaluate',
 ]
 
+PREPNAMES = {
+    "prep_val"
+}
+
 def init_argparse() -> ap.ArgumentParser:
     """Initialize the argument parser."""
     parser = ap.ArgumentParser(description='Run a model')
@@ -54,9 +58,8 @@ def init_argparse() -> ap.ArgumentParser:
     parser.add_argument('-mt', '--methods', nargs="*", choices=METHODNAMES, default=[], help='Method to run')
     parser.add_argument("-t1", "--train_set_1", nargs="*", help="Splits to include in training set 1")
     parser.add_argument("-t2", "--train_set_2", nargs="*", help="Splits to include in training set 2")
+    parser.add_argument("-p", "--pre_processing", nargs="*", choices=PREPNAMES, help="Preprocess validation data")
     parser.add_argument("-v", "--val_set", type=int, help="Choose validation set split number")
-    parser.add_argument("--test_fake_news", type=str, help="Test models on test data from corpus split 1")
-    parser.add_argument("--test_liar", type=str, help="Test models on test data from the LIAR set")
     parser.add_argument("-nt", "--n_train", type=int, default=1000)
     parser.add_argument("-nv", "--n_val", type=int , default=1000)
     parser.add_argument("-hp", "--hyper_params", type=str , default=json.dumps({}))
@@ -75,6 +78,7 @@ if __name__ == '__main__':
     # Paths
     data_path = pl.Path(__file__).parent.parent.resolve() / "data_files/"
     model_path = pl.Path(__file__).parent.parent.resolve() / "model_files/"
+    val_data_path = data_path / f"processed_csv/val_data_set{args.val_set}.csv"
     # Training data
     data_kinds = set([TRAININGSETS[model] for model in args.models])
     training_sets: dict[str, pd.DataFrame] = {}
@@ -85,6 +89,10 @@ if __name__ == '__main__':
     all_splits.sort()
 
     if not all_splits == [2, 3, 4, 5, 6, 7, 8, 9, 10]:
+        if args.val_set == 1:
+            print("CAUTION: Running on test set!!!")
+        elif args.val_set == -1: # LIAR
+            print("CAUTION: Running on LIAR set!!!")
         raise ValueError("Some numbers missing in split definitions.")
     
     if "train" in args.methods:
@@ -105,14 +113,20 @@ if __name__ == '__main__':
             n_reals = len(bow_art_trn[bow_art_trn["type"] == "reliable"])
             print(f"Number of fake articles: {n_fakes}, number of reliable articles: {n_reals}")
     
-    if "infer" in args.methods:
-        print("Importing validation data...")
-        val_data = import_val_set(
+    if "prep_val" in args.pre_processing:
+        print("Importing validation data for preprocessing...")
+        preprocess_val_set(
             data_path / 'corpus/reduced_corpus.csv',
+            val_data_path,
             args.val_set,
             get_split(data_path), 
             n_rows = args.n_val # number of rows
         )
+        print("Processed validation data")
+
+    if "infer" in args.methods:
+        print("Importing validation data for inference...")
+        val_data = pd.read_csv(val_data_path, nrows=args.n_val)
     
     for model_name in args.models:
         t0_model = time()

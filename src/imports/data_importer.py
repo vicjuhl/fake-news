@@ -12,11 +12,19 @@ from preprocessing.noise_removal import cut_tail_and_head # type: ignore
 from preprocessing.noise_removal import preprocess_string # type: ignore
 from utils.types import news_info, words_info, NotInTrainingException # type: ignore
 from utils.mappings import out_cols # type: ignore
-from preprocessing.data_handlers import DataHandler, WordsCollector, CorpusSummarizer, CorpusReducer, CorpusShortener # type: ignore
+from preprocessing.data_handlers import ( # type: ignore
+    DataHandler,
+    WordsCollector,
+    CorpusSummarizer,
+    CorpusReducer,
+    CorpusShortener,
+    ValidationProcessor
+ )
 from imports.prints import print_row_counts # type: ignore
 from imports.json_to_pandas import json_to_pd # type: ignore
 
-pd.options.mode.chained_assignment = None # Silence false postive warning
+# Silence false postive warning 
+pd.options.mode.chained_assignment = None # type: ignore
 
 def create_clear_buffer(n_procs: int) -> list[list[news_info]]:
     """Create buffer list with n_procs empty lists."""
@@ -270,30 +278,26 @@ def get_duplicate_ids(
             df.to_csv(to_path / file_name, index=False)
             print(f"\n Duplicate CSV was written to {to_path}/{file_name}")
 
-def import_val_set(from_file: pl.Path, split_num: int, splits: np.ndarray, n_rows: int) -> pd.DataFrame:
+def preprocess_val_set(
+    from_file: pl.Path,
+    to_file: pl.Path,
+    split_num: int,
+    splits: np.ndarray,
+    n_rows: int
+) -> None:
     """Import validation set as pandas dataframe."""
     df_splits = pd.DataFrame(splits, columns=["id", "split"])
-    df_splits.sort_values("id", inplace=True)
+    df_splits = df_splits[df_splits["split"] == split_num]
+    splits_array = df_splits["id"].to_numpy(np.int32)
+    splits_array.sort()
 
-    iter_csv = pd.read_csv(
-        from_file,
-        iterator=True,
-        chunksize=10000,
-        usecols=["id", "type", "content"],
-        nrows=n_rows #TODO Erase
-    )
-
-    df_val_set = pd.DataFrame()
-    for chunk in iter_csv:
-        chunk_w_splits = pd.merge(chunk, df_splits, "left", "id")
-        matching_rows = chunk_w_splits[chunk_w_splits["split"] == split_num]
-        matching_rows["words"] = matching_rows["content"].apply(lambda x: preprocess_string(x))
-        matching_rows.drop("content", inplace=True, axis=1)
-        df_val_set = pd.concat([df_val_set, matching_rows])
-
-    df_val_set = df_val_set.sample(frac=1.0, random_state=42)
-
-    return df_val_set[:n_rows]
+    with open(from_file, encoding="utf8") as ff:
+        reader = csv.reader(ff)
+        next(reader) # Skip headers
+        df_val_set = pd.DataFrame(columns=["id", "orig_type", "type", "words"])
+        val_processor = ValidationProcessor(df_val_set, splits_array, to_file)
+        n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, val_processor)
+    print_row_counts(n_incl, n_excl, n_ignored, n_skipped, f"Read validation data from {from_file}.")
 
 def get_split(data_path: pl.Path) -> np.ndarray: 
     splits = np.loadtxt(

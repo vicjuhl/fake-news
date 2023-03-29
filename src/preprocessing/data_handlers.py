@@ -10,8 +10,13 @@ import pandas as pd
 from utils.types import news_info, words_info, words_dict, NotInTrainingException # type: ignore
 from utils.functions import add_tuples # type: ignore
 from utils.mappings import transfered_cols, excl_types, incl_cols, labels # type: ignore
-from preprocessing.noise_removal import clean_str, tokenize_str, stem, preprocess_without_stopwords # type: ignore
-
+from preprocessing.noise_removal import (  # type: ignore
+    clean_str,
+    tokenize_str,
+    stem,
+    preprocess_string,
+    preprocess_without_stopwords
+)
 
 class DataHandler(ABC):
     """Abstract class for data object such as dictionaries of words or csv-writers."""
@@ -169,6 +174,7 @@ class WordsCollector(DataHandler):
     def stem_dict(self) -> None:
         """Stem dicts and combine each into new dict."""
          # Loop through both dicts
+        print("Number of words before stemming:", len(self._words.keys()))
         old_dct = self._words.copy()
         self._words.clear()
         # Loop through words
@@ -180,6 +186,7 @@ class WordsCollector(DataHandler):
                 self._words[stemmed_tkn][type_] = self._words[stemmed_tkn].get(type_, (0, 0))
                 current_pair = self._words[stemmed_tkn][type_]
                 current_pair = add_tuples(current_pair, freqs)
+        print("Number of words after stemming:", len(self._words.keys()))
 
     def export_json(self, data) -> None:
         """Dump both dicts as json files."""
@@ -267,3 +274,58 @@ class CorpusSummarizer(DataHandler):
         df = pd.read_csv(self._file_path)
         df = df.sample(frac=1.0, random_state=42)
         df.to_csv(self._file_path, index=False)
+
+class ValidationProcessor(DataHandler):
+    """Preprocess the validation data.
+    
+    Assuming all rows are good and filtered for duplicates.
+    """
+    def __init__(
+        self,
+        df_val_data: pd.DataFrame,
+        splits: pd.DataFrame,
+        to_file: pl.Path,
+    ) -> None:
+        super().__init__()
+        self._df_val_data = df_val_data
+        self._splits = splits
+        self._to_file = to_file
+
+    def extract(self, row: list[str], i: int):
+        """Extract relevant fields from row."""
+        id_ = int(row[incl_cols["id"]])
+        in_split = id_ in self._splits
+        if in_split:
+            orig_type = row[incl_cols["orig_type"]]
+            type_ = row[incl_cols["type"]]
+            content = row[incl_cols["content"]]
+            self._n_incl += 1
+            return (id_, orig_type, type_, content)
+        else:
+            self._n_excl += 1
+            return ()
+    
+    @classmethod
+    def process_batch(cls, data: tuple[list[tuple[str, ...]], dict]) -> list[list[Any]]:
+        batch, _ = data
+
+        return_lst: list[list] = []
+        for row in batch:
+            id_ = int(row[0])
+            orig_type = row[1]
+            type_ = row[2]
+            content = row[3]
+            out_row: list[Any] = [id_]
+            out_row.append(orig_type)
+            out_row.append(type_)
+            out_row.append(preprocess_string(content))
+            return_lst.append(out_row)
+        return return_lst
+    
+    def write(self, rows: list[list]) -> None:
+        buffer_df = pd.DataFrame(rows, columns=["id", "orig_type", "type", "words"])
+        self._df_val_data = pd.concat([self._df_val_data, buffer_df])
+
+    def finalize(self) -> None:
+        self._df_val_data = self._df_val_data.sample(frac=1.0, random_state=42)
+        self._df_val_data.to_csv(self._to_file, index=False)
