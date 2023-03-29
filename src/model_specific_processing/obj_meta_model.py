@@ -36,9 +36,8 @@ class MetaModel(BaseModel):
             labels = labels.apply(
                 lambda x:
                 1 if x == 'reliable' else
-                # -1 if x == 'fake' else
-                # None TODO: 
-                -1
+                -1 if x == 'fake' else
+                None
             )
             train_data.drop(['id', 'type'], axis = 1, inplace=True) # should not be used for training because of information polution      
 
@@ -50,7 +49,8 @@ class MetaModel(BaseModel):
         except FileNotFoundError or pd.errors.EmptyDataError:
             print('metamodel cannot be trained, empty csv')   
              
-    def dump_for_mm_training(self):
+    def infer4_mm_training(self):
+        """Do nothing."""
         pass   
     
     def dump_model(self) -> None:

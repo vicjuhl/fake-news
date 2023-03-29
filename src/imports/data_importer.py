@@ -106,7 +106,7 @@ def process_lines(
             running = False
     # Flush what remains in the buffer
     out_obj.write(process_buffer(out_obj, buffer, n_procs, **kwargs))
-    # Export as json
+    # Finish last processes
     out_obj.finalize()
     return out_obj.n_incl, out_obj.n_excl, n_ignored, n_skipped
 
@@ -120,16 +120,20 @@ def reduce_corpus(
     print("\n Reducing corpus...")
     with open(from_file, encoding="utf8") as ff:
         reader = csv.reader(ff)
-        with open(to_path / "reduced_corpus.csv", 'w', newline='', encoding="utf8") as tf: # hallelujah
+        with open(to_path / "reduced_corpus.csv", 'w', newline='', encoding="utf8") as tf:
             writer = csv.writer(tf)
             # Create updated headers for label groups
             headers = next(reader)
             headers[3] = "orig_type"
             headers.append("type")
             writer.writerow(headers) # Write new headers to out_file
-
             try:
-                duplicates = pd.read_csv(dups_path)['id'].array # Load array of duplicates to skip when reading
+                duplicates = np.loadtxt(
+                    dups_path,
+                    delimiter=',',
+                    skiprows=1,
+                    dtype=np.int_
+                )
             except:
                 duplicates = np.array([])
             reducer = CorpusReducer(writer, duplicates)
@@ -226,10 +230,11 @@ def summarize_articles(
     with open(from_file, encoding="utf8") as ff:
         reader = csv.reader(ff)
         next(reader) # Skip headers (as they are not equal to output headers)
-        with open(to_path / f"summarized_corpus_valset{val_set}.csv", 'w', newline='', encoding="utf8") as tf:
+        to_file = to_path / f"summarized_corpus_valset{val_set}.csv"
+        with open(to_file, 'w', newline='', encoding="utf8") as tf:
                 summ_writer = csv.writer(tf)
                 summ_writer.writerow(out_cols) # Write headers
-                summarizer = CorpusSummarizer(summ_writer, val_set, splits)
+                summarizer = CorpusSummarizer(summ_writer, val_set, splits, to_file)
                 n_incl, n_excl, n_ignored, n_skipped = process_lines(n_rows, reader, summarizer, incl_words=words)
     print_row_counts(n_incl, n_excl, n_ignored, n_skipped, f"Summarized corpus was written to files in {to_path}/")
 
@@ -249,7 +254,6 @@ def get_duplicate_ids(
     df = pd.read_csv(from_file)
     # update df to only contain duplicates
     print("\n Extracting duplicate rows... This may take up to a minute...")
-    print(df)
     df = df[df.duplicated(subset=["shortened"], keep='first') == True] # does not include "scraped_at" in subset argument, so an article scraped on several occasions will only have the first occurence as non-duplicate
     count = len(df)
     print(f"\n A total of {count} duplicates were found.")

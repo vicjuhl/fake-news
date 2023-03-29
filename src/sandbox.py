@@ -6,12 +6,8 @@ import os
 import json
 
 
-with open('../data_files/stop_words_removed.json', 'r') as f:
-    json_data = f.read()
-data = json.loads(json_data)
-
-df = pd.DataFrame.from_dict(data, orient='index')
-print(df.head())
+df = pd.read_csv("data_files/corpus/splits.csv", nrows=1000)
+print(df)
 
 '''
 with open('../data_files/stop_words_removed.json', 'r') as f:

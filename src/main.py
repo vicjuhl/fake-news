@@ -40,7 +40,7 @@ if __name__ == "__main__":
     if "reduce" in args.processes:
         reduce_corpus(
             data_path / "corpus/news_cleaned_2018_02_13.csv",
-            data_path / f"corpus/summarized_corpus_valset{val_set}_duplicates.csv",
+            data_path / "corpus/duplicates.csv",
             data_path / "corpus/",
             args.nrows
         )
@@ -64,7 +64,7 @@ if __name__ == "__main__":
         print("runtime:", time.time() - t0)
         t0 = time.time()
 
-    if not set(args.processes).isdisjoint({"json", "summarize", "df"}): # REMOVE df FROM SET TODO (SEE BELOW COMMENT)
+    if not set(args.processes).isdisjoint({"json", "summarize"}):
         # Load splits information if needed
         splits = get_split(data_path)
 

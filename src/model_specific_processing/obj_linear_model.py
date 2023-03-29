@@ -90,9 +90,6 @@ class LinearModel(BaseModel):
         
         # Dumps the predictions to a csv file
         self.dump_inference(self._metamodel_inference_path, self._preds)
-             
-        print(self._preds)
-        print(df)
         
     def dump_inference(self, path: pl.Path, preds: pd.DataFrame) -> None:
         '''Dumps the predictions to a csv file'''

@@ -6,11 +6,8 @@ from typing import Optional
 import json
 import os
 from sklearn.metrics import f1_score, balanced_accuracy_score # type: ignore
-#import matplotlib.pyplot as plt
-from utils.functions import to_binary
-from utils.functions import del_csv # type: ignore
-
-from utils.functions import del_csv # type: ignore
+import matplotlib.pyplot as plt # type: ignore
+from utils.functions import to_binary # type: ignore
 import pickle
 class BaseModel(ABC):
     '''Abstract class for models'''
@@ -138,20 +135,19 @@ class BaseModel(ABC):
             outfile.write(json_eval)
 
         # Confusion matrix plot 
-    #    fig, ax = plt.subplots()
-     #   table = ax.matshow(confusion_matrix, cmap ='Blues')
+        fig, ax = plt.subplots()
+        table = ax.matshow(confusion_matrix, cmap ='Blues')
    
-      #  ax.set_xticks([0, 1])
-        # ax.set_yticks([0, 1])
-        # ax.set_xticklabels(['Fake', 'Reliable'])
-        # ax.set_yticklabels(['Fake', 'Reliable'])
+        ax.set_xticks([0, 1])
+        ax.set_yticks([0, 1])
+        ax.set_xticklabels(['Fake', 'Reliable'])
+        ax.set_yticklabels(['Fake', 'Reliable'])
 
         # Add the values to the table
-        #for i in range(2):
-          #  for j in range(2):
-         #       text = f"{round(confusion_matrix[i][j]*100, 2)}%"
-         #       ax.text(j, i, text, va='center', ha='center', fontsize=11)
+        for i in range(2):
+           for j in range(2):
+               text = f"{round(confusion_matrix[i][j]*100, 2)}%"
+               ax.text(j, i, text, va='center', ha='center', fontsize=11)
 
-        #dump to png
-        #fig.savefig((self._evaluation_dir / 'ConfusionMatrix.png'))
-      
+        # dump to png
+        fig.savefig((self._evaluation_dir / 'ConfusionMatrix.png'))
