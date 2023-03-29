@@ -2,15 +2,17 @@ import pathlib as pl
 import pandas as pd
 from abc import ABC, abstractmethod
 import pathlib as pl
-from typing import Optional
+from typing import Optional, Any
 import json
-import sys
 from sklearn.metrics import f1_score, balanced_accuracy_score # type: ignore
 from sklearn.utils.validation import check_is_fitted # type: ignore
 from sklearn.exceptions import NotFittedError # type: ignore
 import matplotlib.pyplot as plt # type: ignore
-from utils.functions import to_binary # type: ignore
 import pickle
+
+from utils.functions import to_binary # type: ignore
+
+
 class BaseModel(ABC):
     '''Abstract class for models'''
     def __init__(
@@ -75,11 +77,10 @@ class BaseModel(ABC):
                 saved_model = pd.read_csv(savedmodel_path)
             self.set_model(saved_model)
         except:
-            print ("Exception load failed: modelfile not found")
-            sys.exit(1)
+            raise Exception("Exception load failed: modelfile not found")
         
     @abstractmethod
-    def set_model(self, model: any) -> None:
+    def set_model(self, model: Any) -> None:
         pass
     
     def evaluate(self) -> None:

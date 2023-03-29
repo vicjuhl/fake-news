@@ -45,7 +45,6 @@ class LinearModel(BaseModel):
             pickle.dump(self._model , f)
         print(f'model dumped to {self._model_path}')
    
-   
     def infer4_mm_training(self) -> None:
         '''Makes predictions on a dataframe for training of model'''
         try:
@@ -76,15 +75,14 @@ class LinearModel(BaseModel):
         except NotFittedError:
             self.load() # loads and sets model
 
-            prob_preds = self._predictor(self._vectorizer.transform(df['words'])) #extract probalities
-            non_binary_preds = prob_preds[:,1] - prob_preds[:,0] #normalize between 1 (real) and -1 (fake)
-            self._preds = df[['id', 'type', 'orig_type']].copy()
-            self._preds[f'preds_{self._name}'] = non_binary_preds # adding predictions as a column
-            
-            # adding predictions as a column
-            self._preds[f'preds_{self._name}'] = non_binary_preds       
-        except FileNotFoundError:
-            print('Cannot make inference without a trained model')   
+        print(df)
+        prob_preds = self._predictor(self._vectorizer.transform(df['words']))
+        non_binary_preds = prob_preds[:,1] - prob_preds[:,0] #normalize between 1 (real) and -1 (fake)
+        self._preds = df[['id', 'type', 'orig_type']].copy()
+        self._preds[f'preds_{self._name}'] = non_binary_preds # adding predictions as a column
+        
+        # adding predictions as a column
+        self._preds[f'preds_{self._name}'] = non_binary_preds       
         
         # Dumps the predictions to a csv file
         self.dump_inference(self._metamodel_inference_path, self._preds)
