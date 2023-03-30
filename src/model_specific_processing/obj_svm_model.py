@@ -1,8 +1,7 @@
 
 import pathlib as pl
-from sklearn.feature_extraction import DictVectorizer # type: ignore
 from model_specific_processing.obj_linear_model import LinearModel # type: ignore
-from sklearn.svm import LinearSVC
+from sklearn.svm import LinearSVC # type: ignore
 class svmModel(LinearModel):
     '''Support Vector Classification'''
     def __init__(
@@ -15,9 +14,8 @@ class svmModel(LinearModel):
         name : str = "svm",
         model_format : str = "pkl"
     ) -> None:
-        super().__init__(params, training_sets, val_set, models_dir, t_session, name , model_format) # had to choose BaseModel inheritance (instead of LinearModel), since we wish to include the last two parameters here
+        super().__init__(params, training_sets, val_set, models_dir, t_session, name , model_format) # had to choose
         self._model = LinearSVC()
-        self._vectorizer = DictVectorizer()
         self._predictor = self._model._predict_proba_lr
 
     def set_model(self, model) -> None:

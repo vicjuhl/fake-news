@@ -21,7 +21,7 @@ class SimpleModel(BaseModel):
         super().__init__(params, training_sets, val_set, models_dir, t_session, "simple", "csv")
         self._model: Optional[pd.DataFrame] = None
         
-    def set_model(self, model: any) -> None:
+    def set_model(self, model) -> None:
         self._model = model
 
     def train(self) -> None:
@@ -44,9 +44,7 @@ class SimpleModel(BaseModel):
         
     def infer(self, df) -> None:
         '''Makes predictions on a dataframe'''
-        try:
-            check_is_fitted(self._model)
-        except NotFittedError:
+        if self._model is None:
             self.load() # loads and sets model
         
         self._preds = df[['id', 'type', 'orig_type']].copy()
