@@ -159,6 +159,8 @@ class BaseModel(ABC):
         ax.set_yticks([0, 1])
         ax.set_xticklabels(['Fake', 'Reliable'])
         ax.set_yticklabels(['Fake', 'Reliable'])
+        ax.set_xlabel('True label')
+        ax.set_ylabel('Predicted label')
 
         # Add the values to the table
         for i in range(2):

@@ -255,3 +255,35 @@ Running method infer4_mm_training
 Runtime 3.0994415283203125e-06
 Total model runtime 0.6000597476959229
 Total runtime 10578.793168067932
+
+
+March 30th, afternoon; ONLY to get statistics on stemming
+python src/main.py -p json -n 1000000000 -v 2
+Number of words before stemming: 4404462
+Number of words after stemming: 3857021
+3467899 rows read successfully:
+	2774319 rows were used:
+		2774319 were included.
+		0 were excluded.
+	693580 were ignored because they belong to test or validation set.
+1 rows were skipped due to reading error.
+JSON was written to /Users/victor/Documents/Uddannelse/Repos/fake-news/data_files/words/
+runtime: 2095.042899131775
+
+ Total runtime: 2095.042953014374
+
+ python src/main.py -p stem_json -n 1000000000 -v 2 -q 0.5 0.05
+
+ Removing stopwords...
+Executing function: cut_tail_and_head with quantiles: 0.5 and 0.05
+55.00000000000001% of total words removed (APPROX!).
+99.61205811428042% of unique words removed.
+unique words before cleaning:  3857021
+unique words after:  14963
+unique words removed:  3842058
+	unique words removed from head:  75
+	unique words removed from tail: 3841983
+	at minimum occurence level: 2341
+runtime: 30.426623106002808
+
+ Total runtime: 30.426652193069458
