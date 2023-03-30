@@ -1,4 +1,4 @@
-### Fake news detection project for the course Data Science on DIKU, University of Copenhagen
+### Fake news detection project for the course Data Science on DIKU, University of Copenhagen, March 2023
 # Contributors: Hjalti Petursson Poulsen, Frederik van Wylich-Muxoll, Hans Peter Lyngsøe Raaschou-Jensen, Victor Kaplan Kjellerup
 
 This repository contains the code base used to reproduce the reported results from the Fake News Detection project by the authors.
@@ -17,13 +17,14 @@ With conda installed, please do the following to intall environment:
     conda env update -f environment.yml --prune
 
 # Preparing the corpus data
-you need to first download the fake news corpus from https://github.com/several27/FakeNewsCorpus/releases/tag/v1.0. From the requirements to the fake news project: "You will need to use a multi-part decompression tool, e.g. 7z. Given all the files, execute the following command: 7z x news.csv.zip. This should create a 27GB file on disk (29.322.513.705 bytes)."
+You need to first download the fake news corpus from https://github.com/several27/FakeNewsCorpus/releases/tag/v1.0. From the requirements to the fake news project: "You will need to use a multi-part decompression tool, e.g. 7z. Given all the files, execute the following command: 7z x news.csv.zip. This should create a 27GB file on disk (29.322.513.705 bytes)."
 
 After downloading and decompressing the corpus, create the folders fake-news/data_files/corpus/ and place the corpus file her.Do not rename the file.
 
 To execute the code, go to root of repository and run:
 bash run_full_pipeline.sh
 
+# Preprocessing
 As you will see in the bash file, this runs a sequence of python scripts, each responsible for one part of the pipeline and you will see various files and folders being created in the folders fake-news/data_files/ and fake-news/model_files/ TODO.
 
 Firstly, the preprocessing is done in three runs, including duplicate removal, tokenization, stemming, vocabulary reduction splitting and reduction of corpus into more managably sized csv-files for later fitting and inference. Some of these files contain the {val_set_num} tag in their name. This is a number given to at runtime, 2 is used for the project. The files created in this process are:

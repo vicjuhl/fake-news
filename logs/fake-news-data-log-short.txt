@@ -1,4 +1,4 @@
-Night before march 29th:
+'Twas the night before march 29th:
 
 (fake-news) victor@victors-macbook-pro fake-news % bash run_full_pipeline.sh
 
@@ -116,6 +116,7 @@ Processed validation data
 Total runtime 626.4340720176697
 
 (fake-news) victor@victors-macbook-pro fake-news % python src/model_pipeline.py -v 1 -t1 3 4 5 6 7 -t2 8 9 10 -p prep_val -nt 10000000 -nv 10000000 -t 1
+Hallelujah!
 CAUTION: Running on test set!!!
 Importing validation data for preprocessing...
 3467900 rows read successfully:
