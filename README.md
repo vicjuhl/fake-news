@@ -59,7 +59,7 @@ The results of the inference and evaluation is dumped to fake-news/model_files/ 
 Please consult help messages of fake-news/model_pipeline.py for instructions on custom runs.
 
 # Notebooks
-All jupyter notebooks in the repository can be run for high-level analysis. Preprocessing and sometimes modelling is required before running the notebooks.
+All Jupyter notebooks in the repository can be run for high-level analysis. Preprocessing and sometimes modelling is required before running the notebooks.
 
 # Run logs
 Manual run logs from our project have been saved to fake-news/logs/fake-news-data-log-full.txt and fake-news/logs/fake-news-data-log-short.txt, which includes the prints from our own pipeline production (verbose and compact, respectively)
