@@ -192,7 +192,7 @@ if __name__ == '__main__':
             t0 = time()
             print(f"\nRunning method", method_name)  
             
-            if method_name == "infer" :
+            if method_name == "infer":
                 if isinstance(model_inst, MetaModel):
                     mm_df = pd.read_csv(model_path / 'meta_model/metamodel_inference.csv')
                     METHODS[method_name](mm_df)
