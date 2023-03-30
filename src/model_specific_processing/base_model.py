@@ -129,7 +129,7 @@ class BaseModel(ABC):
         npv = try_divide(tn, fn)#reverse precision
         recall = try_divide(tp, fn)
         tnr = try_divide(tn, fp) #reverse recall
-        confusion_matrix = [[round(tp/total_preds, 2), round(fp/total_preds, 2)], [round(fn/total_preds, 2), round(tn/total_preds, 2)]]
+        confusion_matrix = [[tp/total_preds, fp/total_preds], [fn/total_preds, tn/total_preds]]
 
         #makes dict out off stats
         eval_dict = { 
