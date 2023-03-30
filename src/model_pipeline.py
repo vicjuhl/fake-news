@@ -195,7 +195,6 @@ if __name__ == '__main__':
             if method_name == "infer" :
                 if isinstance(model_inst, MetaModel):
                     mm_df = pd.read_csv(model_path / 'meta_model/metamodel_inference.csv')
-                    # REMEMBER this is not the real dataset, SHOULD BE CHANGED!!
                     METHODS[method_name](mm_df)
                 else:
                     METHODS[method_name](val_data)

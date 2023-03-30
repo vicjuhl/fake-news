@@ -76,9 +76,10 @@ class BaseModel(ABC):
                     self._savedmodel_path / self._name / ("model" + "." + self.filetype),
                     'rb'
                 ))
-            elif self.filetype == "csv":
+            elif self.filetype == "csv": # Simple model
                 saved_model = pd.read_csv(
-                    self._savedmodel_path / self._name / ("model" + "." + self.filetype)
+                    self._savedmodel_path / self._name / ("model" + "." + self.filetype),
+                    index_col=0
                 )
             self.set_model(saved_model)
         except:

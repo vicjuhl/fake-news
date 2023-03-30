@@ -2,6 +2,7 @@ import pandas as pd
 import os 
 import pathlib as pl
 import math
+from typing import Optional
 
 def add_tuples(a: tuple[int, int], b: tuple[int, int]) -> tuple[int, int]:
     """Add two two-element integer tuples elementwise."""
@@ -9,9 +10,9 @@ def add_tuples(a: tuple[int, int], b: tuple[int, int]) -> tuple[int, int]:
     b1, b2 = b
     return (a1 + b1, a2 + b2)
 
-def to_binary(pred: int) -> str:
-    return "fake" if pred < 0 else "reliable"
-
+def to_binary(pred: int) -> Optional[str]:
+    return "fake" if pred < 0 else "reliable" if pred >= 0 else None
+    
 def entropy(word_dict: dict[str,int], length : int):
     """Calculate the entropy of a text."""
     entropy = -sum(freq/length * math.log2(freq/length) for freq in word_dict.values()) # # entropy using formula: text using the formula: - sum(freq/total_chars * log2(freq/total_chars))

@@ -49,7 +49,7 @@ class SimpleModel(BaseModel):
         
         self._preds = df[['id', 'type', 'orig_type']].copy()
         # adding predictions as a column 
-        self._preds[f'preds_{self._name}'] = classify_article_continous(df , self._model)
+        self._preds[f'preds_{self._name}'] = classify_article_continous(df, self._model)
 
     def infer4_mm_training(self) -> None:
         """Do nothing."""
