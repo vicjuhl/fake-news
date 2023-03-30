@@ -2,13 +2,17 @@ import pathlib as pl
 import pandas as pd
 from abc import ABC, abstractmethod
 import pathlib as pl
-from typing import Optional
+from typing import Optional, Any
 import json
-import sys
 from sklearn.metrics import f1_score, balanced_accuracy_score # type: ignore
+from sklearn.utils.validation import check_is_fitted # type: ignore
+from sklearn.exceptions import NotFittedError # type: ignore
 import matplotlib.pyplot as plt # type: ignore
-from utils.functions import to_binary # type: ignore
 import pickle
+
+from utils.functions import to_binary # type: ignore
+
+
 class BaseModel(ABC):
     '''Abstract class for models'''
     def __init__(
@@ -40,6 +44,7 @@ class BaseModel(ABC):
         self._preds_mm_training = pd.DataFrame()
         self.dump_metadata()
         self.filetype = file_format
+        self._savedmodel_path = pl.Path(__file__).parent.parent.parent.resolve() / "model_files_shared" / "saved_models/"
 
     def dump_metadata(self) -> None:
         """Dump json file with session metadata."""
@@ -65,19 +70,23 @@ class BaseModel(ABC):
         pass
 
     def load(self) -> None:
-        savedmodel_path = pl.Path(__file__).parent.parent.parent.resolve() / "model_files_shared" / "saved_models" / self._name / ("model" + "." + self.filetype)
         try:
             if self.filetype == "pkl":
-                saved_model = pickle.load(open(savedmodel_path, 'rb'))
-            elif self.filetype == "csv":
-                saved_model = pd.read_csv(savedmodel_path)
+                saved_model = pickle.load(open(
+                    self._savedmodel_path / self._name / ("model" + "." + self.filetype),
+                    'rb'
+                ))
+            elif self.filetype == "csv": # Simple model
+                saved_model = pd.read_csv(
+                    self._savedmodel_path / self._name / ("model" + "." + self.filetype),
+                    index_col=0
+                )
             self.set_model(saved_model)
         except:
-            print ("Exception: modelfile not found")
-            sys.exit(1)
+            raise Exception("Exception load failed: modelfile not found")
         
     @abstractmethod
-    def set_model(self, model: any) -> None:
+    def set_model(self, model: Any) -> None:
         pass
     
     def evaluate(self) -> None:

@@ -1,5 +1,4 @@
 import pathlib as pl
-from sklearn.feature_extraction import DictVectorizer # type: ignore
 from sklearn.naive_bayes import MultinomialNB, ComplementNB # type: ignore
 from model_specific_processing.obj_linear_model import LinearModel # type: ignore
 
@@ -18,9 +17,8 @@ class MultinomialNaiveBayesModel(LinearModel):
         name :str = "multi_nb",
         file_format : str = "pkl"
     ) -> None:
-        super().__init__(params, training_sets, val_set, models_dir, t_session, name , file_format) # had to choose BaseModel inheritance (instead of LinearModel), since we wish to include the last two parameters here
+        super().__init__(params, training_sets, val_set, models_dir, t_session, name , file_format) # had to choose
         self._model = MultinomialNB(alpha=1, force_alpha=True)
-        self._vectorizer = DictVectorizer()
         self._predictor = self._model.predict_proba
            
 class ComplementNaiveBayesModel(LinearModel):
@@ -37,7 +35,6 @@ class ComplementNaiveBayesModel(LinearModel):
         models_dir: pl.Path,
         t_session: str,
     ) -> None:
-        super().__init__(params, training_sets, val_set, models_dir, t_session, "compl_nb", "pkl") # had to choose BaseModel inheritance (instead of LinearModel), since we wish to include the last two parameters here
+        super().__init__(params, training_sets, val_set, models_dir, t_session, "compl_nb", "pkl") # had to choose
         self._model = ComplementNB(alpha=1, force_alpha=True)
-        self._vectorizer = DictVectorizer()
         self._predictor = self._model.predict_proba

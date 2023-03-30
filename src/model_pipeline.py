@@ -4,6 +4,8 @@ import pandas as pd
 from time import time, localtime, strftime
 import json
 import ast
+from sklearn.feature_extraction import DictVectorizer # type: ignore
+import pickle # type: ignore
 
 from model_specific_processing.obj_simple_model import SimpleModel # type: ignore
 from model_specific_processing.obj_linear_model import LinearModel # type: ignore
@@ -35,11 +37,10 @@ TRAININGSETS = {
     'compl_nb': 'bow_articles',
     'svm' : 'bow_articles',
     'random_forest': 'bow_articles',
-    'meta': 'bow_articles',
+    'meta': '',
 }
 
 METHODNAMES = [
-    'load',
     'train',
     'dump_model',
     'infer4_mm_training',
@@ -100,27 +101,7 @@ if __name__ == '__main__':
             print("CAUTION: Running on LIAR set!!!")
         else:
             raise ValueError("Some numbers missing in split definitions.")
-    
 
-    if "train" in args.methods:
-        if "bow_simple" in data_kinds:
-            training_sets["bow_simple"] = json_to_pd(args.val_set, 'stop_words_removed')
-        if "bow_articles" in data_kinds:
-            training_sets["bow_articles"] = pd.read_csv(
-                data_path / f"processed_csv/summarized_corpus_valset{args.val_set}.csv",
-                nrows=args.n_train
-            )
-            # Add trn split column based on user input
-            bow_art_trn = training_sets["bow_articles"]
-            bow_art_trn = bow_art_trn[bow_art_trn['id'].notnull()]
-            bow_art_trn["trn_split"] = bow_art_trn["split"].apply(
-                lambda x: 1 if x in tr1 else 2 if x in tr2 else None
-            )
-            bow_art_trn['words'] = bow_art_trn['words'].apply(ast.literal_eval)
-            n_fakes = len(bow_art_trn[bow_art_trn["type"] == "fake"])
-            n_reals = len(bow_art_trn[bow_art_trn["type"] == "reliable"])
-            print(f"Number of fake articles: {n_fakes}, number of reliable articles: {n_reals}")
-    
     if "prep_val" in args.pre_processing:
         print("Importing validation data for preprocessing...")
         preprocess_val_set(
@@ -131,12 +112,58 @@ if __name__ == '__main__':
             n_rows = args.n_val # number of rows
         )
         print("Processed validation data")
+    
+    if "train" in args.methods:
+        print("Importing training sets...")
+        if "bow_simple" in data_kinds:
+            training_sets["bow_simple"] = json_to_pd(args.val_set, 'stop_words_removed')
+        if "bow_articles" in data_kinds:
+
+            bow_art_trn = pd.DataFrame(
+                columns = ["id", "orig_type", "type", "words", "split", "trn_split"]
+            )
+            
+            chunksize = 100000
+            csv_iter = pd.read_csv(
+                data_path / f"processed_csv/summarized_corpus_valset{args.val_set}.csv",
+                nrows=args.n_train,
+                usecols=["id", "orig_type", "type", "words", "split"],
+                # Using float to escape NaN
+                dtype={"id": "float", "orig_type": "category", "type": "category", "words": "str", "split": "int8"},
+                iterator=True,
+                chunksize=chunksize,
+            )
+
+            for i, chunk in enumerate(csv_iter):
+                print(f"Processing lines: {i*chunksize}...")
+                chunk["words"] = chunk['words'].apply(ast.literal_eval)
+                bow_art_trn = pd.concat([bow_art_trn, chunk])
+
+            # Remove NaN and cast pseudofloat to int
+            bow_art_trn = bow_art_trn[bow_art_trn["id"].notnull()]
+            bow_art_trn['id'] = bow_art_trn['id'].astype(int)
+            # Add trn split column based on user input
+            bow_art_trn["trn_split"] = bow_art_trn["split"].apply(
+                lambda x: 1 if x in tr1 else 2 if x in tr2 else None
+            )
+
+            vectorizer = DictVectorizer()
+            vectorizer.fit(bow_art_trn[bow_art_trn["trn_split"] == 1]["words"].to_list())
+            with open(model_path / 'dict_vectorizer.pkl', 'wb') as f:
+                pickle.dump(vectorizer, f)
+            
+            # Assign to training sets
+            training_sets["bow_articles"] = bow_art_trn
+
+            n_fakes = len(bow_art_trn[bow_art_trn["type"] == "fake"])
+            n_reals = len(bow_art_trn[bow_art_trn["type"] == "reliable"])
+            print(f"Number of fake articles: {n_fakes}, number of reliable articles: {n_reals}")
 
     if "infer" in args.methods:
         print("Importing validation data for inference...")
         if args.with_liar == 1:
             val_data = pd.read_csv(liar_path)
-            val_data["words"] = val_data["content"].apply(preprocess_string)
+            val_data["words"] = val_data["words"].apply(ast.literal_eval)
         else:
             val_data = pd.read_csv(val_data_path, nrows=args.n_val)
             val_data["words"] = val_data["words"].apply(ast.literal_eval)
@@ -155,7 +182,6 @@ if __name__ == '__main__':
         model_inst = model_class(params, training_sets, args.val_set, model_path, t_session)
         # Run methods
         METHODS = {
-            'load' : model_inst.load,
             'train': model_inst.train,
             'dump_model': model_inst.dump_model,
             'infer4_mm_training': model_inst.infer4_mm_training,
@@ -166,10 +192,9 @@ if __name__ == '__main__':
             t0 = time()
             print(f"\nRunning method", method_name)  
             
-            if method_name == "infer" :
+            if method_name == "infer":
                 if isinstance(model_inst, MetaModel):
                     mm_df = pd.read_csv(model_path / 'meta_model/metamodel_inference.csv')
-                    # REMEMBER this is not the real dataset, SHOULD BE CHANGED!!
                     METHODS[method_name](mm_df)
                 else:
                     METHODS[method_name](val_data)

@@ -1,8 +1,7 @@
 
 import pathlib as pl
-from sklearn.feature_extraction import DictVectorizer # type: ignore
 from model_specific_processing.obj_linear_model import LinearModel # type: ignore
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier # type: ignore
 
 class RandomForestModel(LinearModel):
     '''Random Forest Classification Model'''
@@ -18,5 +17,4 @@ class RandomForestModel(LinearModel):
     ) -> None:
         super().__init__(params, training_sets, val_set, models_dir, t_session, name, model_format) # had to choose BaseModel inheritance (instead of LinearModel), since we wish to include the last two parameters here
         self._model = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1, min_samples_split=3, max_depth=20)
-        self._vectorizer = DictVectorizer()
         self._predictor = self._model.predict_proba
