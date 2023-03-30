@@ -46,12 +46,12 @@ class DataHandler(ABC):
         
     @classmethod
     @abstractmethod
-    def process_batch(cls, data): # TYPING TODO
+    def process_batch(cls, data):
         """Perform preprocessing on extracted data"""
         pass
 
     @abstractmethod
-    def write(self, articles) -> None: # TYPING TODO
+    def write(self, articles) -> None:
         """Write data to relevant object or file."""
         pass
 

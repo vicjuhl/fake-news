@@ -12,5 +12,5 @@ python src/model_pipeline.py -v 2 -t1 3 4 5 6 7 -t2 8 9 10 -md linear pa simple 
 
 # Test on test and liar sets
 python src/model_pipeline.py -v 2 -t1 3 4 5 6 7 -t2 8 9 10 -md linear pa simple multi_nb compl_nb svm random_forest meta -mt infer evaluate -nt 10000000 -nv 10000000 # val set
-# python src/model_pipeline.py -v 2 -t1 3 4 5 6 7 -t2 8 9 10 -md linear pa simple multi_nb compl_nb svm random_forest meta -mt infer evaluate -nt 10000000 -nv 10000000 -t 1 # test set
-# python src/model_pipeline.py -v 2 -t1 3 4 5 6 7 -t2 8 9 10 -md linear pa simple multi_nb compl_nb svm random_forest meta -mt infer evaluate -nt 10000000 -nv 10000000 -l 1 # liar set
+python src/model_pipeline.py -v 2 -t1 3 4 5 6 7 -t2 8 9 10 -md linear pa simple multi_nb compl_nb svm random_forest meta -mt infer evaluate -nt 10000000 -nv 10000000 -t 1 # test set
+python src/model_pipeline.py -v 2 -t1 3 4 5 6 7 -t2 8 9 10 -md linear pa simple multi_nb compl_nb svm random_forest meta -mt infer evaluate -nt 10000000 -nv 10000000 -l 1 # liar set

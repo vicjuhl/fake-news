@@ -1,5 +1,0 @@
-To generate conda env from env file:
-conda env create -f environment.yml
-
-To update existing conda env from env file:
-conda env update -f environment.yml --prune

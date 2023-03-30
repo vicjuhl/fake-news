@@ -56,16 +56,15 @@ def init_argparse() -> ap.ArgumentParser:
     """Initialize the argument parser."""
     parser = ap.ArgumentParser(description='Run a model')
     parser.add_argument('-md', '--models', nargs="*", choices=MODELS.keys(), type=str, default=[], help='Specify list of models')
-    # parser.add_argument('--datasets', choices=DATASETS.keys(), help='Dataset to use')
-    parser.add_argument('-mt', '--methods', nargs="*", choices=METHODNAMES, default=[], help='Method to run')
+    parser.add_argument('-mt', '--methods', nargs="*", choices=METHODNAMES, default=[], help='Methods to run')
     parser.add_argument("-t1", "--train_set_1", nargs="*", help="Splits to include in training set 1")
     parser.add_argument("-t2", "--train_set_2", nargs="*", help="Splits to include in training set 2")
     parser.add_argument("-p", "--pre_processing", nargs="*", choices=PREPNAMES, default=[], help="Preprocess validation data")
     parser.add_argument("-v", "--val_set", type=int, help="Choose validation set split number")
     parser.add_argument("-t", "--with_test", type=int, default=0, help="Test performance of models on test data")
     parser.add_argument("-l", "--with_liar", type=int, default=0, help="Test performance of models on LIAR data")
-    parser.add_argument("-nt", "--n_train", type=int, default=1000)
-    parser.add_argument("-nv", "--n_val", type=int , default=1000)
+    parser.add_argument("-nt", "--n_train", type=int, default=1000, help="Number of rows to include in training set")
+    parser.add_argument("-nv", "--n_val", type=int , default=1000, help="Number of rows to include in validation set")
     parser.add_argument("-hp", "--hyper_params", type=str , default=json.dumps({}))
     return parser
 

@@ -31,7 +31,7 @@ class SimpleModel(BaseModel):
         train_data = tf_idf(train_data, total_num_articles)
         train_data = logistic_Classification_weight(train_data)
         model = create_model(train_data) # creating model dataframe     
-        self._model = model # might not be smart to save a df in object TODO
+        self._model = model
         
     def dump_model(self) -> None:
         '''Dumps the model to a csv file'''
