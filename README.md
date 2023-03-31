@@ -16,6 +16,9 @@ With conda installed, please do the following to intall environment:
     To update existing conda env from env file:
     conda env update -f environment.yml --prune
 
+Before running any code, please activate environment by running:
+conda activate fake-news
+
 # Preparing the corpus data
 You need to first download the fake news corpus from https://github.com/several27/FakeNewsCorpus/releases/tag/v1.0. From the requirements to the fake news project: To unpack the linked zipped csv files, use The Unarchiver, found in the apple App store. For this project, our data was based on news_cleaned_2018_02_13.csv from the above repository.
 

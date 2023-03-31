@@ -1,4 +1,4 @@
-# # Preprocessing
+# Preprocessing
 python src/main.py -p reduce shorten get_dups -v 2 -n 100000000
 python src/main.py -p reduce shorten split get_dups -v 2 -n 100000000
 python src/main.py -p json stem_json summarize -v 2 -q 0.5 0.05 -n 100000000
