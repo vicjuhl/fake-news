@@ -17,11 +17,11 @@ With conda installed, please do the following to intall environment:
     conda env update -f environment.yml --prune
 
 # Preparing the corpus data
-You need to first download the fake news corpus from https://github.com/several27/FakeNewsCorpus/releases/tag/v1.0. From the requirements to the fake news project: "You will need to use a multi-part decompression tool, e.g. 7z. Given all the files, execute the following command: 7z x news.csv.zip. This should create a 27GB file on disk (29.322.513.705 bytes)."
+You need to first download the fake news corpus from https://github.com/several27/FakeNewsCorpus/releases/tag/v1.0. From the requirements to the fake news project: To unpack the linked zipped csv files, use The Unarchiver, found in the apple App store. For this project, our data was based on news_cleaned_2018_02_13.csv from the above repository.
 
 After downloading and decompressing the corpus, create the folders fake-news/data_files/corpus/ and place the corpus file her.Do not rename the file.
 
-To execute the code, go to root of repository and run:
+To execute the entire pipeline, go to root of repository and run:
 bash run_full_pipeline.sh
 
 # Preprocessing

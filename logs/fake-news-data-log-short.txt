@@ -288,3 +288,39 @@ unique words removed:  3842058
 runtime: 30.426623106002808
 
  Total runtime: 30.426652193069458
+
+
+ Inference for simple model; The night before March 31rd:
+ python src/model_pipeline.py -v 2 -t1 3 4 5 6 7 -t2 8 9 10 -md simple -mt infer evaluate -t 1 -nv 100000000
+Importing validation data for inference...
+
+ SimpleModel
+
+Running method infer
+Runtime 17201.8636636734
+
+Running method evaluate
+{'nPredictions': 346790, 'F1 Score': 0.8237546833920761, 'Accuracy': 0.8236886876784221, 'Balanced Accuracy': 0.824152158085501, 'Precision': 0.8046848386519397, 'NPV': 0.8426491851629963, 'Recall': 0.8361270427875501, 'TNR': 0.8121772733834519, 'Confusion Matrix': [[0.40188298393840655, 0.09754606534213789], [0.07876524697944001, 0.4218057037400156]]}
+{
+    "nPredictions": 346790,
+    "F1 Score": 0.8237546833920761,
+    "Accuracy": 0.8236886876784221,
+    "Balanced Accuracy": 0.824152158085501,
+    "Precision": 0.8046848386519397,
+    "NPV": 0.8426491851629963,
+    "Recall": 0.8361270427875501,
+    "TNR": 0.8121772733834519,
+    "Confusion Matrix": [
+        [
+            0.40188298393840655,
+            0.09754606534213789
+        ],
+        [
+            0.07876524697944001,
+            0.4218057037400156
+        ]
+    ]
+}
+Runtime 2.7947380542755127
+Total model runtime 17204.661725997925
+Total runtime 17348.72832798958
