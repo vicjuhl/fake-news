@@ -44,7 +44,8 @@ class BaseModel(ABC):
         self._preds_mm_training = pd.DataFrame()
         self.dump_metadata()
         self.filetype = file_format
-        self._savedmodel_path = pl.Path(__file__).parent.parent.parent.resolve() / "model_files_shared" / "saved_models/"
+        self._savedmodel_path = pl.Path(__file__).parent.parent.parent.resolve() / "model_files_shared/"
+        self._savedmodel_path.mkdir(parents=True, exist_ok=True)
 
     def dump_metadata(self) -> None:
         """Dump json file with session metadata."""

@@ -36,8 +36,11 @@ class SimpleModel(BaseModel):
     def dump_model(self) -> None:
         '''Dumps the model to a csv file'''
         model = self._model
+        saved_path = (self._savedmodel_path / self._name)
+        saved_path.mkdir(parents=True, exist_ok=True)
         if model is not None:
             model.to_csv(self._model_path, index=True) 
+            model.to_csv(saved_path / ("model" + "." + self.filetype), index=True) 
         else:
             print("ERROR: model could not be dumped")
         print(f"Model saved to {self._model_path}")
