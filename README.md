@@ -22,13 +22,13 @@ conda activate fake-news
 # Preparing the corpus data
 You need to first download the fake news corpus from https://github.com/several27/FakeNewsCorpus/releases/tag/v1.0. From the requirements to the fake news project: To unpack the linked zipped csv files, use The Unarchiver, found in the apple App store. For this project, our data was based on news_cleaned_2018_02_13.csv from the above repository.
 
-After downloading and decompressing the corpus, create the folders fake-news/data_files/corpus/ and place the corpus file her.Do not rename the file.
+After downloading and decompressing the corpus, create the folders fake-news/data_files/corpus/ and place the corpus file her. Do not rename the file.
 
 To execute the entire pipeline, go to root of repository and run:
 bash run_full_pipeline.sh
 
 # Preprocessing
-As you will see in the bash file, this runs a sequence of python scripts, each responsible for one part of the pipeline and you will see various files and folders being created in the folders fake-news/data_files/ and fake-news/model_files/ TODO.
+As you will see in the bash file, this runs a sequence of python scripts, each responsible for one part of the pipeline and you will see various files and folders being created in the folders fake-news/data_files/ and fake-news/model_files/.
 
 Firstly, the preprocessing is done in three runs, including duplicate removal, tokenization, stemming, vocabulary reduction splitting and reduction of corpus into more managably sized csv-files for later fitting and inference. Some of these files contain the {val_set_num} tag in their name. This is a number given to at runtime, 2 is used for the project. The files created in this process are:
 
@@ -58,7 +58,7 @@ Custom split numbers can be chosen for validation set and the two training set: 
 
 Inference and evaluation can be run on either the validation set or the test or LIAR sets without training the models again (a liar set, preprocessed by us is available in the root of the data_files folder). Note that the validation set argument still needs to be passed as e.g. -v 2, even when running on the test sets. To run with liar, use -l 1. To run with test split 1, use -t 1.
 
-The results of the inference and evaluation is dumped to fake-news/model_files/ TODO.
+The results of the inference and evaluation is dumped to fake-news/model_files/ and fake-news/model_files_shared/.
 
 Please consult help messages of fake-news/model_pipeline.py for instructions on custom runs.
 
