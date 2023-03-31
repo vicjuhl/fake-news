@@ -14,13 +14,15 @@ from imports.data_importer import ( # type: ignore
     get_duplicate_ids
 )
 
+procs = {"reduce", "shorten", "split", "json", "stem_json", "summarize", "get_dups"}
+
 def init_argparse() -> ap.ArgumentParser:
     parser = ap.ArgumentParser()
-    parser.add_argument("-n", "--nrows", type=int, default=1000)
-    parser.add_argument("-f", "--filename", type=str, default="reduced_corpus.csv")
-    parser.add_argument("-p", "--processes", nargs="*", type=str)
-    parser.add_argument("-q", "--quantiles", nargs=2, type=float)
-    parser.add_argument("-v", "--validation_set_num", type=int)
+    parser.add_argument("-n", "--nrows", type=int, default=1000, help="Number of rows to include")
+    parser.add_argument("-f", "--filename", type=str, default="reduced_corpus.csv", help="Path to reduced corpus")
+    parser.add_argument("-p", "--processes", nargs="*", type=str, choices=procs, help="Processes to run; see below if cases")
+    parser.add_argument("-q", "--quantiles", nargs=2, type=float, help="How much to cut head and tail: give two floats; each one fraction of total word count to reduce, for instance 0.5 0.05 will cut 50 percent off the bottom and 5 percent off the top.")
+    parser.add_argument("-v", "--validation_set_num", type=int, help="Validation set split number chosen for this pipeline.")
     return parser
 
 if __name__ == "__main__":

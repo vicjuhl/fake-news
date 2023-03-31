@@ -44,7 +44,8 @@ class BaseModel(ABC):
         self._preds_mm_training = pd.DataFrame()
         self.dump_metadata()
         self.filetype = file_format
-        self._savedmodel_path = pl.Path(__file__).parent.parent.parent.resolve() / "model_files_shared" / "saved_models/"
+        self._savedmodel_path = pl.Path(__file__).parent.parent.parent.resolve() / "model_files_shared/"
+        self._savedmodel_path.mkdir(parents=True, exist_ok=True)
 
     def dump_metadata(self) -> None:
         """Dump json file with session metadata."""
@@ -129,7 +130,7 @@ class BaseModel(ABC):
         npv = try_divide(tn, fn)#reverse precision
         recall = try_divide(tp, fn)
         tnr = try_divide(tn, fp) #reverse recall
-        confusion_matrix = [[round(tp/total_preds, 2), round(fp/total_preds, 2)], [round(fn/total_preds, 2), round(tn/total_preds, 2)]]
+        confusion_matrix = [[tp/total_preds, fp/total_preds], [fn/total_preds, tn/total_preds]]
 
         #makes dict out off stats
         eval_dict = { 
@@ -159,6 +160,8 @@ class BaseModel(ABC):
         ax.set_yticks([0, 1])
         ax.set_xticklabels(['Fake', 'Reliable'])
         ax.set_yticklabels(['Fake', 'Reliable'])
+        ax.set_xlabel('True label')
+        ax.set_ylabel('Predicted label')
 
         # Add the values to the table
         for i in range(2):

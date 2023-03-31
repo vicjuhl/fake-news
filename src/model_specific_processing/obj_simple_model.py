@@ -31,13 +31,16 @@ class SimpleModel(BaseModel):
         train_data = tf_idf(train_data, total_num_articles)
         train_data = logistic_Classification_weight(train_data)
         model = create_model(train_data) # creating model dataframe     
-        self._model = model # might not be smart to save a df in object TODO
+        self._model = model
         
     def dump_model(self) -> None:
         '''Dumps the model to a csv file'''
         model = self._model
+        saved_path = (self._savedmodel_path / self._name)
+        saved_path.mkdir(parents=True, exist_ok=True)
         if model is not None:
             model.to_csv(self._model_path, index=True) 
+            model.to_csv(saved_path / ("model" + "." + self.filetype), index=True) 
         else:
             print("ERROR: model could not be dumped")
         print(f"Model saved to {self._model_path}")

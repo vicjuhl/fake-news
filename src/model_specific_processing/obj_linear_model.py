@@ -29,7 +29,7 @@ class LinearModel(BaseModel):
             with open(self._savedmodel_path / 'dict_vectorizer.pkl', 'rb') as f:
                 self._vectorizer = pickle.load(f)
         except FileNotFoundError as e:
-            print("No meta model file found, continuing without vectorizer:", e)
+            print("No vectorizer file found, continuing without vectorizer:", e)
         self._model = LogisticRegression(max_iter=1000, n_jobs=-1)
         self._with_features = True
         self._predictor = self._model.predict_proba
@@ -49,6 +49,10 @@ class LinearModel(BaseModel):
         
     def dump_model(self) -> None:
         '''Dumps the model to a pickle file'''
+        saved_path = (self._savedmodel_path / self._name)
+        saved_path.mkdir(parents=True, exist_ok=True)
+        with open(saved_path / ("model" + "." + self.filetype), 'wb') as f:
+            pickle.dump(self._model , f)
         with open(self._model_path, 'wb') as f:
             pickle.dump(self._model , f)
         print(f'model dumped to {self._model_path}')
@@ -102,27 +106,27 @@ class LinearModel(BaseModel):
         except Exception as e:
             print("Not loading csv: ", e)
             mm_df = pd.DataFrame({'id': preds.id, 'type': preds.type, 'orig_type': preds.orig_type})
-            
-        try:
-            # add new predictions as a new column to existing DataFrame
-            col_name = f'preds_{self._name}'
-            if col_name not in preds:
-                print(f'no predictions to dump for {self._name}')
 
-            if col_name in mm_df.columns:
-                mm_df = mm_df.drop(col_name, axis=1) # dropping column if it already exists 
-            
-            if 'preds_simple_cont' in mm_df.columns:
-                mm_df = mm_df.drop('preds_simple_cont', axis=1) # dropping column if it already exists
-            
-            mm_df = pd.merge(
-                mm_df,
-                preds.drop(["type", "orig_type"], axis=1), # problem, adding other columns than just preds!!
-                on="id",
-                how="left",
-                suffixes=("_l", "_r")
-            )
-            # save updated DataFrame to metamodel CSV file
-            mm_df.to_csv(path, index=False)
-        except Exception as e:
-            print(f'Something went wrong adding predictions: {e}')
+        # try:
+        # add new predictions as a new column to existing DataFrame
+        col_name = f'preds_{self._name}'
+        if col_name not in preds:
+            print(f'no predictions to dump for {self._name}')
+
+        if col_name in mm_df.columns:
+            mm_df = mm_df.drop(col_name, axis=1) # dropping column if it already exists 
+        
+        if 'preds_simple_cont' in mm_df.columns:
+            mm_df = mm_df.drop('preds_simple_cont', axis=1) # dropping column if it already exists
+        
+        mm_df = pd.merge(
+            mm_df,
+            preds.drop(["type", "orig_type"], axis=1), # problem, adding other columns than just preds!!
+            on="id",
+            how="left",
+            suffixes=("_l", "_r")
+        )
+        # save updated DataFrame to metamodel CSV file
+        mm_df.to_csv(path, index=False)
+        # except Exception as e:
+        #     print(f'Something went wrong adding predictions: {e}')

@@ -56,16 +56,15 @@ def init_argparse() -> ap.ArgumentParser:
     """Initialize the argument parser."""
     parser = ap.ArgumentParser(description='Run a model')
     parser.add_argument('-md', '--models', nargs="*", choices=MODELS.keys(), type=str, default=[], help='Specify list of models')
-    # parser.add_argument('--datasets', choices=DATASETS.keys(), help='Dataset to use')
-    parser.add_argument('-mt', '--methods', nargs="*", choices=METHODNAMES, default=[], help='Method to run')
+    parser.add_argument('-mt', '--methods', nargs="*", choices=METHODNAMES, default=[], help='Methods to run')
     parser.add_argument("-t1", "--train_set_1", nargs="*", help="Splits to include in training set 1")
     parser.add_argument("-t2", "--train_set_2", nargs="*", help="Splits to include in training set 2")
     parser.add_argument("-p", "--pre_processing", nargs="*", choices=PREPNAMES, default=[], help="Preprocess validation data")
     parser.add_argument("-v", "--val_set", type=int, help="Choose validation set split number")
     parser.add_argument("-t", "--with_test", type=int, default=0, help="Test performance of models on test data")
     parser.add_argument("-l", "--with_liar", type=int, default=0, help="Test performance of models on LIAR data")
-    parser.add_argument("-nt", "--n_train", type=int, default=1000)
-    parser.add_argument("-nv", "--n_val", type=int , default=1000)
+    parser.add_argument("-nt", "--n_train", type=int, default=1000, help="Number of rows to include in training set")
+    parser.add_argument("-nv", "--n_val", type=int , default=1000, help="Number of rows to include in validation set")
     parser.add_argument("-hp", "--hyper_params", type=str , default=json.dumps({}))
     return parser
 
@@ -82,6 +81,7 @@ if __name__ == '__main__':
     # Paths
     data_path = pl.Path(__file__).parent.parent.resolve() / "data_files/"
     model_path = pl.Path(__file__).parent.parent.resolve() / "model_files/"
+    model_path_shared = pl.Path(__file__).parent.parent.resolve() / "model_files_shared/"
     val_split_num = 1 if args.with_test else args.val_set
     val_data_path = data_path / f"processed_csv/val_data_set{val_split_num}.csv"
     liar_path = pl.Path(__file__).parent.parent.resolve() / "data_files/LIAR.csv"
@@ -149,8 +149,8 @@ if __name__ == '__main__':
 
             vectorizer = DictVectorizer()
             vectorizer.fit(bow_art_trn[bow_art_trn["trn_split"] == 1]["words"].to_list())
-            with open(model_path / 'dict_vectorizer.pkl', 'wb') as f:
-                pickle.dump(vectorizer, f)
+            model_path_shared.mkdir(parents=True, exist_ok=True)
+            pickle.dump(vectorizer, open(model_path_shared / 'dict_vectorizer.pkl', 'wb'))
             
             # Assign to training sets
             training_sets["bow_articles"] = bow_art_trn
@@ -167,6 +167,7 @@ if __name__ == '__main__':
         else:
             val_data = pd.read_csv(val_data_path, nrows=args.n_val)
             val_data["words"] = val_data["words"].apply(ast.literal_eval)
+        (model_path / "meta_model/metamodel_inference.csv").unlink(missing_ok=True)
     
     for model_name in args.models:
         t0_model = time()
@@ -195,6 +196,7 @@ if __name__ == '__main__':
             if method_name == "infer":
                 if isinstance(model_inst, MetaModel):
                     mm_df = pd.read_csv(model_path / 'meta_model/metamodel_inference.csv')
+                    print(mm_df)
                     METHODS[method_name](mm_df)
                 else:
                     METHODS[method_name](val_data)

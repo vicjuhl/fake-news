@@ -26,7 +26,7 @@ class MetaModel(BaseModel):
         super().__init__(params, training_sets, val_set, models_dir, t_session, name, model_format)
         self._vectorizer = DictVectorizer()
         try:
-            with open(self._savedmodel_path / 'meta_dict_vectorizer.pkl', 'rb') as f:
+            with open(self._savedmodel_path / "meta_dict_vectorizer.pkl", 'rb') as f:
                 self._vectorizer = pickle.load(f)
         except FileNotFoundError as e:
             print("No meta model file found, continuing without vectorizer:", e)
@@ -63,11 +63,24 @@ class MetaModel(BaseModel):
     
     def dump_model(self) -> None:
         '''Dumps the model to a pickle file'''
+        saved_path = (self._savedmodel_path / self._name)
+        saved_path.mkdir(parents=True, exist_ok=True)
+        with open(saved_path / ("model" + "." + self.filetype), 'wb') as f:
+            pickle.dump(self._model, f)
+        with open(self._savedmodel_path / "meta_dict_vectorizer.pkl", 'wb') as f:
+            pickle.dump(self._vectorizer , f)
         with open(self._model_path, 'wb') as f:
             pickle.dump(self._model , f)
         with open(self._metamodel_path / 'meta_dict_vectorizer.pkl', 'wb') as f:
             pickle.dump(self._vectorizer, f)
         print(f'model dumped to {self._model_path}')
+
+    def load(self):
+        try:
+            saved_model = pickle.load(open(self._savedmodel_path / self._name / ("model" + "." + self.filetype), 'rb'))
+            self.set_model(saved_model)
+        except:
+            raise Exception("Exception load failed: modelfile not found")
         
     def infer(self, df: pd.DataFrame) -> None:
         '''Infer the model on the given dataframe'''
